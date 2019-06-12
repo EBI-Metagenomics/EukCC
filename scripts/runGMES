@@ -1,0 +1,34 @@
+#!/bin/sh
+# simple wrapper for GMEs
+# allowing to provide an output directory
+
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+output_file="./output/"
+input_file=""
+ncores="1"
+
+while getopts "h?i:o:n:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    i)  input_file=$OPTARG
+        ;;
+    o)  output_file=$OPTARG
+        ;;
+    n)  ncores=$OPTARG
+        ;;
+    esac
+done
+
+# cd into output dir
+cd $(dirname ${output_file})
+GTF="$(basename $input_file).gtf"
+gmes_petap.pl --fungus --ES --cores $ncores --min_contig 5000 --sequence $input_file
+get_sequence_from_GTF.pl $GTF $input_file
+mv prot_seq.fna ${output_file}
