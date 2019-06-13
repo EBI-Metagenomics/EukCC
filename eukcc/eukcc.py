@@ -14,22 +14,35 @@ dep = {
       }
 
 
+def updateConf(cfg, k, v):
+    if v is not None:
+        cfg[k] = v
+    return(cfg)
+    
+
 class eukcc():
-    def __init__(self, fastapath, configdir, outdir, place = None, verbose = True, force = False):
-        # keep track of verbosity
-        self.v = verbose
+    def __init__(self, fastapath, configdir, outdir = None, place = None, verbose = True, force = None, isprotein = None):
         # check config dir
         self.config = eukinfo(configdir)
-        self.config.outdir = outdir
-        self.config.force = force
+        self.cfg = self.config.cfg
+        # update config with function params
+        self.cfg = updateConf(self.cfg, "outdir", outdir)
+        self.cfg = updateConf(self.cfg, "force", force)
+        self.cfg = updateConf(self.cfg, "verbose", verbose)
+        self.cfg = updateConf(self.cfg, "isprotein", isprotein)
+        self.cfg = updateConf(self.cfg, "place", place)
+
         # check if we can read and write
         self.checkIO(fastapath, outdir)
         # check for dependencies
         checkDependencies(dep)
         
-        
-        # run gmes
-        proteinfaa = self.gmes(fastapath)
+        # skip gene predition if this is already protein sequences
+        if not isprotein:
+            # run gmes
+            proteinfaa = self.gmes(fastapath)
+        else:
+            proteinfaa = fastapath
         
         # place
         if place is None:
@@ -42,7 +55,7 @@ class eukcc():
         
     def checkIO(self, fastapath, outdir):
         # create outdir if not exists
-        file.isdir(self.config.outdir)
+        file.isdir(self.cfg['outdir'])
 
         print("IO check not yet implemented")
         return(False)
@@ -52,12 +65,12 @@ class eukcc():
         """
         predict proteins using gmes
         """
-        gmesDir = os.path.join(self.config.outdir,"workfiles","gmes")
+        gmesDir = os.path.join(self.cfg['outdir'],"workfiles","gmes")
         file.isdir(gmesDir)
         gmesOut = os.path.join(gmesDir, "proteins.faa")
 
         g = gmes("runGMES", fasta, gmesOut)
-        if g.doIneedTorun(self.config.force):
+        if g.doIneedTorun(self.cfg['force']):
             g.run()
             
         return(gmesOut)
@@ -72,19 +85,19 @@ class eukcc():
         
         # define output files
         
-        hmmDir = os.path.join(self.config.outdir,"workfiles","hmmer")
+        hmmDir = os.path.join(self.cfg['outdir'],"workfiles","hmmer")
         file.isdir(hmmDir)
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
         
         # run hmmer if forced or input newer than output            
         h = hmmer("hmmsearch", fasta, hmmOut)
-        if h.doIneedTorun(self.config.force):
-            log("Gonna place the bin", self.v)
+        if h.doIneedTorun(self.cfg['force']):
+            log("Gonna place the bin", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = self.config.placementHMMs)
             # clean hmmer outpout
         else:
-            log("Bin was already placed", self.v)
+            log("Bin was already placed", self.cfg['verbose'])
 
         
         

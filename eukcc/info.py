@@ -2,14 +2,27 @@ import os
 import json
 from eukcc import base
 from eukcc.base import log
+import yaml
+
+
+defaults = {"verbose": True,
+            "isprotein": False,
+            "outdir": ".",
+            "place": None,
+            "force": False,
+            "threads": 1}
 
 
 class eukinfo():
     def __init__(self, dirname):
         self.dirname = dirname
         v = self.checkForFiles(dirname)
-        
+        # define location of placement HMMs
         self.placementHMMs = os.path.join(self.dirname, "hmms/concat.hmm")
+        
+        # define deaults and load config if any
+        self.cfg = defaults
+        self.loadConfig()
 
     def checkForFiles(self, dirname):
         required = ["profile.list", "refpkg", "hmms/concat.hmm"]
@@ -19,6 +32,19 @@ class eukinfo():
                 print("Configuartion folder does not contain: {}".format(f))
                 return(False)
         return(True)
+    
+    def loadConfig(self):
+        """
+        See if config.yaml can be found and if so
+        load it and iverwrite defaults
+        """
+        cp = os.path.join(self.dirname, "config.yaml")
+        if not base.exists(cp):
+            return
+        with open(cp) as f:
+            cfg = yaml.load(f)
+            for k,v in cfg.items():
+                self.cfg[k] = v
     
     
     def pkgfile(self, name, t):

@@ -88,7 +88,7 @@ class hmmer(run):
                "-o", stdoutfile,
                "--tblout", self.output,
                hmmfiles, self.input]
-        print(" ".join(lst))
+        #print(" ".join(lst))
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
