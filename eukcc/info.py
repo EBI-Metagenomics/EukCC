@@ -6,11 +6,19 @@ import yaml
 
 
 defaults = {"verbose": True,
+            "outfile": "eukcc.tsv",
             "isprotein": False,
             "outdir": ".",
             "place": None,
             "force": False,
             "threads": 1,
+            "placementMethod": "LCA",
+            "minProfiles": 20,
+            "minGenomes": 3,
+            "minSupport": 2,
+            "nPlacements": 1,
+            "PANTHER": "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1",
+            "minPlacementLikelyhood": 0.5,
             "mindist": 2000}
 
 
@@ -27,7 +35,7 @@ class eukinfo():
         self.loadConfig()
 
     def checkForFiles(self, dirname):
-        required = ["profile.list", "refpkg", "hmms/concat.hmm"]
+        required = ["profile.list", "refpkg", "hmms/concat.hmm", "sets/setinfo.csv"]
         for f in required:
             p = os.path.join(dirname, f)
             if not base.exists(p):

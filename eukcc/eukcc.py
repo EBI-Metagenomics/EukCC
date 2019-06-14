@@ -3,6 +3,7 @@ from eukcc.info import eukinfo
 from eukcc.base import log
 from eukcc.exec import checkDependencies
 from eukcc.exec import hmmer
+from eukcc.exec import hmmpress
 from eukcc.exec import gmes
 from eukcc.exec import pplacer
 from eukcc.exec import tog
@@ -25,7 +26,7 @@ def updateConf(cfg, k, v):
     
 
 class eukcc():
-    def __init__(self, fastapath, configdir, outdir = None, place = None, verbose = True, force = None, isprotein = None, bedfile = None):
+    def __init__(self, fastapath, configdir, outfile = "eukcc.tsv", outdir = None, place = None, verbose = True, force = None, isprotein = None, bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
@@ -35,6 +36,7 @@ class eukcc():
         self.cfg = updateConf(self.cfg, "verbose", verbose)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
         self.cfg = updateConf(self.cfg, "place", place)
+        self.cfg = updateConf(self.cfg, "outfile", outfile)
 
         # check if we can read and write
         self.checkIO(fastapath, outdir)
@@ -50,12 +52,17 @@ class eukcc():
         
         # place
         if place is None:
-            self.place(proteinfaa, bedfile)
+            self.placed = self.place(proteinfaa, bedfile)
         else:
             print("check if placement can be found in tree")
             print("if so, use that and run next step")
         
         # compute completeness and contamination
+        hmmfile = self.concatHMM(self.placed)
+        hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
+        
+        outputfile = os.path.join(self.cfg['outdir'], self.cfg['outfile'])
+        self.estimate(hits, outputfile, self.placed)
         
     def checkIO(self, fastapath, outdir):
         # create outdir if not exists
@@ -64,6 +71,86 @@ class eukcc():
         print("IO check not yet implemented")
         return(False)
     
+    def estimate(self, hits, outfile, placements):
+        hit = {}
+        r = base.readTSV(hits)
+        # count profile hits
+        for row in r:
+            if row['profile'] not in hit.keys():
+                hit[row['profile']] = 0
+            else:
+                hit[row['profile']] += 1
+        doubles = set([n for k,v  in hit.items() if v > 1])
+        # now we can estimate completeness and contamination for each placement
+        for i in range(len(placements)):
+            s = self.readSet(placements[i]['path'])
+            # completeness is the overap of both sets 
+            cmpl = len(s & set(hit.keys()))/len(s)
+            cont = len(doubles & s)/len(s)
+            placements[i]['completeness'] = round(cmpl * 100, 2)
+            placements[i]['contamination'] = round(cont * 100, 4)
+        
+        print(outfile)
+        k = ["n", "ngenomes", "completeness", "contamination", "tax_id", "cover"]
+        with open(outfile, "w") as f:
+            f.write("{}\n".format("\t".join(k)))
+            for p in placements:
+                f.write("\t".join([str(p[key]) for key in k]+["\n"]))
+                    
+            
+        return(placements)
+    
+    def readSet(self, p):
+        profiles = []
+        with open(p) as f:
+            for line in f:
+                profiles.append(line.strip())
+        return(set(profiles))
+                    
+    
+    def concatHMM(self, places):
+        profiles = []
+        for p in places:
+            with open(p['path']) as f:
+                for line in f:
+                    profiles.append(line.strip())
+        # create all paths for all hmms
+        hmmerpaths = [os.path.join(self.cfg['PANTHER'], "books", profile, "hmmer.hmm") for profile in profiles]
+        
+        # create a dir for this
+        hmmdir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
+        file.isdir(hmmdir)
+        hmmconcat = os.path.join(hmmdir, "all.hmm")
+        # concatenate
+        log("{} hmm profiles need to be used for estimations".format(len(profiles)), self.cfg['verbose'])
+        log("Concatenating hmms, this might take a while (IO limited)", self.cfg['verbose'])
+        #print("Unkomment this here for production!")
+        hmmconcat = base.concatenate(hmmconcat, hmmerpaths)
+        # press
+        log("Pressing hmms", self.cfg['verbose'])
+        hp = hmmpress("hmmpress", hmmconcat, None)
+        hp.run()
+        return(hmmconcat)
+
+    def runPlacedHMM(self, hmmfile, proteinfaa, bedfile):
+        # run hmmer and strip down
+
+        # define output files
+        hmmDir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
+        file.isdir(hmmDir)
+        hmmOut = os.path.join(hmmDir, "placement.tsv")
+        hmmOus = os.path.join(hmmDir, "placement.out")
+        hitOut = os.path.join(hmmDir, "hits.tsv")
+        
+        h = hmmer("hmmsearch", proteinfaa, hmmOut)
+        if h.doIneedTorun(self.cfg['force']):
+            log("Running hmmer for chosen locations", self.cfg['verbose'])
+            h.run(hmmOus, hmmfiles = hmmfile)
+            # clean hmmer outpout
+            log("Processing Hmmer results", self.cfg['verbose'])
+            hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
+        return(hitOut)
+        
     
     def gmes(self, fasta):
         """
@@ -125,6 +212,7 @@ class eukcc():
         placerDirTmp = os.path.join(placerDir, "tmp")
         pplaceAlinment = os.path.join(placerDir, "horizontalAlignment.fasta")
         pplaceOut = os.path.join(placerDir, "placement.jplace")
+        pplaceOutReduced = os.path.join(placerDir, "placementReduced.jplace")
         file.isdir(placerDirTmp)
         
         # pplacer
@@ -135,16 +223,47 @@ class eukcc():
                                 self.config, self.cfg,  placerDirTmp )
             pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"))
         
+        # reduce placements to the placements with at least posterior of p
+        pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])
+        
         # run TOG to get a tree
         togTree = os.path.join(placerDir, "placement.tree")
-        tg = tog("guppy", pplaceOut, togTree)
+        tg = tog("guppy", pplaceOutReduced, togTree)
         if tg.doIneedTorun(self.cfg['force']):
             log("Fetching pplacer tree", self.cfg['verbose'])
             tg.run()
-            
+        
+        log("Getting best placement", self.cfg['verbose'])
         # now we can place the bin using the tree
         t = treelineage.treeHandler(togTree)
+        t2 = treelineage.treeHandler(self.config.tree)
+        orignialleaves = t2.leaves()
+        sets = self.getSets()
+        placements = t.getPlacement(self.cfg['placementMethod'], sets, orignialleaves, self.cfg['nPlacements'], self.cfg['minSupport'])
+        log("Done placeing", self.cfg['verbose'])
+        return(placements)
         
+    
+    def getSets(self):
+        setinfo = os.path.join(self.config.dirname, "sets", "setinfo.csv")
+        # load sets and reduce to sets matching parameters 
+        sets = []
+        with open(setinfo) as f:
+            cols = []
+            for line in f:
+                line = line.strip()
+                l = line.split(",")
+                if len(cols) == 0:
+                    cols = l
+                    continue
+                n = {}
+                for k, v in zip(cols, l):
+                    n[k] = v
+                if int(n["ngenomes"]) >= self.cfg['minGenomes'] and int(n['n']) >= self.cfg['minProfiles']:
+                    sets.append(n)
+                    
+        return(sets)
+                
         
         
         

@@ -1,15 +1,8 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[14]:
-
-
+import operator
 from ete3 import Tree
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
-
-
-# In[113]:
 
 
 class treeHandler():
@@ -66,24 +59,64 @@ class treeHandler():
         R = self.t.get_midpoint_outgroup()
         # and set it as tree outgroup
         self.t.set_outgroup(R)
-        
+    
+    def leaves(self):
+        return(self.t.get_tree_root().get_leaf_names())
+    
     def children(self, nodename ):
         '''
         find and rturn all leafs belpongin as chidlren
         to a node
         '''
-        nn = []
-        for node in self.t.search_nodes(name=nodename)[0].iter_descendants():
-            if node.is_leaf():
-                nn.append(node.name)
+        nn = self.t.search_nodes(name=nodename)[0].get_leaf_names()
+        #for node in self.t.search_nodes(name=nodename)[0].iter_descendants():
+        #    if node.is_leaf():
+        #        nn.append(node.name)
         return(nn)
 
         
     def write(self, file):
         self.t.write(format=1, outfile=file)
+    
+    def getPlacement(self, mode, sets, nonplacements, nplacements = 2, atleast = 1):
+        """
+        function to find the set that has the most support given either LCA (default)
+        or HPA placement .
+        returns list of dict
+        """
+        placements = set(self.t.get_tree_root().get_leaf_names()) - set(nonplacements)
+        remaining = placements
+        results = []
+        while nplacements > 0:
+            for i in range(len(sets)):
+                covering = set(self.children(sets[i]['tax_id'])) & remaining
+                sets[i]['cover'] = len(covering)
+                sets[i]['covering'] = covering
+            
+            # get the one with the best coverage sorted by what we need now
+            # so we need to sort the list of dicts with different keys
+            if mode == "HPA":
+                sets.sort(key=operator.itemgetter("n"), reverse=True)
+                sets.sort(key=operator.itemgetter("ngenomes"), reverse=True)
+            else:
+                sets.sort(key=operator.itemgetter("ngenomes"), reverse=True)
+                sets.sort(key=operator.itemgetter("n"), reverse=True)
+            sets.sort(key=operator.itemgetter("cover"), reverse=True)
 
+            # only retain if at least N placements
+            if sets[0]['cover'] >= atleast:
+                results.append(sets[0].copy())
+                # remove remaining
+                remaining = remaining - sets[0]['covering']
+            
+            nplacements -= 1
+            
+        return(results)
+        
+    
+    def getLCA(self, placements, nodes):
+        return
 
-# In[116]:
 
 
 if __name__ == "__main__":

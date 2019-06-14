@@ -155,3 +155,27 @@ def horizontalConcat(output, files, profiles, sourcealignment):
             f.write("{}\n{}\n".format(name, seq))
     
     return(output)
+
+def concatenate(output, filenames, ungap = True):
+    with open(output, 'w') as outfile:
+        for fname in filenames:
+            with open(fname) as infile:
+                outfile.write(infile.read())
+    return(output)
+
+
+def readTSV(fp):
+    res = []
+    with open(fp) as f:
+        cols = []
+        for row in f:
+            row = row.strip()
+            l = row.split()
+            if len(cols) == 0:
+                cols = l
+            else:
+                n = {}
+                for k,v in zip(cols, l):
+                    n[k] = v
+                res.append(n)
+    return(res)

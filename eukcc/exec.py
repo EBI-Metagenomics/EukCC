@@ -3,6 +3,7 @@ import subprocess
 from .fileoperations import file
 from eukcc import base
 import operator 
+import json
 
 from pyfaidx import Fasta
 
@@ -21,8 +22,9 @@ class run():
         self.program = program
         self.input = inf
         self.output = outf
-        # create output dir
-        dc = file.isdir(os.path.dirname(self.output))
+        if outf is not None:
+            # create output dir
+            dc = file.isdir(os.path.dirname(self.output))
 
     def doIneedTorun(self, force=False):
         if force:
@@ -87,6 +89,16 @@ class gmes(run):
             print("an error occured while executing {}".format(self.program))
             return(False)
 
+        
+class hmmpress(run):
+    def run(self):
+        lst = [self.program, "-f", self.input]
+        try:
+            subprocess.run(lst,  check=True, shell=False)
+            return(True)
+        except subprocess.CalledProcessError:
+            print("an error occured while executing {}".format(self.program))
+            return(False)
 
 class hmmer(run):
     def run(self, stdoutfile, hmmfiles, cores=1, evalue = 10e-5):
@@ -126,6 +138,7 @@ class hmmer(run):
                         print("Could not find entry in bed file for {}".format(n['subject']))
                 # fix profile name
                 n['profile'] = n['profile'].split(".")[0]
+                n['keep'] = True
                 table.append(n)
         
         # sort table by profile, chromsome, start, end
@@ -157,6 +170,7 @@ class hmmer(run):
         
         # now we can iterate this list and alway retain the one with the higher evalue
         print("tbale has n rows: ", len(table))
+        
         j = 0
         for i in range(1, len(table)):
             # set values for this iteration
@@ -190,7 +204,7 @@ class hmmer(run):
             elif keepJ == True and keepI == False:
                 # j stays the same
                 j = j # obv redundant, but nice for making sense of this code
-            
+        
             
         # write result to file
         cols = ['profile', 'subject', 'chrom', 'start', 'stop', 'evalue']
@@ -231,7 +245,7 @@ class pplacer(run):
                     "-m", "LG",
                     "-j", str(cores), 
                     "-c", pkg , self.input]
-        print(" ".join([str(i) for i in lst]))
+        #print(" ".join([str(i) for i in lst]))
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
@@ -294,6 +308,30 @@ class pplacer(run):
         # ordered by the profile name
         self.input = base.horizontalConcat(self.input, alignments, scmgs, 
                          config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
+    
+    def reduceJplace(self, jplace, jplaceselection, placementCutoff = 0.5):
+        with open(jplace) as json_file:  
+            j = (json.load(json_file))
+            fields = j['fields']
+            newplacements = []
+            for placement in j['placements']:
+                ps = placement['p']
+                kp = []
+                for p in ps:
+                    d = {k: v for k,v in zip(fields, p)}
+                    if d['post_prob'] >= placementCutoff:
+                        kp.append(p)
+
+                if len(kp) > 0:
+                    placementn = placement.copy()
+                    placementn['p'] = kp
+                    newplacements.append(placementn)
+            jn = j.copy()
+            jn['placements'] = newplacements
+
+        with open(jplaceselection, "w") as f:
+            json.dump(jn,f)
+        return(jplaceselection)
         
 
         
