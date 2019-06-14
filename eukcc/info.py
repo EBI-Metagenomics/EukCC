@@ -10,7 +10,8 @@ defaults = {"verbose": True,
             "outdir": ".",
             "place": None,
             "force": False,
-            "threads": 1}
+            "threads": 1,
+            "mindist": 2000}
 
 
 class eukinfo():
@@ -19,6 +20,7 @@ class eukinfo():
         v = self.checkForFiles(dirname)
         # define location of placement HMMs
         self.placementHMMs = os.path.join(self.dirname, "hmms/concat.hmm")
+        self.tree = self.pkgfile("concat.refpkg", "tree")
         
         # define deaults and load config if any
         self.cfg = defaults

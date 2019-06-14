@@ -1,6 +1,12 @@
 import os
 import subprocess
 from .fileoperations import file
+from eukcc import base
+import operator 
+
+from pyfaidx import Fasta
+
+#from collections import OrderedDict
 
 class run():
     '''
@@ -83,8 +89,9 @@ class gmes(run):
 
 
 class hmmer(run):
-    def run(self, stdoutfile, hmmfiles, cores=1):
+    def run(self, stdoutfile, hmmfiles, cores=1, evalue = 10e-5):
         lst = [self.program, "--cpu", str(cores),
+               "-E", str(evalue),
                "-o", stdoutfile,
                "--tblout", self.output,
                hmmfiles, self.input]
@@ -97,11 +104,210 @@ class hmmer(run):
             return(False)
     
 
+    def clean(self, hmmer, bedfile, resultfile, mindist = 2000):
+        bed = base.readbed(bedfile)
+        fields = {"subject": 0,
+                  "evalue": 4,
+                  "profile": 2}
+        table = []
+        # read in Hmmer results
+        with open(hmmer) as h:
+            for line in h:
+                if line.startswith("#"):
+                    continue
+                l = line.split()
+                n = {}
+                for k,v in fields.items():
+                    n[k] = l[v]
+                for k in ['chrom', 'start', 'stop']:
+                    if n['subject'] in bed.keys():
+                        n[k] = bed[n['subject']][k]
+                    else:
+                        print("Could not find entry in bed file for {}".format(n['subject']))
+                # fix profile name
+                n['profile'] = n['profile'].split(".")[0]
+                table.append(n)
+        
+        # sort table by profile, chromsome, start, end
+        columns = ["profile", "chrom", "start", "stop"]
+        columns.reverse()
+        for k in columns:
+            table.sort(key=operator.itemgetter(k))
+        
+        def closeOrWithin(row, lastrow, distanceTresh):
+            '''
+            returns true if row is within or close to the lastrow
+            '''
+            # start within
+            if row["start"] >= lastrow["start"] and row["start"] <= lastrow["stop"]:
+                return(True)
+            # end within
+            if row["stop"] >= lastrow["start"] and row["stop"] <= lastrow["stop"]:
+                return(True)
+
+            # distance between any value with any other value:
+            a = [row["start"], row["stop"]]
+            b = [lastrow["start"], lastrow["stop"]]
+            for v in a:
+                for w in b:
+                    if abs(v - w) <= distanceTresh:
+                        return(True)
     
-    def clean(self):
-        return
+            return(False)
+        
+        # now we can iterate this list and alway retain the one with the higher evalue
+        print("tbale has n rows: ", len(table))
+        j = 0
+        for i in range(1, len(table)):
+            # set values for this iteration
+            row = table[i]
+            lastrow = table[j]
+            keepI = True
+            keepJ = True
+            # check if hits are of same profile and on same chromsome
+            # only then we can merge
+            if row['profile'] == lastrow['profile'] and row['chrom'] == lastrow['chrom']:
+                # check if both are close
+                if closeOrWithin(row, lastrow, mindist):
+                    print("decide")
+                    if float(lastrow['evalue']) < float(row['evalue']):
+                        keepI = False
+                    else:
+                        keepJ = False
+                
+            
+            # save which row we keep
+            if "keep" not in table[j].keys() or keepJ == False:
+                table[j]['keep'] = keepJ
+            if "keep" not in table[i].keys() or keepI == False:
+                table[i]['keep'] = keepI
+            
+            # update j, so index to lastrow
+            if keepJ == False:
+                j = i 
+            elif keepJ == True and keepI == True:
+                j = i
+            elif keepJ == True and keepI == False:
+                # j stays the same
+                j = j # obv redundant, but nice for making sense of this code
+            
+            
+        # write result to file
+        cols = ['profile', 'subject', 'chrom', 'start', 'stop', 'evalue']
+        with open(resultfile, "w") as f:
+            f.write("\t".join(cols + ["\n"]))
+            for row in table:
+                if row['keep'] == False:
+                    continue
+                # print if we keep the row
+                v = [str(row[k]) for k in cols] + ["\n"]
+                f.write("\t".join(v))
+        
+        return(resultfile)
+    
 
+    
 
+class hmmalign(run):
+    def run(self, alignmentpath, hmmpath):
+        lst = [self.program, "--outformat", "afa", 
+               "--mapali",
+               alignmentpath,  
+               "--amino", hmmpath, self.input]
+        #print(" ".join(lst))
+        try:
+            with open(self.output, "w") as f:
+                subprocess.run(lst,  check=True, shell=False, stdout = f)
+            return(True)
+        except subprocess.CalledProcessError:
+            print("an error occured while executing {}".format(self.program))
+            return(False)
+
+    
+class pplacer(run):
+    def run(self, pkg, cores = 1):
+        lst = [self.program, 
+                    "-o", self.output ,"-p", "--keep-at-most", "5",
+                    "-m", "LG",
+                    "-j", str(cores), 
+                    "-c", pkg , self.input]
+        print(" ".join([str(i) for i in lst]))
+        try:
+            subprocess.run(lst,  check=True, shell=False)
+            return(True)
+        except subprocess.CalledProcessError:
+            print("an error occured while executing {}".format(self.program))
+            return(False)
+        
+    def prepareAlignment(self, hmmerOutput, proteinList, proteinFasta, config, cfg, tmpDir ):
+        # for each profile that we found a SCMG
+        # make concatenated fasta (including new sequence)
+        # align that to the hmm profile
+        profiles = []
+        with open(proteinList) as pl:
+            for l in pl:
+                profiles.append(l.strip())
+        # read in hmmer output to get seqnames of target proteins
+        cols = []
+        hmmer = []
+        scmgsr = []
+        with open(hmmerOutput) as ho:
+            for line in ho:
+                l = line.split()
+                if len(cols) == 0:
+                    cols = l
+                else:
+                    n = {}
+                    for k,v in zip(cols, l):
+                        n[k] = v
+                    hmmer.append(n)
+                    scmgsr.append(n['profile'])
+        scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
+        scmgs.sort()
+        # get the protein names for each scmgs
+        proteinnames = []
+        for profile in scmgs:
+            for row in hmmer:
+                if row['profile'] == profile:
+                    proteinnames.append(row['subject'])
+        # load proteins
+        proteins = Fasta(proteinFasta)
+        
+        alignments = []
+        # for each protein/SCMG we need to make an alignment
+        for p, g in zip(scmgs, proteinnames):
+            # write seq to file
+            seq = proteins[g]
+            name = "{}_{}".format(p, g)
+            tmpfasta = os.path.join(tmpDir, "{}.faa".format(name))
+            geneAlignment = os.path.join(tmpDir, "{}.aln".format(name))
+            tmpfasta = base.writeFasta(tmpfasta, name, seq)
+            profileAlignment = config.pkgfile("{}.refpkg".format(p), "aln_fasta")
+            profileHMM = config.pkgfile("{}.refpkg".format(p), "profile")
+            # start and run alignment of this profile
+            ha = hmmalign("hmmalign", tmpfasta, geneAlignment)
+            ha.run(profileAlignment, profileHMM)
+            alignments.append(geneAlignment)
+            
+
+        # after this we concatenate the alignments
+        # ordered by the profile name
+        self.input = base.horizontalConcat(self.input, alignments, scmgs, 
+                         config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
+        
+
+        
+class tog(run):
+    def run(self):
+        lst = [self.program, "tog", self.input, "-o", self.output]
+        try:
+            subprocess.run(lst,  check=True, shell=False)
+            return(True)
+        except subprocess.CalledProcessError:
+            print("an error occured while executing {}".format(self.program))
+            return(False)
+
+        
 def checkDependencies(dep):
     """
     simple function to check all dependencies

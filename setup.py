@@ -12,8 +12,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
-    scripts=["scripts/runGmes"],
-    install_requires=["ete3"],
+    scripts=["scripts/runGMES"],
+    install_requires=["ete3", "pyfaidx"],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
