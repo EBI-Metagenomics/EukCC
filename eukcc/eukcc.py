@@ -27,6 +27,7 @@ def updateConf(cfg, k, v):
 
 class eukcc():
     def __init__(self, fastapath, configdir, outfile = "eukcc.tsv", 
+                 threads = None,
                  outdir = None, place = None, verbose = True, force = None, 
                  isprotein = None, bedfile = None):
         # check config dir
@@ -35,6 +36,7 @@ class eukcc():
         # update config with function params
         self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "force", force)
+        self.cfg = updateConf(self.cfg, "threads", threads)
         self.cfg = updateConf(self.cfg, "verbose", verbose)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
         self.cfg = updateConf(self.cfg, "place", place)
@@ -147,7 +149,8 @@ class eukcc():
         h = hmmer("hmmsearch", proteinfaa, hmmOut)
         if h.doIneedTorun(self.cfg['force']):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
-            h.run(hmmOus, hmmfiles = hmmfile)
+            h.run(hmmOus, hmmfiles = hmmfile, 
+                  cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
@@ -165,7 +168,7 @@ class eukcc():
 
         g = gmes("runGMES", fasta, gmesOut)
         if g.doIneedTorun(self.cfg['force']):
-            g.run()
+            g.run(cores = self.cfg['threads'])
         
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")
@@ -201,7 +204,8 @@ class eukcc():
         h = hmmer("hmmsearch", fasta, hmmOut)
         if h.doIneedTorun(self.cfg['force']):
             log("Gonna place the bin", self.cfg['verbose'])
-            h.run(hmmOus, hmmfiles = self.config.placementHMMs)
+            h.run(hmmOus, hmmfiles = self.config.placementHMMs,
+                  cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
@@ -222,7 +226,8 @@ class eukcc():
             log("Running pplacer", self.cfg['verbose'])
             pp.prepareAlignment(hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
                                 self.config, self.cfg,  placerDirTmp )
-            pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"))
+            pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"),
+                   cores = self.cfg['threads'])
         
         # reduce placements to the placements with at least posterior of p
         pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])

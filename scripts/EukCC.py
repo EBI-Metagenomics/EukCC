@@ -50,6 +50,7 @@ for fa in args.fasta:
     
     runeukcc(fa, args.configdir, 
              outdir = os.path.join(args.outdir, name),
+             cores = args.ncores,
              isprotein = False)
 
 
