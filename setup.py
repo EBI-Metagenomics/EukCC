@@ -12,7 +12,9 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
-    scripts=["scripts/runGMES"],
+    py_modules = ['eukcc', 'base', 'fileoperations'],
+    scripts=["scripts/runGMES",
+             "scripts/EukCC.py"],
     install_requires=["ete3", "pyfaidx"],
     packages=setuptools.find_packages(),
     classifiers=[

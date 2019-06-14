@@ -26,7 +26,9 @@ def updateConf(cfg, k, v):
     
 
 class eukcc():
-    def __init__(self, fastapath, configdir, outfile = "eukcc.tsv", outdir = None, place = None, verbose = True, force = None, isprotein = None, bedfile = None):
+    def __init__(self, fastapath, configdir, outfile = "eukcc.tsv", 
+                 outdir = None, place = None, verbose = True, force = None, 
+                 isprotein = None, bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
@@ -159,7 +161,7 @@ class eukcc():
         gmesDir = os.path.join(self.cfg['outdir'],"workfiles","gmes")
         file.isdir(gmesDir)
         gmesOut = os.path.join(gmesDir, "proteins.faa")
-        gtffile = gmesOut[:-4] + ".gtf"
+        gtffile = os.path.join(gmesDir, "genemark.gtf")
 
         g = gmes("runGMES", fasta, gmesOut)
         if g.doIneedTorun(self.cfg['force']):
@@ -167,8 +169,7 @@ class eukcc():
         
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")
-        if self.cfg['force'] or file.isnewer(gtffile, bedf):
-            
+        if self.cfg['force'] or file.isnewer(gtffile, bedf):   
             bedf = base.gmesBED(gtffile, bedf)
         print(gtffile)
         return(gmesOut, bedf)
