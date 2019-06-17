@@ -30,6 +30,6 @@ done
 # cd into output dir
 cd $(dirname ${output_file})
 GTF="$(basename $input_file).gtf"
-gmes_petap.pl --fungus --ES --cores $ncores --min_contig 5000 --sequence $input_file
-get_sequence_from_GTF.pl $GTF $input_file
-mv prot_seq.fna ${output_file}
+gmes_petap.pl --fungus --ES --cores $ncores --min_contig 5000 --sequence $input_file > runGMES.log 2>&1 
+get_sequence_from_GTF.pl genemark.gtf $input_file
+#mv prot_seq.faa ${output_file}

@@ -179,3 +179,22 @@ def readTSV(fp):
                     n[k] = v
                 res.append(n)
     return(res)
+
+def clearFastaNames(fastaIn, fastaOut):
+    nms = []
+    with open(fastaOut, "w") as o:
+        with open(fastaIn) as f:
+            for line in f:
+                if line.startswith(">"):
+                    l = line.split()
+                    N = l[0].strip()
+                    n = N
+                    i = 0
+                    while n in nms:
+                        n = "{}.{}".format(N ,i)
+                        i += 1
+                    o.write("{}\n".format(n))
+                    nms.append(n)
+                else:
+                    o.write(line)
+    return(fastaOut)

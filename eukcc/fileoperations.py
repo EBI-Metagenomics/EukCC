@@ -35,17 +35,16 @@ class file():
     @staticmethod
     def isnewer(fileA, fileB):
         '''
-        Check if file A is newer then file B
+        Check if file A is newer than file B
         '''
         if not file.isfile(fileA):
             log("{} is not a file".format(fileA))
             return(False)
 
         if not file.isfile(fileB):
-            # log("{} is not a file".format(fileB))
+            #log("{} is not a file".format(fileB))
             # return true bc fileB does not exists!
             return(True)
-
         return(os.stat(fileA).st_mtime > os.stat(fileB).st_mtime)
 
 

@@ -15,7 +15,8 @@ from eukcc.fileoperations import file
 dep = {
        "hmmer": "hmmsearch",
        "runGMES": "runGMES",
-       "GeneMarkES": "gmes_petap.pl"
+       "GeneMarkES": "gmes_petap.pl",
+       "pplacer": "pplacer"
       }
 
 
@@ -31,6 +32,7 @@ class eukcc():
                  threads = None,
                  outdir = None, 
                  place = None, verbose = True, force = None, 
+                 fplace = None,
                  isprotein = None, bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
@@ -38,6 +40,7 @@ class eukcc():
         # update config with function params
         self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "force", force)
+        self.cfg = updateConf(self.cfg, "fplace", fplace)
         self.cfg = updateConf(self.cfg, "threads", threads)
         self.cfg = updateConf(self.cfg, "verbose", verbose)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
@@ -86,7 +89,8 @@ class eukcc():
                 hit[row['profile']] = 0
             else:
                 hit[row['profile']] += 1
-        doubles = set([n for k,v  in hit.items() if v > 1])
+        
+        doubles = set([k for k,v  in hit.items() if v > 1])
         # now we can estimate completeness and contamination for each placement
         for i in range(len(placements)):
             s = self.readSet(placements[i]['path'])
@@ -108,7 +112,8 @@ class eukcc():
     
     def readSet(self, p):
         profiles = []
-        with open(p) as f:
+        localpath = os.path.join(self.config.dirname, "sets", os.path.basename(p))
+        with open(localpath) as f:
             for line in f:
                 profiles.append(line.strip())
         return(set(profiles))
@@ -117,7 +122,8 @@ class eukcc():
     def concatHMM(self, places):
         profiles = []
         for p in places:
-            with open(p['path']) as f:
+            localpath = os.path.join(self.config.dirname, "sets", os.path.basename(p['path']))
+            with open(localpath) as f:
                 for line in f:
                     profiles.append(line.strip())
         # create all paths for all hmms
@@ -165,16 +171,27 @@ class eukcc():
         """
         gmesDir = os.path.join(self.cfg['outdir'],"workfiles","gmes")
         file.isdir(gmesDir)
-        gmesOut = os.path.join(gmesDir, "proteins.faa")
+        gmesOut = os.path.join(gmesDir, "prot_seq.faa")
         gtffile = os.path.join(gmesDir, "genemark.gtf")
-
+        inputfasta = os.path.abspath(os.path.join(gmesDir, "input.fna"))
+            
+        # GeneMark-ES
         g = gmes("runGMES", fasta, gmesOut)
         if g.doIneedTorun(self.cfg['force']):
+            # rename fasta entries, so we dont have white space in them
+            log("Copying fasta and clearning names", self.cfg['verbose'])
+            print("copy fasta")
+            g.input = base.clearFastaNames(fasta, inputfasta)
+            log("Starting GeneMark-ES", self.cfg['verbose'])
             g.run(cores = self.cfg['threads'])
+        else:
+            print("Dont need to run Genemarkes")
+            print(gmesOut)
         
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")
         if self.cfg['force'] or file.isnewer(gtffile, bedf):   
+            log("Extracting protein locations", self.cfg['verbose'])
             bedf = base.gmesBED(gtffile, bedf)
         print(gtffile)
         return(gmesOut, bedf)
@@ -204,7 +221,7 @@ class eukcc():
         
         # run hmmer if forced or input newer than output            
         h = hmmer("hmmsearch", fasta, hmmOut)
-        if h.doIneedTorun(self.cfg['force']):
+        if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
             log("Gonna place the bin", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = self.config.placementHMMs,
                   cores = self.cfg['threads'])
@@ -224,7 +241,7 @@ class eukcc():
         
         # pplacer
         pp = pplacer("pplacer",pplaceAlinment, pplaceOut)
-        if pp.doIneedTorun(self.cfg['force']):
+        if pp.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
             log("Running pplacer", self.cfg['verbose'])
             pp.prepareAlignment(hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
                                 self.config, self.cfg,  placerDirTmp )

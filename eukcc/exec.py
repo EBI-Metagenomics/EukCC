@@ -1,6 +1,6 @@
 import os
 import subprocess
-from .fileoperations import file
+from eukcc.fileoperations import file
 from eukcc import base
 import operator 
 import json
@@ -83,7 +83,7 @@ class gmes(run):
                "-o", self.output,
                "-n", str(cores)]
         try:
-            subprocess.run(lst,  check=True, shell=True)
+            subprocess.run(lst,  check=True, shell=False)
             return(True)
         except subprocess.CalledProcessError:
             print("an error occured while executing {}".format(self.program))
@@ -168,9 +168,7 @@ class hmmer(run):
     
             return(False)
         
-        # now we can iterate this list and alway retain the one with the higher evalue
-        print("tbale has n rows: ", len(table))
-        
+        # now we can iterate this list and alway retain the one with the higher evalue        
         j = 0
         for i in range(1, len(table)):
             # set values for this iteration
@@ -183,7 +181,6 @@ class hmmer(run):
             if row['profile'] == lastrow['profile'] and row['chrom'] == lastrow['chrom']:
                 # check if both are close
                 if closeOrWithin(row, lastrow, mindist):
-                    print("decide")
                     if float(lastrow['evalue']) < float(row['evalue']):
                         keepI = False
                     else:
