@@ -10,8 +10,9 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 output_file="./output/"
 input_file=""
 ncores="1"
+key="$(pwd)/.gm_key"
 
-while getopts "h?i:o:n:" opt; do
+while getopts "h?i:o:n:k:" opt; do
     case "$opt" in
     h|\?)
         show_help

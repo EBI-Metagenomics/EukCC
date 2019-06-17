@@ -26,9 +26,11 @@ def updateConf(cfg, k, v):
     
 
 class eukcc():
-    def __init__(self, fastapath, configdir, outfile = "eukcc.tsv", 
+    def __init__(self, fastapath, configdir, 
+                 outfile = "eukcc.tsv", 
                  threads = None,
-                 outdir = None, place = None, verbose = True, force = None, 
+                 outdir = None, 
+                 place = None, verbose = True, force = None, 
                  isprotein = None, bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
