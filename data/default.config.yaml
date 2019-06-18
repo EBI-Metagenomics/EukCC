@@ -1,0 +1,26 @@
+# default config
+outdir: "."
+threads: 1
+verbose: True
+PANTHER: "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1"
+
+########################################
+# more advanced settings
+# touch only if you know what it means
+# might influence the outcome of the 
+# estiamtion
+
+# name of the output file
+outfile: "eukcc.tsv"
+# is the input a protein fasta and a bed file:
+isprotein: False
+place: None
+force: False
+placementMethod: "LCA" # LCA or HPA
+minProfiles: 20
+minGenomes: 3
+minSupport: 2
+nPlacements: 1
+cleanfasta: True
+minPlacementLikelyhood: 0.5
+mindist: 2000
