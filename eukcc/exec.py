@@ -275,6 +275,10 @@ class pplacer(run):
                     scmgsr.append(n['profile'])
         scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
         scmgs.sort()
+        # stop if we have now alignment
+        if len(scmgs) == 0:
+            return(False)
+        
         # get the protein names for each scmgs
         proteinnames = []
         for profile in scmgs:
@@ -305,6 +309,7 @@ class pplacer(run):
         # ordered by the profile name
         self.input = base.horizontalConcat(self.input, alignments, scmgs, 
                          config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
+        return(True)
     
     def reduceJplace(self, jplace, jplaceselection, placementCutoff = 0.5):
         with open(jplace) as json_file:  

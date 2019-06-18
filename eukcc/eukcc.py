@@ -46,6 +46,9 @@ class eukcc():
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
         self.cfg = updateConf(self.cfg, "place", place)
         self.cfg = updateConf(self.cfg, "outfile", outfile)
+        
+        self.stopped = {"stopped": False,
+                        "reason": ""}
 
         # check if we can read and write
         self.checkIO(fastapath, outdir)
@@ -53,31 +56,49 @@ class eukcc():
         checkDependencies(dep)
         
         # skip gene predition if this is already protein sequences
-        if not isprotein:
+        if not isprotein and not self.stopnow():
             # run gmes
             proteinfaa, bedfile = self.gmes(fastapath)
         else:
-            proteinfaa = fastapath
+            proteinfaa = fastapath        
         
-        # place
-        if place is None:
+        # place using pplacer and hmmer
+        if place is None and not self.stopnow():
             self.placed = self.place(proteinfaa, bedfile)
         else:
             print("check if placement can be found in tree")
             print("if so, use that and run next step")
         
-        # compute completeness and contamination
-        hmmfile = self.concatHMM(self.placed)
-        hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
-        
-        outputfile = os.path.join(self.cfg['outdir'], self.cfg['outfile'])
-        self.estimate(hits, outputfile, self.placed)
+        # concat hmms for hmmer
+        if not self.stopnow():
+            hmmfile = self.concatHMM(self.placed)
+        # run Hmmer for sets of placement
+        if not self.stopnow():
+            hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
+        # estimate completeness and contamiantion
+        if not self.stopnow():            
+            outputfile = os.path.join(self.cfg['outdir'], self.cfg['outfile'])
+            self.estimate(hits, outputfile, self.placed)
+    
+    def stopnow(self):
+        '''
+        check if we need to stop bc something failed
+        '''
+        return(self.stopped['stopped'])
+    
+    def stop(self, reason):
+        """
+        set the stop info after a step failed
+        """
+        self.stopped = {"stopped": True,
+                        "reason": reason}
+        log("Stopping because: {}".format(reason))
         
     def checkIO(self, fastapath, outdir):
         # create outdir if not exists
         file.isdir(self.cfg['outdir'])
-
-        print("IO check not yet implemented")
+        # check if input and output can be accessed
+        print("Warning: IO check not yet implemented")
         return(False)
     
     def estimate(self, hits, outfile, placements):
@@ -134,6 +155,10 @@ class eukcc():
         file.isdir(hmmdir)
         hmmconcat = os.path.join(hmmdir, "all.hmm")
         # concatenate
+        if len(profiles) == 0:
+            self.stop("Placement resulted in zero profiles")
+            return(False)
+        
         log("{} hmm profiles need to be used for estimations".format(len(profiles)), self.cfg['verbose'])
         log("Concatenating hmms, this might take a while (IO limited)", self.cfg['verbose'])
         #print("Unkomment this here for production!")
@@ -180,20 +205,23 @@ class eukcc():
         if g.doIneedTorun(self.cfg['force']):
             # rename fasta entries, so we dont have white space in them
             log("Copying fasta and clearning names", self.cfg['verbose'])
-            print("copy fasta")
             g.input = base.clearFastaNames(fasta, inputfasta)
-            log("Starting GeneMark-ES", self.cfg['verbose'])
+            log("Running GeneMark-ES", self.cfg['verbose'])
             g.run(cores = self.cfg['threads'])
-        else:
-            print("Dont need to run Genemarkes")
-            print(gmesOut)
+            
+        # always check if gtffile exists, if not Genemark-ES failed and 
+        # we can stop here
+        if not file.exists(gtffile):
+            log("GeneMark-ES failed on this bin")           
+            self.stop("GeneMark-ES failed")
+            return(False, False)        
         
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")
         if self.cfg['force'] or file.isnewer(gtffile, bedf):   
             log("Extracting protein locations", self.cfg['verbose'])
             bedf = base.gmesBED(gtffile, bedf)
-        print(gtffile)
+            
         return(gmesOut, bedf)
         
         
@@ -205,10 +233,10 @@ class eukcc():
         """
         # test if we can open the input files first
         if not base.exists(fasta):
-            print("Could not open fasta file")
+            self.stop("Could not open fasta file")
             return(False)
         if not base.exists(bedfile):
-            print("Could not open bedfile file")
+            self.stop("Could not open bedfile file")
             return(False)
         
         
@@ -222,14 +250,13 @@ class eukcc():
         # run hmmer if forced or input newer than output            
         h = hmmer("hmmsearch", fasta, hmmOut)
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
-            log("Gonna place the bin", self.cfg['verbose'])
+            log("Searching for proteins to place in the tree (HMMER)", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = self.config.placementHMMs,
                   cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
-        else:
-            log("Bin was already placed", self.cfg['verbose'])
+       
         
         # pplacer paths
         placerDir = os.path.join(self.cfg['outdir'],"workfiles","pplacer")
@@ -242,11 +269,14 @@ class eukcc():
         # pplacer
         pp = pplacer("pplacer",pplaceAlinment, pplaceOut)
         if pp.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
-            log("Running pplacer", self.cfg['verbose'])
-            pp.prepareAlignment(hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
+            log("Placing sequences in the tree (pplacer)", self.cfg['verbose'])
+            pa = pp.prepareAlignment(hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
                                 self.config, self.cfg,  placerDirTmp )
-            pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"),
-                   cores = self.cfg['threads'])
+            if pa == False:
+                self.stop("No protein sequences to place")
+            else:
+                pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"),
+                       cores = self.cfg['threads'])
         
         # reduce placements to the placements with at least posterior of p
         pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])
@@ -255,17 +285,17 @@ class eukcc():
         togTree = os.path.join(placerDir, "placement.tree")
         tg = tog("guppy", pplaceOutReduced, togTree)
         if tg.doIneedTorun(self.cfg['force']):
-            log("Fetching pplacer tree", self.cfg['verbose'])
+            log("Fetching pplacer tree (guppy tog)", self.cfg['verbose'])
             tg.run()
         
-        log("Getting best placement", self.cfg['verbose'])
+        log("Getting the best placement(s)", self.cfg['verbose'])
         # now we can place the bin using the tree
         t = treelineage.treeHandler(togTree)
         t2 = treelineage.treeHandler(self.config.tree)
         orignialleaves = t2.leaves()
         sets = self.getSets()
         placements = t.getPlacement(self.cfg['placementMethod'], sets, orignialleaves, self.cfg['nPlacements'], self.cfg['minSupport'])
-        log("Done placeing", self.cfg['verbose'])
+        log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)
         
     

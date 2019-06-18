@@ -12,6 +12,10 @@ class file():
     def isfile(f):
         return(os.path.exists(f))
     
+    @staticmethod
+    def exists(f):
+        return(os.path.exists(f))
+    
     
     @staticmethod
     def isdir(d, create = True):
