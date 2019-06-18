@@ -33,19 +33,21 @@ class eukcc():
                  outdir = None, 
                  place = None, verbose = True, force = None, 
                  fplace = None,
+                 cleanfasta = None,
                  isprotein = None, bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
         # update config with function params
-        self.cfg = updateConf(self.cfg, "outdir", outdir)
+        self.cfg = updateConf(self.cfg, "cleanfasta", cleanfasta)
         self.cfg = updateConf(self.cfg, "force", force)
         self.cfg = updateConf(self.cfg, "fplace", fplace)
-        self.cfg = updateConf(self.cfg, "threads", threads)
-        self.cfg = updateConf(self.cfg, "verbose", verbose)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
         self.cfg = updateConf(self.cfg, "place", place)
+        self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "outfile", outfile)
+        self.cfg = updateConf(self.cfg, "threads", threads)
+        self.cfg = updateConf(self.cfg, "verbose", verbose)
         
         self.stopped = {"stopped": False,
                         "reason": ""}
@@ -203,9 +205,13 @@ class eukcc():
         # GeneMark-ES
         g = gmes("runGMES", fasta, gmesOut)
         if g.doIneedTorun(self.cfg['force']):
-            # rename fasta entries, so we dont have white space in them
-            log("Copying fasta and clearning names", self.cfg['verbose'])
-            g.input = base.clearFastaNames(fasta, inputfasta)
+            
+            if self.cfg['cleanfasta']:
+                # rename fasta entries, so we dont have white spaces in them
+                # can be turned of via cleanfasta in config file
+                log("Copying fasta and cleaning names. Disable via 'cleanfasta' setting", self.cfg['verbose'])
+                g.input = base.clearFastaNames(fasta, inputfasta)
+                
             log("Running GeneMark-ES", self.cfg['verbose'])
             g.run(cores = self.cfg['threads'])
             
