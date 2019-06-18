@@ -14,7 +14,6 @@ setuptools.setup(
     url="",
     py_modules = ['eukcc', 'base', 'fileoperations'],
     scripts=["scripts/runGMES",
-             "eukcc_renamefasta.py",
              "scripts/EukCC.py"],
     install_requires=["ete3", "pyfaidx"],
     packages=setuptools.find_packages(),
