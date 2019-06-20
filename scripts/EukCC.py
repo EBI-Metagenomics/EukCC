@@ -55,8 +55,6 @@ for fa in args.fasta:
         log("Error: Could not find fasta:\n{}".format(fa))
         continue
     
-   
-    
     # get fasta name
     name = (os.path.splitext(os.path.basename(fa))[0])
     
@@ -75,8 +73,9 @@ for fa in args.fasta:
     except Exception as e:
         log("Could not run EukCC for {}\n check logs for details".format(name))
         print(e)
-        if len(args.fasta) > 1:
-            print("")
+        
+    if len(args.fasta) > 1:
+        print("")
         
 
 

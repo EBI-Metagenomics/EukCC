@@ -120,8 +120,9 @@ class eukcc():
             # completeness is the overap of both sets 
             cmpl = len(s & set(hit.keys()))/len(s)
             cont = len(doubles & s)/len(s)
+            # make to percentage and round to 2 positions
             placements[i]['completeness'] = round(cmpl * 100, 2)
-            placements[i]['contamination'] = round(cont * 100, 4)
+            placements[i]['contamination'] = round(cont * 100, 2)
         
         print(outfile)
         k = ["n", "ngenomes", "completeness", "contamination", "tax_id", "cover"]
@@ -130,8 +131,8 @@ class eukcc():
             for p in placements:
                 f.write("\t".join([str(p[key]) for key in k]+["\n"]))
                     
-            
-        return(placements)
+        # done
+        return(True)
     
     def readSet(self, p):
         profiles = []
@@ -185,6 +186,7 @@ class eukcc():
         if h.doIneedTorun(self.cfg['force']):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = hmmfile, 
+                  evalue = self.cfg['evalue'],
                   cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
@@ -258,6 +260,7 @@ class eukcc():
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
             log("Searching for proteins to place in the tree (HMMER)", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = self.config.placementHMMs,
+                  evalue = self.cfg['evalue'],
                   cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])

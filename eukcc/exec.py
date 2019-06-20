@@ -101,7 +101,7 @@ class hmmpress(run):
             return(False)
 
 class hmmer(run):
-    def run(self, stdoutfile, hmmfiles, cores=1, evalue = 10e-5):
+    def run(self, stdoutfile, hmmfiles, cores=1, evalue = 1e-5):
         lst = [self.program, "--cpu", str(cores),
                "-E", str(evalue),
                "-o", stdoutfile,
