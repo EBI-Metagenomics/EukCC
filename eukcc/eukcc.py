@@ -183,7 +183,7 @@ class eukcc():
         hitOut = os.path.join(hmmDir, "hits.tsv")
         
         h = hmmer("hmmsearch", proteinfaa, hmmOut)
-        if h.doIneedTorun(self.cfg['force']):
+        if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = hmmfile, 
                   evalue = self.cfg['evalue'],
