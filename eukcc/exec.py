@@ -122,6 +122,8 @@ class hmmer(run):
                   "evalue": 4,
                   "profile": 2}
         table = []
+        # intcoluns = 
+        ints  = ['start', 'stop']
         # read in Hmmer results
         with open(hmmer) as h:
             for line in h:
@@ -139,6 +141,11 @@ class hmmer(run):
                 # fix profile name
                 n['profile'] = n['profile'].split(".")[0]
                 n['keep'] = True
+                
+                # convert int columns to int instead of having them as str
+                for k in ints:
+                    n[k] = int(n[k])
+                
                 table.append(n)
         
         # sort table by profile, chromsome, start, end
@@ -242,7 +249,7 @@ class pplacer(run):
                     "-m", "LG",
                     "-j", str(cores), 
                     "-c", pkg , self.input]
-        #print(" ".join([str(i) for i in lst]))
+        print(" ".join([str(i) for i in lst]))
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
@@ -260,22 +267,28 @@ class pplacer(run):
                 profiles.append(l.strip())
         # read in hmmer output to get seqnames of target proteins
         cols = []
-        hmmer = []
-        scmgsr = []
-        with open(hmmerOutput) as ho:
-            for line in ho:
-                l = line.split()
-                if len(cols) == 0:
-                    cols = l
-                else:
-                    n = {}
-                    for k,v in zip(cols, l):
-                        n[k] = v
-                    hmmer.append(n)
-                    scmgsr.append(n['profile'])
+        #hmmer = []
+        #scmgsr = []
+
+        #with open(hmmerOutput) as ho:
+        #    for line in ho:
+        #        l = line.split()
+        #        if len(cols) == 0:
+        #            cols = l
+        #        else:
+        #            n = {}
+        #            for k,v in zip(cols, l):
+        #                n[k] = v
+        #            hmmer.append(n)
+        #            scmgsr.append(n['profile'])
+        
+        # load hmmer results
+        hmmer = base.readTSV(hmmerOutput)
+        # extract SCMGs
+        scmgsr = [hit['profile'] for hit in hmmer]
         scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
         scmgs.sort()
-        # stop if we have now alignment
+        # stop if we have no alignment
         if len(scmgs) == 0:
             return(False)
         
@@ -302,8 +315,7 @@ class pplacer(run):
             # start and run alignment of this profile
             ha = hmmalign("hmmalign", tmpfasta, geneAlignment)
             ha.run(profileAlignment, profileHMM)
-            alignments.append(geneAlignment)
-            
+            alignments.append(geneAlignment)        
 
         # after this we concatenate the alignments
         # ordered by the profile name
@@ -312,6 +324,10 @@ class pplacer(run):
         return(True)
     
     def reduceJplace(self, jplace, jplaceselection, placementCutoff = 0.5):
+        '''
+        reduces a jplace file to placements with at least placementCutoff
+        post_prob
+        '''        
         with open(jplace) as json_file:  
             j = (json.load(json_file))
             fields = j['fields']

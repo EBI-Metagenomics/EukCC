@@ -31,10 +31,13 @@ class eukcc():
                  outfile = "eukcc.tsv", 
                  threads = None,
                  outdir = None, 
-                 place = None, verbose = True, force = None, 
+                 place = None, 
+                 verbose = True, 
+                 force = None, 
                  fplace = None,
                  cleanfasta = None,
-                 isprotein = None, bedfile = None):
+                 isprotein = None, 
+                 bedfile = None):
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
@@ -140,8 +143,7 @@ class eukcc():
         with open(localpath) as f:
             for line in f:
                 profiles.append(line.strip())
-        return(set(profiles))
-                    
+        return(set(profiles))        
     
     def concatHMM(self, places):
         profiles = []
@@ -176,7 +178,7 @@ class eukcc():
         # run hmmer and strip down
 
         # define output files
-        hmmDir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
+        hmmDir = os.path.join(self.cfg['outdir'], "workfiles", "hmmer", "estimations")
         file.isdir(hmmDir)
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
@@ -192,13 +194,12 @@ class eukcc():
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
-        
-    
+         
     def gmes(self, fasta):
         """
         predict proteins using gmes
         """
-        gmesDir = os.path.join(self.cfg['outdir'],"workfiles","gmes")
+        gmesDir = os.path.join(self.cfg['outdir'], "workfiles", "gmes")
         file.isdir(gmesDir)
         gmesOut = os.path.join(gmesDir, "prot_seq.faa")
         gtffile = os.path.join(gmesDir, "genemark.gtf")
@@ -230,9 +231,7 @@ class eukcc():
             log("Extracting protein locations", self.cfg['verbose'])
             bedf = base.gmesBED(gtffile, bedf)
             
-        return(gmesOut, bedf)
-        
-        
+        return(gmesOut, bedf)      
     
     def place(self, fasta, bedfile):
         """
@@ -249,7 +248,7 @@ class eukcc():
         
         
         # define output files
-        hmmDir = os.path.join(self.cfg['outdir'],"workfiles","hmmer")
+        hmmDir = os.path.join(self.cfg['outdir'], "workfiles", "hmmer")
         file.isdir(hmmDir)
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
@@ -307,11 +306,11 @@ class eukcc():
         log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)
         
-    
     def getSets(self):
         setinfo = os.path.join(self.config.dirname, "sets", "setinfo.csv")
         # load sets and reduce to sets matching parameters 
         sets = []
+        ints = ["n", "ngenomes"]
         with open(setinfo) as f:
             cols = []
             for line in f:
@@ -324,6 +323,9 @@ class eukcc():
                 for k, v in zip(cols, l):
                     n[k] = v
                 if int(n["ngenomes"]) >= self.cfg['minGenomes'] and int(n['n']) >= self.cfg['minProfiles']:
+                    # convert int columns to int instead of having them as str
+                    for k in ints:
+                        n[k] = int(n[k])
                     sets.append(n)
                     
         return(sets)

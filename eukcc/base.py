@@ -4,6 +4,8 @@
 import os
 import datetime
 import re
+from pyfaidx import Fasta
+
 
 def exists(f):
     return(os.path.exists(f))
@@ -102,14 +104,16 @@ def readFasta(file):
 
 
 def readFastaNames(file):
-    names = []
-    with open(file) as f:
-        for line in f:
-            if line.startswith(">"):
-                names.append(line.strip())
-            else:
-                continue
-    return(names)
+    f = Fasta(file)
+    return(list(f.keys()))
+    #names = []
+    #with open(file) as f:
+    #    for line in f:
+    #        if line.startswith(">"):
+    #            names.append(line.strip())
+    #        else:
+    #            continue
+    #return(names)
 
 def horizontalConcat(output, files, profiles, sourcealignment):
     seqs = {}
@@ -129,13 +133,13 @@ def horizontalConcat(output, files, profiles, sourcealignment):
             break
             
     # add names from source alignment to
-    # the alignment, as this will amke pplacer happy
+    # the alignment, as this will make pplacer happy
     sa = readFastaNames(sourcealignment)
+    sa = [">{}".format(s) for s in sa]
     allnames |= set(sa)
         
     
     # add missing seqences as strings of spaces
-    #print("we have ", len(allnames), " genomes/sequences")
     for profile, seq in seqs.items():
         for name in allnames:
             if name not in seqs[profile].keys():

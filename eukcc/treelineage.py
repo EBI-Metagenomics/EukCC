@@ -102,7 +102,8 @@ class treeHandler():
                 sets.sort(key=operator.itemgetter("ngenomes"), reverse=True)
                 sets.sort(key=operator.itemgetter("n"), reverse=True)
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
-
+            
+        
             # only retain if at least N placements
             if sets[0]['cover'] >= atleast:
                 results.append(sets[0].copy())

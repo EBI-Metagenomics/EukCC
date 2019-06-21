@@ -22,6 +22,10 @@ parser.add_argument('--configdir','-c', type=str, metavar="PATH",
 parser.add_argument('--ncores','-n', metavar="int", type=int,
                     default=1,
                     help='set number of cores for GeneMarkES and Hmmer')
+parser.add_argument('--bed','-b', metavar="file.bed", type=str,
+                    default=None,
+                    help='pass bedfile if you called genes manually. \
+                    Assumes only a single fasta (protein) is passed and implies --noglob')
 parser.add_argument('--force', '-f', dest='force', action='store_true',
                     default=False, help='force rerun of computation even if \
                                           output is newer than input')
@@ -44,6 +48,15 @@ log("Running eukcc for {} bin{}".format(len(args.fasta), "s" if len(args.fasta) 
 if not file.isdir(args.outdir):
     exit()
 
+# check if a protein fasta was passed (implied )
+if args.bed is not None:
+    # set no glob
+    args.noglob = True
+    args.isprotein = True
+else:
+    args.isprotein = False
+    
+    
 # check if we can expand glob:
 if len(args.fasta) == 1 and not args.noglob:
     log("Expanding paths using glob", not args.quiet)
@@ -69,7 +82,8 @@ for fa in args.fasta:
                  threads = args.ncores,
                  force = args.force,
                  fplace = args.fplace,
-                 isprotein = False)
+                 isprotein = args.isprotein,
+                 bedfile = args.bed)
     except Exception as e:
         log("Could not run EukCC for {}\n check logs for details".format(name))
         print(e)
