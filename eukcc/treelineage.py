@@ -92,6 +92,7 @@ class treeHandler():
                 covering = set(self.children(sets[i]['tax_id'])) & remaining
                 sets[i]['cover'] = len(covering)
                 sets[i]['covering'] = covering
+                sets[i]['nPlacements'] = len(placements)
             
             # get the one with the best coverage sorted by what we need now
             # so we need to sort the list of dicts with different keys

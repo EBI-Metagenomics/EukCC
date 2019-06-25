@@ -22,7 +22,6 @@ def gmesBED(gtf, output):
     given a gmes gtf it will extract ranges and write
     a bed line for each transcript
     """
-    print("now match")
     nre = re.compile(r'gene_id "([0-9]+_g)\";')
     beds = {}
     with open(gtf) as f:

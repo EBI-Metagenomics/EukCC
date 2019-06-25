@@ -127,13 +127,16 @@ class eukcc():
             placements[i]['completeness'] = round(cmpl * 100, 2)
             placements[i]['contamination'] = round(cont * 100, 2)
         
-        print(outfile)
-        k = ["n", "ngenomes", "completeness", "contamination", "tax_id", "cover"]
+        log("finished estimating", self.cfg['verbose'])
+       
+        k = ["completeness", "contamination", "tax_id", "n", "ngenomes", "cover", "nPlacements"]
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
             for p in placements:
                 f.write("\t".join([str(p[key]) for key in k]+["\n"]))
-                    
+        
+        log("Wrote estimates to: {}".format(outfile), self.cfg['verbose'])
+        
         # done
         return(True)
     
@@ -153,7 +156,8 @@ class eukcc():
                 for line in f:
                     profiles.append(line.strip())
         # create all paths for all hmms
-        hmmerpaths = [os.path.join(self.cfg['PANTHER'], "books", profile, "hmmer.hmm") for profile in profiles]
+        hmmerpaths = [os.path.join(self.cfg['PANTHER'], "books", profile, "hmmer.hmm") 
+                      for profile in profiles]
         
         # create a dir for this
         hmmdir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
@@ -302,7 +306,11 @@ class eukcc():
         t2 = treelineage.treeHandler(self.config.tree)
         orignialleaves = t2.leaves()
         sets = self.getSets()
-        placements = t.getPlacement(self.cfg['placementMethod'], sets, orignialleaves, self.cfg['nPlacements'], self.cfg['minSupport'])
+        placements = t.getPlacement(self.cfg['placementMethod'], 
+                                    sets, 
+                                    orignialleaves, 
+                                    self.cfg['nPlacements'], 
+                                    self.cfg['minSupport'])
         log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)
         

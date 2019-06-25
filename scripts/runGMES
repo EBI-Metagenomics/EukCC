@@ -30,7 +30,7 @@ done
 # cd into output dir
 cd $(dirname ${output_file})
 GTF="$(basename $input_file).gtf"
-gmes_petap.pl --fungus --ES --cores $ncores --min_contig 5000 --sequence $input_file > runGMES.log 2>&1 
+gmes_petap.pl --v --fungus --ES --cores $ncores --min_contig 5000 --sequence $input_file > runGMES.log 2>&1 
 
 # check if GeneMark-ES was succesfull
 # if so extract proteins
