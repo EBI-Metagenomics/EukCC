@@ -112,17 +112,19 @@ class eukcc():
         # count profile hits
         for row in r:
             if row['profile'] not in hit.keys():
-                hit[row['profile']] = 0
+                hit[row['profile']] = 1
             else:
                 hit[row['profile']] += 1
         
-        doubles = set([k for k,v  in hit.items() if v > 1])
+        singletons = set(hit.keys())
+        multitons = set([k for k,v  in hit.items() if v > 1])
+
         # now we can estimate completeness and contamination for each placement
         for i in range(len(placements)):
             s = self.readSet(placements[i]['path'])
             # completeness is the overap of both sets 
-            cmpl = len(s & set(hit.keys()))/len(s)
-            cont = len(doubles & s)/len(s)
+            cmpl = len(singletons & s)/len(s)
+            cont = len(multitons  & s)/len(s)
             # make to percentage and round to 2 positions
             placements[i]['completeness'] = round(cmpl * 100, 2)
             placements[i]['contamination'] = round(cont * 100, 2)
