@@ -21,7 +21,9 @@ parser.add_argument('--configdir','-c', type=str, metavar="PATH",
                     help='directory containing set sets and hmms')
 parser.add_argument('--ncores','-n', metavar="int", type=int,
                     default=1,
-                    help='set number of cores for GeneMarkES and Hmmer')
+                    help='set number of cores for GeneMark-ES, pplacer and Hmmer')
+parser.add_argument('--hmm', dest='hmm',  type=str, 
+                    default=None, help='run hmmer on all these HMMs instead')
 parser.add_argument('--bed','-b', metavar="file.bed", type=str,
                     default=None,
                     help='pass bedfile if you called genes manually. \
@@ -31,6 +33,8 @@ parser.add_argument('--force', '-f', dest='force', action='store_true',
                                           output is newer than input')
 parser.add_argument('--fplace', '-p', dest='fplace', action='store_true',
                     default=False, help='force rerun of placement and subsequent steps')
+parser.add_argument('--noplace', dest='fplace', action='store_true',
+                    default=False, help='Do not place MAG, stop after running GeneMark-ES')
 parser.add_argument('--noglob', '-g', dest='noglob', action='store_true',
                     default=False, help='Do not expand paths using glob')
 parser.add_argument('--quiet', '-q', dest='quiet', action='store_true',
@@ -83,7 +87,9 @@ for fa in args.fasta:
                  force = args.force,
                  fplace = args.fplace,
                  isprotein = args.isprotein,
-                 bedfile = args.bed)
+                 bedfile = args.bed,
+                 hmm = args.hmm,
+                 noplace = args.noplace)
     except Exception as e:
         log("Could not run EukCC for {}\n check logs for details".format(name))
         print(e)

@@ -37,7 +37,10 @@ class eukcc():
                  fplace = None,
                  cleanfasta = None,
                  isprotein = None, 
-                 bedfile = None):
+                 bedfile = None,
+                 hmm = None,
+                 noplace = None
+                ):
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
@@ -46,9 +49,11 @@ class eukcc():
         self.cfg = updateConf(self.cfg, "force", force)
         self.cfg = updateConf(self.cfg, "fplace", fplace)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
-        self.cfg = updateConf(self.cfg, "place", place)
+        self.cfg = updateConf(self.cfg, "hmm", hmm)
+        self.cfg = updateConf(self.cfg, "noplace", noplace)
         self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "outfile", outfile)
+        self.cfg = updateConf(self.cfg, "place", place)
         self.cfg = updateConf(self.cfg, "threads", threads)
         self.cfg = updateConf(self.cfg, "verbose", verbose)
         
@@ -66,6 +71,15 @@ class eukcc():
             proteinfaa, bedfile = self.gmes(fastapath)
         else:
             proteinfaa = fastapath        
+        
+        # run hmm file if we are asked to
+        # this is needed during for training 
+        if self.cfg['hmm']:
+            _a = self.runPlacedHMM(self.cfg['hmm'], proteinfaa, bedfile)
+            
+        
+        if self.cfg['noplace']:
+            self.stop("Stopping because we were told to")
         
         # place using pplacer and hmmer
         if place is None and not self.stopnow():
@@ -124,13 +138,14 @@ class eukcc():
             s = self.readSet(placements[i]['path'])
             # completeness is the overap of both sets 
             cmpl = len(singletons & s)/len(s)
-            cont = len(multitons  & s)/len(s)
+            cont = len(multitons & s)/len(s)
             # make to percentage and round to 2 positions
             placements[i]['completeness'] = round(cmpl * 100, 2)
             placements[i]['contamination'] = round(cont * 100, 2)
         
         log("finished estimating", self.cfg['verbose'])
-       
+        
+        # write to output file
         k = ["completeness", "contamination", "tax_id", "n", "ngenomes", "cover", "nPlacements"]
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
@@ -236,7 +251,7 @@ class eukcc():
         if self.cfg['force'] or file.isnewer(gtffile, bedf):   
             log("Extracting protein locations", self.cfg['verbose'])
             bedf = base.gmesBED(gtffile, bedf)
-            
+
         return(gmesOut, bedf)      
     
     def place(self, fasta, bedfile):
