@@ -33,7 +33,7 @@ parser.add_argument('--force', '-f', dest='force', action='store_true',
                                           output is newer than input')
 parser.add_argument('--fplace', '-p', dest='fplace', action='store_true',
                     default=False, help='force rerun of placement and subsequent steps')
-parser.add_argument('--noplace', dest='fplace', action='store_true',
+parser.add_argument('--noplace', dest='noplace', action='store_true',
                     default=False, help='Do not place MAG, stop after running GeneMark-ES')
 parser.add_argument('--noglob', '-g', dest='noglob', action='store_true',
                     default=False, help='Do not expand paths using glob')
