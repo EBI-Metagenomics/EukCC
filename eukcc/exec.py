@@ -257,7 +257,7 @@ class pplacer(run):
             print("an error occured while executing {}".format(self.program))
             return(False)
         
-    def prepareAlignment(self, hmmerOutput, proteinList, proteinFasta, config, cfg, tmpDir ):
+    def prepareAlignment(self, pplaceAlinment, hmmerOutput, proteinList, proteinFasta, config, cfg, tmpDir ):
         # for each profile that we found a SCMG
         # make concatenated fasta (including new sequence)
         # align that to the hmm profile
@@ -319,7 +319,7 @@ class pplacer(run):
 
             # after this we concatenate the alignments
             # ordered by the profile name
-            self.input = base.horizontalConcat(self.input, alignments, scmgs, 
+            self.input = base.horizontalConcat(pplaceAlinment, alignments, scmgs, 
                              config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
     
     def reduceJplace(self, jplace, jplaceselection, placementCutoff = 0.5):

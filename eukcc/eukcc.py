@@ -300,7 +300,7 @@ class eukcc():
         pp = pplacer("pplacer", fasta, pplaceOut)
         if pp.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
             log("Creating alignments", self.cfg['verbose'])
-            pp.prepareAlignment(hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
+            pp.prepareAlignment(pplaceAlinment, hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
                                 self.config, self.cfg,  placerDirTmp )
             if pp.lenscmgs == 0:
                 self.stop("No protein sequences to place")
@@ -310,7 +310,7 @@ class eukcc():
                        cores = self.cfg['threads'])
         
         # reduce placements to the placements with at least posterior of p
-        log("reducing palcements using likelyhood", self.cfg['verbose'])
+        log("reducing placements using likelyhood", self.cfg['verbose'])
         pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])
         
         # run TOG to get a tree
