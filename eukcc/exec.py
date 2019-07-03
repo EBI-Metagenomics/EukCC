@@ -288,40 +288,39 @@ class pplacer(run):
         scmgsr = [hit['profile'] for hit in hmmer]
         scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
         scmgs.sort()
-        # stop if we have no alignment
-        if len(scmgs) == 0:
-            return(False)
+        # count the placements
+        self.lenscmgs = len(scmgs)
         
-        # get the protein names for each scmgs
-        proteinnames = []
-        for profile in scmgs:
-            for row in hmmer:
-                if row['profile'] == profile:
-                    proteinnames.append(row['subject'])
-        # load proteins
-        proteins = Fasta(proteinFasta)
-        
-        alignments = []
-        # for each protein/SCMG we need to make an alignment
-        for p, g in zip(scmgs, proteinnames):
-            # write seq to file
-            seq = proteins[g]
-            name = "{}_{}".format(p, g)
-            tmpfasta = os.path.join(tmpDir, "{}.faa".format(name))
-            geneAlignment = os.path.join(tmpDir, "{}.aln".format(name))
-            tmpfasta = base.writeFasta(tmpfasta, name, seq)
-            profileAlignment = config.pkgfile("{}.refpkg".format(p), "aln_fasta")
-            profileHMM = config.pkgfile("{}.refpkg".format(p), "profile")
-            # start and run alignment of this profile
-            ha = hmmalign("hmmalign", tmpfasta, geneAlignment)
-            ha.run(profileAlignment, profileHMM)
-            alignments.append(geneAlignment)        
+        if len(self.lenscmgs) > 0:
+            # get the protein names for each scmgs
+            proteinnames = []
+            for profile in scmgs:
+                for row in hmmer:
+                    if row['profile'] == profile:
+                        proteinnames.append(row['subject'])
+            # load proteins
+            proteins = Fasta(proteinFasta)
 
-        # after this we concatenate the alignments
-        # ordered by the profile name
-        self.input = base.horizontalConcat(self.input, alignments, scmgs, 
-                         config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
-        return(True)
+            alignments = []
+            # for each protein/SCMG we need to make an alignment
+            for p, g in zip(scmgs, proteinnames):
+                # write seq to file
+                seq = proteins[g]
+                name = "{}_{}".format(p, g)
+                tmpfasta = os.path.join(tmpDir, "{}.faa".format(name))
+                geneAlignment = os.path.join(tmpDir, "{}.aln".format(name))
+                tmpfasta = base.writeFasta(tmpfasta, name, seq)
+                profileAlignment = config.pkgfile("{}.refpkg".format(p), "aln_fasta")
+                profileHMM = config.pkgfile("{}.refpkg".format(p), "profile")
+                # start and run alignment of this profile
+                ha = hmmalign("hmmalign", tmpfasta, geneAlignment)
+                ha.run(profileAlignment, profileHMM)
+                alignments.append(geneAlignment)        
+
+            # after this we concatenate the alignments
+            # ordered by the profile name
+            self.input = base.horizontalConcat(self.input, alignments, scmgs, 
+                             config.pkgfile("{}.refpkg".format("concat"), "aln_fasta"))
     
     def reduceJplace(self, jplace, jplaceselection, placementCutoff = 0.5):
         '''
