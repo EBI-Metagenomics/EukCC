@@ -291,7 +291,7 @@ class pplacer(run):
         # count the placements
         self.lenscmgs = len(scmgs)
         
-        if len(self.lenscmgs) > 0:
+        if self.lenscmgs > 0:
             # get the protein names for each scmgs
             proteinnames = []
             for profile in scmgs:
