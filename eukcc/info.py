@@ -18,7 +18,7 @@ defaults = {"verbose": True,
             "minGenomes": 3,
             "minSupport": 2,
             "nPlacements": 1,
-            "noplace": False
+            "noplace": False,
             "cleanfasta": True,
             "PANTHER": "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1",
             "minPlacementLikelyhood": 0.5,
