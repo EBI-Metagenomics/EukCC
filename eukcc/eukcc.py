@@ -75,6 +75,7 @@ class eukcc():
         # run hmm file if we are asked to
         # this is needed during for training 
         if self.cfg['hmm'] and not self.stopnow():
+            log("Running on custom hmm", self.cfg['verbose'])
             _a = self.runPlacedHMM(self.cfg['hmm'], proteinfaa, bedfile)
             
         

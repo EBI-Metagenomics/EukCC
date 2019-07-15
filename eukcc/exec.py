@@ -139,7 +139,14 @@ class hmmer(run):
                     else:
                         print("Could not find entry in bed file for {}".format(n['subject']))
                 # fix profile name
-                n['profile'] = n['profile'].split(".")[0]
+                pft = n['profile'].split(".")
+                # if this profile is a subfamily, we want to name it FAMILY:Subfamily
+                if pft[1].startswith("SF"):
+                    n['profile'] = "{}:{}".format(pft[0], pft[1])
+                else:
+                    # else we just keep the family section
+                    n['profile'] = pft[0]
+                
                 n['keep'] = True
                 
                 # convert int columns to int instead of having them as str
