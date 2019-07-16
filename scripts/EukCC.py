@@ -24,6 +24,8 @@ parser.add_argument('--ncores','-n', metavar="int", type=int,
                     help='set number of cores for GeneMark-ES, pplacer and Hmmer')
 parser.add_argument('--hmm', dest='hmm',  type=str, 
                     default=None, help='run hmmer on all these HMMs instead')
+parser.add_argument('--evalue', dest='evalue',  type=float, 
+                    default=1e-5, help='use this evalue cutoff for hmmer')
 parser.add_argument('--bed','-b', metavar="file.bed", type=str,
                     default=None,
                     help='pass bedfile if you called genes manually. \
@@ -84,6 +86,7 @@ for fa in args.fasta:
         runeukcc(fa, args.configdir, 
                  outdir = os.path.join(args.outdir, name),
                  threads = args.ncores,
+                 evalue = args.evalue,
                  force = args.force,
                  fplace = args.fplace,
                  isprotein = args.isprotein,

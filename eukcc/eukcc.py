@@ -32,7 +32,8 @@ class eukcc():
                  threads = None,
                  outdir = None, 
                  place = None, 
-                 verbose = True, 
+                 verbose = True,
+                 evalue = None,
                  force = None, 
                  fplace = None,
                  cleanfasta = None,
@@ -46,6 +47,7 @@ class eukcc():
         self.cfg = self.config.cfg
         # update config with function params
         self.cfg = updateConf(self.cfg, "cleanfasta", cleanfasta)
+        self.cfg = updateConf(self.cfg, "evalue", evalue)
         self.cfg = updateConf(self.cfg, "force", force)
         self.cfg = updateConf(self.cfg, "fplace", fplace)
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
