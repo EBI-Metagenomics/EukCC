@@ -211,12 +211,12 @@ class eukcc():
         h = hmmer("hmmsearch", proteinfaa, hmmOut)
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
-            h.run(hmmOus, hmmfiles = hmmfile, 
-                  evalue = self.cfg['evalue'],
-                  cores = self.cfg['threads'])
-        # clean hmmer outpout
-        log("Processing Hmmer results", self.cfg['verbose'])
-        hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
+            #h.run(hmmOus, hmmfiles = hmmfile, 
+            #      evalue = self.cfg['evalue'],
+            #      cores = self.cfg['threads'])
+            # clean hmmer outpout
+            log("Processing Hmmer results", self.cfg['verbose'])
+            hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
          
     def gmes(self, fasta):
