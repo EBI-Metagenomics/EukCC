@@ -93,8 +93,7 @@ class eukcc():
         
         # concat hmms for hmmer
         if not self.stopnow():
-            hmmfile = self.concatHMM(self.placed)
-        # run Hmmer for sets of placement
+chr        # run Hmmer for sets of placement
         if not self.stopnow():
             hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
         # estimate completeness and contamiantion
