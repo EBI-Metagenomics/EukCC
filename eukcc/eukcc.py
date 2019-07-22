@@ -93,7 +93,8 @@ class eukcc():
         
         # concat hmms for hmmer
         if not self.stopnow():
-chr        # run Hmmer for sets of placement
+            hmmfile = self.concatHMM(self.placed)
+        # run Hmmer for sets of placement
         if not self.stopnow():
             hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
         # estimate completeness and contamiantion
@@ -213,9 +214,9 @@ chr        # run Hmmer for sets of placement
             h.run(hmmOus, hmmfiles = hmmfile, 
                   evalue = self.cfg['evalue'],
                   cores = self.cfg['threads'])
-            # clean hmmer outpout
-            log("Processing Hmmer results", self.cfg['verbose'])
-            hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
+        # clean hmmer outpout
+        log("Processing Hmmer results", self.cfg['verbose'])
+        hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
          
     def gmes(self, fasta):

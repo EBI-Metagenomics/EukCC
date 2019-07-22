@@ -120,6 +120,7 @@ class hmmer(run):
         bed = base.readbed(bedfile)
         fields = {"subject": 0,
                   "evalue": 4,
+                  "score": 5,
                   "profile": 2}
         table = []
         # intcoluns = 
@@ -218,7 +219,7 @@ class hmmer(run):
         
             
         # write result to file
-        cols = ['profile', 'subject', 'chrom', 'start', 'stop', 'evalue']
+        cols = ['profile', 'subject', 'chrom', 'start', 'stop', 'evalue', 'score']
         with open(resultfile, "w") as f:
             f.write("\t".join(cols + ["\n"]))
             for row in table:
