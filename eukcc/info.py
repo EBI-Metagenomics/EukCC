@@ -56,7 +56,7 @@ class eukinfo():
         if not base.exists(cp):
             return
         with open(cp) as f:
-            cfg = yaml.load(f)
+            cfg = yaml.load(f, Loader=yaml.FullLoader)
             for k,v in cfg.items():
                 self.cfg[k] = v
     
