@@ -6,6 +6,7 @@ import yaml
 
 
 defaults = {"verbose": True,
+            "debug": False,
             "outfile": "eukcc.tsv",
             "isprotein": False,
             "outdir": ".",

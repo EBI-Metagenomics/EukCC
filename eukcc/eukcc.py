@@ -208,12 +208,12 @@ class eukcc():
         hmmOus = os.path.join(hmmDir, "placement.out")
         hitOut = os.path.join(hmmDir, "hits.tsv")
         
-        h = hmmer("hmmsearch", proteinfaa, hmmOut)
+        h = hmmer("hmmsearch", proteinfaa, hmmOut, self.cfg['debug'])
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
-            #h.run(hmmOus, hmmfiles = hmmfile, 
-            #      evalue = self.cfg['evalue'],
-            #      cores = self.cfg['threads'])
+            h.run(hmmOus, hmmfiles = hmmfile, 
+                  evalue = self.cfg['evalue'],
+                  cores = self.cfg['threads'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])

@@ -15,7 +15,7 @@ class run():
     check if a software exists
     handle input and output
     '''
-    def __init__(self, program, inf, outf):
+    def __init__(self, program, inf, outf, debug = False):
         # check software is in path:
         if run.which(program) is None:
             print("{} is not installed".format(program))
@@ -107,7 +107,8 @@ class hmmer(run):
                "-o", stdoutfile,
                "--tblout", self.output,
                hmmfiles, self.input]
-        #print(" ".join(lst))
+        if debug:
+            print(" ".join(lst))
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
