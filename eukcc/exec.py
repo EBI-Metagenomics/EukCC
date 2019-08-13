@@ -19,6 +19,7 @@ class run():
         # check software is in path:
         if run.which(program) is None:
             print("{} is not installed".format(program))
+        self.debug = debug
         self.program = program
         self.input = inf
         self.output = outf
@@ -107,7 +108,7 @@ class hmmer(run):
                "-o", stdoutfile,
                "--tblout", self.output,
                hmmfiles, self.input]
-        if debug:
+        if self.debug:
             print(" ".join(lst))
         try:
             subprocess.run(lst,  check=True, shell=False)
