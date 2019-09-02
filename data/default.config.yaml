@@ -12,6 +12,7 @@ PANTHER: "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1"
 
 # name of the output file
 outfile: "eukcc.tsv"
+evalue: 10
 # is the input a protein fasta and a bed file:
 isprotein: False
 place: None
@@ -23,4 +24,4 @@ minSupport: 2
 nPlacements: 1
 cleanfasta: True
 minPlacementLikelyhood: 0.5
-mindist: 2000
+mindist: 1
