@@ -102,12 +102,22 @@ class hmmpress(run):
             return(False)
 
 class hmmer(run):
-    def run(self, stdoutfile, hmmfiles, cores=1, evalue = 1e-5):
+    def run(self, stdoutfile, hmmfiles, cores=1, evalue = 1e-5, training = False):
         lst = [self.program, "--cpu", str(cores),
-               "-E", str(evalue),
                "-o", stdoutfile,
                "--tblout", self.output,
+               "--cut_ga",
                hmmfiles, self.input]
+        # in training mode we dont cut of using ga but use an evalue 
+        # cutoff, so we can learn the bitscore tresholds
+        if training:
+            lst = [self.program, "--cpu", str(cores),
+                   "-o", stdoutfile,
+                   "--tblout", self.output,
+                   "-E", str(evalue),
+                   hmmfiles, self.input]
+
+            
         if self.debug:
             print(" ".join(lst))
         try:

@@ -2,7 +2,7 @@
 outdir: "."
 threads: 1
 verbose: True
-PANTHER: "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1"
+PANTHER: "/homes/saary/data/markergenes/eukcctraining/bitscore/adjustedhmms"
 
 ########################################
 # more advanced settings

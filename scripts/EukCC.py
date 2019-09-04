@@ -24,6 +24,8 @@ parser.add_argument('--ncores','-n', metavar="int", type=int,
                     help='set number of cores for GeneMark-ES, pplacer and Hmmer')
 parser.add_argument('--hmm', dest='hmm',  type=str, 
                     default=None, help='run hmmer on all these HMMs instead')
+parser.add_argument('--training', dest='training', action='store_true', 
+                    default=False, help='run EukCC in training mode (needed to create a new release of the DB)')
 parser.add_argument('--evalue', dest='evalue',  type=float, 
                     default=1e-5, help='use this evalue cutoff for hmmer')
 parser.add_argument('--bed','-b', metavar="file.bed", type=str,
@@ -92,7 +94,8 @@ for fa in args.fasta:
                  isprotein = args.isprotein,
                  bedfile = args.bed,
                  hmm = args.hmm,
-                 noplace = args.noplace)
+                 noplace = args.noplace,
+                 training = args.training)
     except Exception as e:
         log("Could not run EukCC for {}\n check logs for details".format(name))
         print(e)

@@ -24,6 +24,8 @@ defaults = {"verbose": True,
             "PANTHER": "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1",
             "minPlacementLikelyhood": 0.5,
             "evalue": 1e-5,
+            "trainingEvalue": 10,
+            "training": False,
             "mindist": 2000}
 
 
@@ -32,7 +34,7 @@ class eukinfo():
         self.dirname = dirname
         v = self.checkForFiles(dirname)
         # define location of placement HMMs
-        self.placementHMMs = os.path.join(self.dirname, "hmms/concat.hmm")
+        self.placementHMMs = os.path.join(self.dirname, "hmms/concatBitscore.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
         
         # define deaults and load config if any

@@ -40,7 +40,8 @@ class eukcc():
                  isprotein = None, 
                  bedfile = None,
                  hmm = None,
-                 noplace = None
+                 noplace = None,
+                 training = None
                 ):
         # check config dir
         self.config = eukinfo(configdir)
@@ -56,11 +57,16 @@ class eukcc():
         self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "outfile", outfile)
         self.cfg = updateConf(self.cfg, "place", place)
+        self.cfg = updateConf(self.cfg, "training", training)
         self.cfg = updateConf(self.cfg, "threads", threads)
         self.cfg = updateConf(self.cfg, "verbose", verbose)
         
         self.stopped = {"stopped": False,
                         "reason": ""}
+        
+        # if training, we need so set E-Value to trainingEvalue
+        if self.cfg['training']:
+            self.cfg['evalue'] = self.cfg['trainingEvalue']
 
         # check if we can read and write
         self.checkIO(fastapath, outdir)
@@ -76,13 +82,13 @@ class eukcc():
         
         # run hmm file if we are asked to
         # this is needed during for training 
-        if self.cfg['hmm'] and not self.stopnow():
+        if (self.cfg['training'] or self.cfg['hmm']) and not self.stopnow():
             log("Running on custom hmm", self.cfg['verbose'])
             _a = self.runPlacedHMM(self.cfg['hmm'], proteinfaa, bedfile)
             
         
         if self.cfg['noplace']:
-            self.stop("Stopping because we were told to")
+            self.stop("Stopping because we dont want to place the sequence")
         
         # place using pplacer and hmmer
         if place is None and not self.stopnow():
@@ -176,7 +182,7 @@ class eukcc():
                 for line in f:
                     profiles.append(line.strip())
         # create all paths for all hmms
-        hmmerpaths = [os.path.join(self.cfg['PANTHER'], "books", profile, "hmmer.hmm") 
+        hmmerpaths = [os.path.join(self.cfg['PANTHER'],  '{}.hmm'.format(profile)) 
                       for profile in profiles]
         
         # create a dir for this
@@ -213,7 +219,8 @@ class eukcc():
             log("Running hmmer for chosen locations", self.cfg['verbose'])
             h.run(hmmOus, hmmfiles = hmmfile, 
                   evalue = self.cfg['evalue'],
-                  cores = self.cfg['threads'])
+                  cores = self.cfg['threads'],
+                  training = self.cfg['training'])
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
@@ -277,6 +284,7 @@ class eukcc():
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
         hitOut = os.path.join(hmmDir, "hits.tsv")
+
         
         # run hmmer if forced or input newer than output            
         h = hmmer("hmmsearch", fasta, hmmOut)
