@@ -159,7 +159,8 @@ class eukcc():
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
             for p in placements:
-                f.write("\t".join([str(p[key]) for key in k]+["\n"]))
+                f.write("{}\n".format("\t".join([str(p[key]) for key in k])))
+                #f.write("\t".join([str(p[key]) for key in k]+["\n"]))
         
         log("Wrote estimates to: {}".format(outfile), self.cfg['verbose'])
         
