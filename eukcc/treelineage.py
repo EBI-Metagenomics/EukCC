@@ -69,9 +69,6 @@ class treeHandler():
         to a node
         '''
         nn = self.t.search_nodes(name=nodename)[0].get_leaf_names()
-        #for node in self.t.search_nodes(name=nodename)[0].iter_descendants():
-        #    if node.is_leaf():
-        #        nn.append(node.name)
         return(nn)
 
         
@@ -118,35 +115,4 @@ class treeHandler():
     
     def getLCA(self, placements, nodes):
         return
-
-
-
-if __name__ == "__main__":
-    n = treeHandler("/hps/nobackup2/production/metagenomics/saary/markergenes2/trees/trees/mafft/fasttree/concat_midpointrooted.tree")
-    print(n.get_lineage("GCA_001625265.1", False))
-    n.write("/hps/nobackup2/production/metagenomics/saary/markergenes2/trees/trees/mafft/fasttree/concat_rooted.tree")
-
-
-# In[ ]:
-
-
-
-
-
-# In[126]:
-
-
-
-
-
-# In[10]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
