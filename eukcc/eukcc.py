@@ -131,10 +131,10 @@ class eukcc():
         return(False)
     
     def updateStep(self, step, status):
-        self.info.cfg[step] = status
+        self.config.cfg[step] = status
     
     def writeProcess(self):
-        print(self.info.cfg['GeneMark-ES'])
+        print(self.config.cfg['GeneMark-ES'])
     
     def estimate(self, hits, outfile, placements):
         hit = {}
@@ -233,6 +233,19 @@ class eukcc():
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
+    
+    def inferLineage(self, places):
+        '''
+        infer the lineage from looking at the location of placement
+        looking at the leaves and their tax id
+        and looking at the lineages of all these
+        '''
+        seqinfo = self.config.pkgfile("concat.refpkg", "seqinfo.csv")
+        tree = treelineage.treeHandler(self.config.tree)
+        for p in places:
+            
+            children = tree.children()
+        
          
     def gmes(self, fasta):
         """
