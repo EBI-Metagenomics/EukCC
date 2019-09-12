@@ -53,7 +53,6 @@ class treeHandler():
             except:
                 continue
         
-    
     def root(self):
         # midpoitn rooting
         R = self.t.get_midpoint_outgroup()
@@ -112,6 +111,3 @@ class treeHandler():
         return(results)
         
     
-    def getLCA(self, placements, nodes):
-        return
-

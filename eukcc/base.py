@@ -183,6 +183,22 @@ def readTSV(fp):
                 res.append(n)
     return(res)
 
+def readCSV(fp, sep = ","):
+    res = []
+    with open(fp) as f:
+        cols = []
+        for row in f:
+            row = row.strip()
+            l = row.split(",")
+            if len(cols) == 0:
+                cols = l
+            else:
+                n = {}
+                for k,v in zip(cols, l):
+                    n[k] = v
+                res.append(n)
+    return(res)
+
 def clearFastaNames(fastaIn, fastaOut):
     nms = []
     with open(fastaOut, "w") as o:

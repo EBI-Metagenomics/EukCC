@@ -10,6 +10,9 @@ from eukcc.exec import tog
 from eukcc import base
 from eukcc import treelineage
 
+from ete3 import NCBITaxa
+ncbi = NCBITaxa()
+
 from eukcc.fileoperations import file
 
 dep = {
@@ -104,6 +107,8 @@ class eukcc():
         # run Hmmer for sets of placement
         if not self.stopnow():
             hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
+            # infer lineage
+            self.placed = self.inferLineage(self.placed)
         # estimate completeness and contamiantion
         if not self.stopnow():            
             outputfile = os.path.join(self.cfg['outdir'], self.cfg['outfile'])
@@ -162,7 +167,9 @@ class eukcc():
         log("finished estimating", self.cfg['verbose'])
         
         # write to output file
-        k = ["completeness", "contamination", "tax_id", "n", "ngenomes", "cover", "nPlacements"]
+        k = ["completeness", "contamination", "tax_id", "n", 
+             "ngenomes", "cover", "nPlacements",
+             "taxid", "lineage", "taxidlineage"]
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
             for p in placements:
@@ -197,6 +204,7 @@ class eukcc():
         hmmdir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
         file.isdir(hmmdir)
         hmmconcat = os.path.join(hmmdir, "all.hmm")
+        
         # concatenate
         if len(profiles) == 0:
             self.stop("Placement resulted in zero profiles")
@@ -221,7 +229,7 @@ class eukcc():
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
         hitOut = os.path.join(hmmDir, "hits.tsv")
-        
+
         h = hmmer("hmmsearch", proteinfaa, hmmOut, self.cfg['debug'])
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
@@ -234,19 +242,63 @@ class eukcc():
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
     
+    
+ 
     def inferLineage(self, places):
         '''
         infer the lineage from looking at the location of placement
         looking at the leaves and their tax id
         and looking at the lineages of all these
         '''
-        seqinfo = self.config.pkgfile("concat.refpkg", "seqinfo.csv")
-        tree = treelineage.treeHandler(self.config.tree)
-        for p in places:
-            
-            children = tree.children()
         
-         
+        
+        # fetch file and load taxinformation
+        seqinfo = self.config.pkgfile("concat.refpkg", "seq_info")
+        taxids = {}
+        si = base.readCSV(seqinfo)
+        # make dictionary 
+        for r in si:
+            taxids[r['seqname']] = r["tax_id"]
+        # load tree
+        tree = treelineage.treeHandler(self.config.tree)
+        # for each placement:
+        for p  in places:
+            print("places")
+            # get the GCA names
+            children = tree.children(p['tax_id'])
+            # fetch lineages for all
+            lngs = []
+            for c in children:
+                lngs.append(ncbi.get_lineage(taxids[c]))
+            
+            # find common elements:
+            common = set(lngs[0])
+            for l in lngs[1:]:
+                common = common & set(l)
+            # common lineage
+            lng = lngs[0]
+            for v in lng:
+                if v not in common:
+                    lng.remove(v)
+            
+            nodetaxid = lng[-1]
+            # now we can make it pretty
+            if self.cfg['lineage'] == "limited":
+                # limit to desired ranks2
+                desired_ranks  = ['superkingdom', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+                lineage2ranks = ncbi.get_rank(lng)
+                ranks2lineage = dict((rank, taxid) for (taxid, rank) in lineage2ranks.items())
+                #print(ranks2lineage)
+                ranks  = {'{}_id'.format(rank): ranks2lineage.get(rank, 'NA') for rank in desired_ranks}
+                lng = [i for i in lng if i in ranks.values()]
+            # get translator and make string
+            named = ncbi.translate_to_names(lng)
+            # save to placed object
+            p['lineage'] = "_".join(named)
+            p['taxidlineage'] = "_".join([str(x) for x in lng])
+            p['taxid'] = nodetaxid
+     
+        return(places)
     def gmes(self, fasta):
         """
         predict proteins using gmes
