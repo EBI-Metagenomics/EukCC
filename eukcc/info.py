@@ -26,7 +26,12 @@ defaults = {"verbose": True,
             "evalue": 1e-5,
             "trainingEvalue": 10,
             "training": False,
-            "mindist": 2000}
+            "mindist": 2000,
+            "steps": {"gmes": False,
+                      "findprots": False,
+                      "pplacer": False,
+                      "runHmmer": False,
+                      "estimatedCompleteness": False}}
 
 
 class eukinfo():
@@ -34,7 +39,7 @@ class eukinfo():
         self.dirname = dirname
         v = self.checkForFiles(dirname)
         # define location of placement HMMs
-        self.placementHMMs = os.path.join(self.dirname, "hmms/concatBitscore.hmm")
+        self.placementHMMs = os.path.join(self.dirname, "hmms/concat.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
         
         # define deaults and load config if any
@@ -42,13 +47,17 @@ class eukinfo():
         self.loadConfig()
 
     def checkForFiles(self, dirname):
-        required = ["profile.list", "refpkg", "hmms/concat.hmm", "sets/setinfo.csv"]
+        required = ["profile.list", 
+                    "refpkg", 
+                    "hmms/concat.hmm",
+                    "sets/setinfo.csv"]
         for f in required:
             p = os.path.join(dirname, f)
             if not base.exists(p):
                 print("Configuartion folder does not contain: {}".format(f))
                 return(False)
         return(True)
+    
     
     def loadConfig(self):
         """

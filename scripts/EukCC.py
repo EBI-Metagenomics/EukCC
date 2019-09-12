@@ -34,7 +34,7 @@ parser.add_argument('--bed','-b', metavar="file.bed", type=str,
                     Assumes only a single fasta (protein) is passed and implies --noglob')
 parser.add_argument('--force', '-f', dest='force', action='store_true',
                     default=False, help='force rerun of computation even if \
-                                          output is newer than input')
+                                          output is newer than input. Don\'t resume previous run.')
 parser.add_argument('--fplace', '-p', dest='fplace', action='store_true',
                     default=False, help='force rerun of placement and subsequent steps')
 parser.add_argument('--noplace', dest='noplace', action='store_true',

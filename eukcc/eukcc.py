@@ -46,6 +46,7 @@ class eukcc():
         # check config dir
         self.config = eukinfo(configdir)
         self.cfg = self.config.cfg
+        
         # update config with function params
         self.cfg = updateConf(self.cfg, "cleanfasta", cleanfasta)
         self.cfg = updateConf(self.cfg, "evalue", evalue)
@@ -128,6 +129,12 @@ class eukcc():
         # check if input and output can be accessed
         print("Warning: IO check not yet implemented")
         return(False)
+    
+    def updateStep(self, step, status):
+        self.info.cfg[step] = status
+    
+    def writeProcess(self):
+        print(self.info.cfg['GeneMark-ES'])
     
     def estimate(self, hits, outfile, placements):
         hit = {}
@@ -231,6 +238,7 @@ class eukcc():
         """
         predict proteins using gmes
         """
+        
         gmesDir = os.path.join(self.cfg['outdir'], "workfiles", "gmes")
         file.isdir(gmesDir)
         gmesOut = os.path.join(gmesDir, "prot_seq.faa")
@@ -248,13 +256,17 @@ class eukcc():
                 g.input = base.clearFastaNames(fasta, inputfasta)
                 
             log("Running GeneMark-ES", self.cfg['verbose'])
+            self.updateStep('gmes', 'started')
             g.run(cores = self.cfg['threads'])
             
         # always check if gtffile exists, if not Genemark-ES failed and 
         # we can stop here
         if not file.exists(gtffile):
+            # log and document failing
+            # then stop pipeline
             log("GeneMark-ES failed on this bin")           
             self.stop("GeneMark-ES failed")
+            self.updateStep('gmes', 'failed')
             return(False, False)        
         
         # make a bed file from GTF
@@ -262,6 +274,9 @@ class eukcc():
         if self.cfg['force'] or file.isnewer(gtffile, bedf):   
             log("Extracting protein locations", self.cfg['verbose'])
             bedf = base.gmesBED(gtffile, bedf)
+            self.updateStep('gmes', 'created bed')
+        # update final step
+        self.updateStep('gmes', 'finished')
 
         return(gmesOut, bedf)      
     
@@ -297,7 +312,7 @@ class eukcc():
             # clean hmmer outpout
             log("Processing Hmmer results", self.cfg['verbose'])
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
-       
+            self.updateStep('findprots', 'looked for proteins')
         
         # pplacer paths
         placerDir = os.path.join(self.cfg['outdir'],"workfiles","pplacer")
@@ -312,15 +327,20 @@ class eukcc():
         pp = pplacer("pplacer", fasta, pplaceOut)
         if pp.doIneedTorun(self.cfg['force']) or self.cfg['fplace']:
             log("Creating alignments", self.cfg['verbose'])
-            pp.prepareAlignment(pplaceAlinment, hitOut, os.path.join(self.config.dirname, "profile.list"), fasta, 
+            pp.prepareAlignment(pplaceAlinment, hitOut, 
+                                os.path.join(self.config.dirname, "profile.list"), 
+                                fasta, 
                                 self.config, self.cfg,  placerDirTmp )
             if pp.lenscmgs == 0:
                 self.stop("No protein sequences to place")
+                self.updateStep('findprots', 'no single copy markers')
             else:
                 log("Placing alignments", self.cfg['verbose'])
+                self.updateStep('pplacer', 'starting')
                 pp.run(os.path.join(self.config.dirname, "refpkg", "concat.refpkg"),
                        cores = self.cfg['threads'])
-        
+                
+                
         # reduce placements to the placements with at least posterior of p
         log("reducing placements using likelyhood", self.cfg['verbose'])
         pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])
@@ -343,6 +363,7 @@ class eukcc():
                                     orignialleaves, 
                                     self.cfg['nPlacements'], 
                                     self.cfg['minSupport'])
+        self.updateStep('pplacer', 'finished')
         log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)
         
