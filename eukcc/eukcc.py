@@ -205,6 +205,9 @@ class eukcc():
         file.isdir(hmmdir)
         hmmconcat = os.path.join(hmmdir, "all.hmm")
         
+        #print("REMOVEME")
+        #return(hmmconcat)
+        
         # concatenate
         if len(profiles) == 0:
             self.stop("Placement resulted in zero profiles")
@@ -230,6 +233,9 @@ class eukcc():
         hmmOus = os.path.join(hmmDir, "placement.out")
         hitOut = os.path.join(hmmDir, "hits.tsv")
 
+        #print("REMOVEME")
+        #return(hitOut)
+            
         h = hmmer("hmmsearch", proteinfaa, hmmOut, self.cfg['debug'])
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
             log("Running hmmer for chosen locations", self.cfg['verbose'])
@@ -263,9 +269,8 @@ class eukcc():
         tree = treelineage.treeHandler(self.config.tree)
         # for each placement:
         for p  in places:
-            print("places")
             # get the GCA names
-            children = tree.children(p['tax_id'])
+            children = p['sisters'] #tree.children(p['tax_id'])
             # fetch lineages for all
             lngs = []
             for c in children:

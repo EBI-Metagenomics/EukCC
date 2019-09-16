@@ -80,6 +80,7 @@ class treeHandler():
         or HPA placement .
         returns list of dict
         """
+        # get all placements by subtsracting known leaves from all leave names
         placements = set(self.t.get_tree_root().get_leaf_names()) - set(nonplacements)
         remaining = placements
         results = []
@@ -101,13 +102,28 @@ class treeHandler():
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
             
             # only retain if at least N placements
-            if sets[0]['cover'] >= atleast:
+            if sets[0]['cover'] >= atleast:                
                 results.append(sets[0].copy())
+                # add neighbours 
+                sisters = []
+                # last result item we track which placmeent where covered
+                for place in results[-1]['covering']:
+                    # we search the sisters of the placement loaction
+                    si = self.t.search_nodes(name=place)[0].get_sisters()
+                    for sis in si:
+                        # and fetch the names of all leaves
+                        sisters.extend(sis.get_leaf_names())
+                # reducing this to only keep GCA numbers and not pplacer leaves 
+                sisters = set(sisters) - placements
+                # save in list
+                results[-1]['sisters'] = sisters
                 # remove remaining
                 remaining = remaining - sets[0]['covering']
             
             nplacements -= 1
-            
         return(results)
+    
+    
+    
         
     
