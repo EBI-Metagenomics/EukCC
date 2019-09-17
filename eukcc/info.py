@@ -22,7 +22,6 @@ defaults = {"verbose": True,
             "noplace": False,
             "lineage": "limited", # limited or full
             "cleanfasta": True,
-            "PANTHER": "/homes/saary/data/databases/panther/PANTHER_14.1/PANTHER14.1",
             "minPlacementLikelyhood": 0.5,
             "evalue": 1e-5,
             "trainingEvalue": 10,

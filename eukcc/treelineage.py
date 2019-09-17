@@ -86,7 +86,7 @@ class treeHandler():
         results = []
         while nplacements > 0:
             for i in range(len(sets)):
-                covering = set(self.children(sets[i]['tax_id'])) & remaining
+                covering = set(self.children(sets[i]['node'])) & remaining
                 sets[i]['cover'] = len(covering)
                 sets[i]['covering'] = covering
                 sets[i]['nPlacements'] = len(placements)

@@ -143,6 +143,7 @@ class eukcc():
     
     def estimate(self, hits, outfile, placements):
         hit = {}
+        
         r = base.readTSV(hits)
         # count profile hits
         for row in r:
@@ -156,7 +157,7 @@ class eukcc():
 
         # now we can estimate completeness and contamination for each placement
         for i in range(len(placements)):
-            s = self.readSet(placements[i]['path'])
+            s = self.readSet(placements[i]['node'])
             # completeness is the overap of both sets 
             cmpl = len(singletons & s)/len(s)
             cont = len(multitons & s)/len(s)
@@ -167,7 +168,7 @@ class eukcc():
         log("finished estimating", self.cfg['verbose'])
         
         # write to output file
-        k = ["completeness", "contamination", "tax_id", "n", 
+        k = ["completeness", "contamination", "node", "n", 
              "ngenomes", "cover", "nPlacements",
              "taxid", "lineage", "taxidlineage"]
         with open(outfile, "w") as f:
@@ -181,9 +182,9 @@ class eukcc():
         # done
         return(True)
     
-    def readSet(self, p):
+    def readSet(self, node):
         profiles = []
-        localpath = os.path.join(self.config.dirname, "sets", os.path.basename(p))
+        localpath = os.path.join(self.config.dirname, "sets", "{}.set".format(node))
         with open(localpath) as f:
             for line in f:
                 profiles.append(line.strip())
@@ -192,21 +193,18 @@ class eukcc():
     def concatHMM(self, places):
         profiles = []
         for p in places:
-            localpath = os.path.join(self.config.dirname, "sets", os.path.basename(p['path']))
+            localpath = os.path.join(self.config.dirname, "sets", "{}.set".format(p['node']))
             with open(localpath) as f:
                 for line in f:
                     profiles.append(line.strip())
         # create all paths for all hmms
-        hmmerpaths = [os.path.join(self.cfg['PANTHER'],  '{}.hmm'.format(profile)) 
+        hmmerpaths = [os.path.join(self.config.dirname, "hmms", "panther", "{}.hmm".format(profile)) 
                       for profile in profiles]
         
         # create a dir for this
         hmmdir = os.path.join(self.cfg['outdir'],"workfiles","hmmer", "estimations")
         file.isdir(hmmdir)
         hmmconcat = os.path.join(hmmdir, "all.hmm")
-        
-        #print("REMOVEME")
-        #return(hmmconcat)
         
         # concatenate
         if len(profiles) == 0:
@@ -232,9 +230,6 @@ class eukcc():
         hmmOut = os.path.join(hmmDir, "placement.tsv")
         hmmOus = os.path.join(hmmDir, "placement.out")
         hitOut = os.path.join(hmmDir, "hits.tsv")
-
-        #print("REMOVEME")
-        #return(hitOut)
             
         h = hmmer("hmmsearch", proteinfaa, hmmOut, self.cfg['debug'])
         if h.doIneedTorun(self.cfg['force']) or self.cfg['fplace'] or file.isnewer(hmmfile, hmmOut):
@@ -248,16 +243,13 @@ class eukcc():
             hitOut = h.clean(hmmOut, bedfile, hitOut, self.cfg['mindist'])
         return(hitOut)
     
-    
- 
     def inferLineage(self, places):
         '''
         infer the lineage from looking at the location of placement
         looking at the leaves and their tax id
         and looking at the lineages of all these
         '''
-        
-        
+       
         # fetch file and load taxinformation
         seqinfo = self.config.pkgfile("concat.refpkg", "seq_info")
         taxids = {}
