@@ -269,7 +269,7 @@ class pplacer(run):
                     "-m", "LG",
                     "-j", str(cores), 
                     "-c", pkg , self.input]
-        print(" ".join([str(i) for i in lst]))
+        #print(" ".join([str(i) for i in lst]))
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
@@ -306,7 +306,10 @@ class pplacer(run):
         hmmer = base.readTSV(hmmerOutput)
         # extract SCMGs
         scmgsr = [hit['profile'] for hit in hmmer]
-        scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
+        #scmgs = [p for p in set(scmgsr) if scmgsr.count(p) == 1]
+        #db = [p for p in set(scmgsr) if scmgsr.count(p) == 2]
+        scmgs = scmgsr
+        #scmgs[-1] = db[0]
         scmgs.sort()
         # count the placements
         self.lenscmgs = len(scmgs)
@@ -314,10 +317,10 @@ class pplacer(run):
         if self.lenscmgs > 0:
             # get the protein names for each scmgs
             proteinnames = []
-            for profile in scmgs:
-                for row in hmmer:
-                    if row['profile'] == profile:
-                        proteinnames.append(row['subject'])
+            # for all profiles extract proteins
+            for row in hmmer:
+                if row['profile'] in scmgs:
+                    proteinnames.append(row['subject'])
             # load proteins
             proteins = Fasta(proteinFasta)
 
