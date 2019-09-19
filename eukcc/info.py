@@ -18,7 +18,7 @@ defaults = {"verbose": True,
             "minProfiles": 20,
             "minGenomes": 3,
             "minSupport": 2,
-            "nPlacements": 1,
+            "nPlacements": 2,
             "noplace": False,
             "lineage": "limited", # limited or full
             "cleanfasta": True,
