@@ -74,7 +74,7 @@ class treeHandler():
     def write(self, file):
         self.t.write(format=1, outfile=file)
     
-    def getPlacement(self, mode, sets, nonplacements, nplacements = 2, atleast = 1):
+    def getPlacement(self, mode, sets, nonplacements, nplacements = 2, atleast = 1, debug = False):
         """
         function to find the set that has the most support given either LCA (default)
         or HPA placement .
@@ -84,6 +84,7 @@ class treeHandler():
         placements = set(self.t.get_tree_root().get_leaf_names()) - set(nonplacements)
         remaining = placements
         results = []
+        # while we have placements to cover, search for sets
         while nplacements > 0:
             for i in range(len(sets)):
                 covering = set(self.children(sets[i]['node'])) & remaining
@@ -94,16 +95,35 @@ class treeHandler():
             # get the one with the best coverage sorted by what we need now
             # so we need to sort the list of dicts with different keys
             if mode == "HPA":
-                sets.sort(key=operator.itemgetter("n"), reverse=True)
+                #sets.sort(key=operator.itemgetter("n"), reverse=True)
                 sets.sort(key=operator.itemgetter("ngenomes"), reverse=True)
+            elif mode == "LCA":
+                #sets.sort(key=operator.itemgetter("n"), reverse=True)
+                sets.sort(key=operator.itemgetter("ngenomes"), reverse=False)
             else:
-                sets.sort(key=operator.itemgetter("ngenomes"), reverse=True)
-                sets.sort(key=operator.itemgetter("n"), reverse=True)
+                # we dont know what to do
+                print("Mode not know", mode)
+                return()
+            # sort now by cover, keeping the underlying order of genomes in case 
+            # several sets cover the same amount of profiles
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
-            
+            #for s in sets:
+            #    print(s)
+           
             # only retain if at least N placements
-            if sets[0]['cover'] >= atleast:                
-                results.append(sets[0].copy())
+            i = 0
+            if debug:
+                maximum = 9999
+            else:
+                maximum = 1
+            # in debug mode we want to return all best placements, not just the LCA or HPA
+            while i < maximum and sets[i]['cover'] >= atleast:
+                # break if new set has less more than 1 less covers than the best
+                if i > 0 and (results[0]['cover'] - sets[i]['cover']) > 1:
+                    break
+                
+                # save set as a result
+                results.append(sets[i].copy())
                 # add neighbours 
                 sisters = []
                 # last result item we track which placmeent where covered
@@ -118,9 +138,16 @@ class treeHandler():
                 # save in list
                 results[-1]['sisters'] = sisters
                 # remove remaining
-                remaining = remaining - sets[0]['covering']
+                remaining = remaining - sets[i]['covering']
+
+                # count up i, usually
+                i = i + 1
+                if debug:
+                    print(results[-1])
             
             nplacements -= 1
+
+            
         return(results)
     
     
