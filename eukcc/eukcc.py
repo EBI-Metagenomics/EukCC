@@ -34,6 +34,7 @@ class eukcc():
                  outfile = "eukcc.tsv", 
                  threads = None,
                  outdir = None, 
+                 debug = None,
                  place = None, 
                  verbose = True,
                  evalue = None,
@@ -58,6 +59,7 @@ class eukcc():
         self.cfg = updateConf(self.cfg, "isprotein", isprotein)
         self.cfg = updateConf(self.cfg, "hmm", hmm)
         self.cfg = updateConf(self.cfg, "noplace", noplace)
+        self.cfg = updateConf(self.cfg, "debug", debug)
         self.cfg = updateConf(self.cfg, "outdir", outdir)
         self.cfg = updateConf(self.cfg, "outfile", outfile)
         self.cfg = updateConf(self.cfg, "place", place)
@@ -424,7 +426,8 @@ class eukcc():
                                     sets, 
                                     orignialleaves, 
                                     self.cfg['nPlacements'], 
-                                    self.cfg['minSupport'])
+                                    self.cfg['minSupport'],
+                                    self.cfg['debug'])
         self.updateStep('pplacer', 'finished')
         log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)

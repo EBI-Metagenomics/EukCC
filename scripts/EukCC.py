@@ -94,6 +94,7 @@ for fa in args.fasta:
                  isprotein = args.isprotein,
                  bedfile = args.bed,
                  hmm = args.hmm,
+                 debug = args.debug,
                  noplace = args.noplace,
                  training = args.training)
     except Exception as e:
