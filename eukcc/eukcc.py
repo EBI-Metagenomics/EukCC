@@ -281,11 +281,15 @@ class eukcc():
             common = set(lngs[0])
             for l in lngs[1:]:
                 common = common & set(l)
+ 
             # common lineage
-            lng = lngs[0]
-            for v in lng:
+            lng = []
+            for v in lngs[0]:
                 if v not in common:
-                    lng.remove(v)
+                    break
+                # add common elements
+                lng.append(v)
+          
             
             nodetaxid = lng[-1]
             # now we can make it pretty
