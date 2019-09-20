@@ -70,6 +70,9 @@ class eukcc():
         self.stopped = {"stopped": False,
                         "reason": ""}
         
+        # set name of run
+        self.cfg['name'] = name = (os.path.splitext(os.path.basename(fastapath))[0])
+        
         # if training, we need so set E-Value to trainingEvalue
         if self.cfg['training']:
             self.cfg['evalue'] = self.cfg['trainingEvalue']
@@ -172,13 +175,15 @@ class eukcc():
         # write to output file
         k = ["completeness", "contamination", "node", "n", 
              "ngenomes", "cover", "nPlacements",
-             "taxid", "lineage", "taxidlineage"]
+             "taxid", "lineage", "taxidlineage", "file"]
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
             for p in placements:
+                # insert the file name
+                p['file'] = self.cfg['name']
+                # write to file
                 f.write("{}\n".format("\t".join([str(p[key]) for key in k])))
-                #f.write("\t".join([str(p[key]) for key in k]+["\n"]))
-        
+                
         log("Wrote estimates to: {}".format(outfile), self.cfg['verbose'])
         
         # done
