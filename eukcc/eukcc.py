@@ -299,6 +299,8 @@ class eukcc():
             named = ncbi.translate_to_names(lng)
             # save to placed object
             p['lineage'] = "_".join(named)
+            # replace names with spaces into points
+            p['lineage'] = p['lineage'].replace(" ", ".")
             p['taxidlineage'] = "_".join([str(x) for x in lng])
             p['taxid'] = nodetaxid
      
