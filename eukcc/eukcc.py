@@ -270,6 +270,8 @@ class eukcc():
         for p  in places:
             # get the GCA names
             children = p['sisters'] #tree.children(p['tax_id'])
+            if self.cfg['debug']:
+                print(f"Infered children {children}")
             # fetch lineages for all
             lngs = []
             for c in children:
@@ -303,6 +305,10 @@ class eukcc():
             p['lineage'] = p['lineage'].replace(" ", ".")
             p['taxidlineage'] = "_".join([str(x) for x in lng])
             p['taxid'] = nodetaxid
+            
+            if self.cfg['debug']:
+                print("infered lineage")
+                print(p['lineage'])
      
         return(places)
     def gmes(self, fasta):
