@@ -318,9 +318,14 @@ class pplacer(run):
             # get the protein names for each scmgs
             proteinnames = []
             # for all profiles extract proteins
+            hmmr = {}
+            # load into dict
             for row in hmmer:
-                if row['profile'] in scmgs:
-                    proteinnames.append(row['subject'])
+                hmmr[row['profile']] = row['subject']
+            # make list of protein names
+            for m in scmgs:
+                proteinnames.append(hmmr[m])
+
             # load proteins
             proteins = Fasta(proteinFasta)
 

@@ -9,6 +9,7 @@ from eukcc.exec import pplacer
 from eukcc.exec import tog
 from eukcc import base
 from eukcc import treelineage
+import hashlib
 
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
@@ -102,6 +103,12 @@ class eukcc():
         # place using pplacer and hmmer
         if place is None and not self.stopnow():
             self.placed = self.place(proteinfaa, bedfile)
+            #print("remove this")
+            #print('infer lineage')
+            #_ = self.inferLineage(self.placed[self.cfg['placementMethod']])
+            #print("plottin")
+            #_ = self.plot()
+            #return()
         else:
             print("check if placement can be found in tree")
             print("if so, use that and run next step")
@@ -113,11 +120,13 @@ class eukcc():
         if not self.stopnow():
             hits = self.runPlacedHMM(hmmfile, proteinfaa, bedfile)
             # infer lineage
-            self.placed = self.inferLineage(self.placed)
+            _ = self.inferLineage(self.placed[self.cfg['placementMethod']])
+            _ = self.plot()
+            
         # estimate completeness and contamiantion
         if not self.stopnow():            
             outputfile = os.path.join(self.cfg['outdir'], self.cfg['outfile'])
-            self.estimate(hits, outputfile, self.placed)
+            self.estimate(hits, outputfile, self.placed[self.cfg['placementMethod']])
     
     def stopnow(self):
         '''
@@ -148,6 +157,7 @@ class eukcc():
     
     def estimate(self, hits, outfile, placements):
         hit = {}
+        log("Estimating scores now")
         
         r = base.readTSV(hits)
         # count profile hits
@@ -156,7 +166,7 @@ class eukcc():
                 hit[row['profile']] = 1
             else:
                 hit[row['profile']] += 1
-        
+
         singletons = set(hit.keys())
         multitons = set([k for k,v  in hit.items() if v > 1])
 
@@ -166,6 +176,7 @@ class eukcc():
             # completeness is the overap of both sets 
             cmpl = len(singletons & s)/len(s)
             cont = len(multitons & s)/len(s)
+
             # make to percentage and round to 2 positions
             placements[i]['completeness'] = round(cmpl * 100, 2)
             placements[i]['contamination'] = round(cont * 100, 2)
@@ -199,11 +210,13 @@ class eukcc():
     
     def concatHMM(self, places):
         profiles = []
-        for p in places:
+        for p in places[self.cfg['placementMethod']]:
             localpath = os.path.join(self.config.dirname, "sets", "{}.set".format(p['node']))
             with open(localpath) as f:
                 for line in f:
                     profiles.append(line.strip())
+       
+        
         # create all paths for all hmms
         hmmerpaths = [os.path.join(self.config.dirname, "hmms", "panther", "{}.hmm".format(profile)) 
                       for profile in profiles]
@@ -213,6 +226,23 @@ class eukcc():
         file.isdir(hmmdir)
         hmmconcat = os.path.join(hmmdir, "all.hmm")
         
+         # sort and check if we already have the hmm for this
+        profiles.sort()
+        canuseprev = False
+        profilehash = hashlib.sha256("_".join(profiles).encode()).hexdigest()
+        hashpath = os.path.join(hmmdir, "all.hash")
+        if file.exists(hashpath):
+            with open(hashpath) as f:
+                for line in f:
+                    prevhash = line.strip()
+                    break
+            canuseprev = prevhash == profilehash
+        
+        if canuseprev:
+            # we can use the existing file, so no need to continue
+            log("Using pressed hmms from last run")
+            return(hmmconcat)
+        
         # concatenate
         if len(profiles) == 0:
             self.stop("Placement resulted in zero profiles")
@@ -220,12 +250,16 @@ class eukcc():
         
         log("{} hmm profiles need to be used for estimations".format(len(profiles)), self.cfg['verbose'])
         log("Concatenating hmms, this might take a while (IO limited)", self.cfg['verbose'])
-        #print("Unkomment this here for production!")
         hmmconcat = base.concatenate(hmmconcat, hmmerpaths)
         # press
         log("Pressing hmms", self.cfg['verbose'])
         hp = hmmpress("hmmpress", hmmconcat, None)
         hp.run()
+        
+        # save profile hash
+        with open(hashpath, "w") as f:
+            f.write(f"{profilehash}")
+        
         return(hmmconcat)
 
     def runPlacedHMM(self, hmmfile, proteinfaa, bedfile):
@@ -314,7 +348,8 @@ class eukcc():
                 print("infered lineage")
                 print(p['lineage'])
      
-        return(places)
+        return()
+    
     def gmes(self, fasta):
         """
         predict proteins using gmes
@@ -434,12 +469,18 @@ class eukcc():
             tg.run()
         
         log("Getting the best placement(s)", self.cfg['verbose'])
+        # save path to togtree for plotting later
+        self.cfg['togtreepath'] = togTree
         # now we can place the bin using the tree
         t = treelineage.treeHandler(togTree)
         t2 = treelineage.treeHandler(self.config.tree)
         orignialleaves = t2.leaves()
         sets = self.getSets()
-        placements = t.getPlacement(self.cfg['placementMethod'], 
+        
+        # get HCA and LCA placements
+        placements = {}
+        for method in ['LCA', 'HPA']:
+            placements[method] = t.getPlacement(method, 
                                     sets, 
                                     orignialleaves, 
                                     self.cfg['nPlacements'], 
@@ -472,7 +513,12 @@ class eukcc():
                     sets.append(n)
                     
         return(sets)
-                
-        
-        
+
+
+    def plot(self):
+        # load tree
+        log("Plotting a trees of placements and chosen evauation nodes")
+        t = treelineage.treeHandler(self.cfg['togtreepath'])
+        t.plot(self.placed, self.cfg['outdir'])
+        return()
         

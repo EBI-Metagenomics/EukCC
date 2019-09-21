@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import operator
-from ete3 import Tree
+import os
+from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
 
@@ -86,12 +87,12 @@ class treeHandler():
         results = []
         # while we have placements to cover, search for sets
         while nplacements > 0:
+            
             for i in range(len(sets)):
                 covering = set(self.children(sets[i]['node'])) & remaining
                 sets[i]['cover'] = len(covering)
                 sets[i]['covering'] = covering
                 sets[i]['nPlacements'] = len(placements)
-            
             # get the one with the best coverage sorted by what we need now
             # so we need to sort the list of dicts with different keys
             if mode == "HPA":
@@ -109,11 +110,11 @@ class treeHandler():
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
             #for s in sets:
             #    print(s)
-           
+            
             # only retain if at least N placements
             i = 0
             if debug:
-                maximum = 9999
+                maximum = 2
             else:
                 maximum = 1
             # in debug mode we want to return all best placements, not just the LCA or HPA
@@ -149,6 +150,80 @@ class treeHandler():
 
             
         return(results)
+    
+    
+    def plot(self, placement, outdir):
+        """
+        plot a plcement in the tree
+        show all pplacer placements and the LCA and HCA node 
+        as well as the inferred lineage
+        """
+        # with no X display this needs to be set
+        os.environ['QT_QPA_PLATFORM']='offscreen'
+        
+        no = 0
+        for LCAp, HPAp in zip(placement["LCA"], placement['HPA']):
+         
+            plotpath = os.path.join(outdir, f"tree_{no}.png")
+            
+            # make shallow copy
+            t = self.t
+    
+
+            LCA = LCAp['node']
+            HPA = HPAp['node']
+            # define basic tree style
+            ts = TreeStyle()
+            # hide leave names
+            ts.show_leaf_name = False
+
+            # circular tree
+            ts.mode = "c"
+            ts.rotation = 210
+            ts.arc_start = 0 # 0 degrees = 3 o'clock
+            ts.arc_span = 350
+
+            highlightsize = 1000
+            nodesize = 10
+            # define styles for special nodes
+            # at the moment hard coded, but could be accesible for the user
+            # PTHR style
+            nstyle = NodeStyle()
+            nstyle["fgcolor"] = "red"
+            nstyle["size"] = highlightsize
+
+            # LCA style
+            LCAstyle = NodeStyle()
+            LCAstyle["fgcolor"] = "green"
+            LCAstyle["bgcolor"] = "DarkSeaGreen"
+            LCAstyle["size"] = highlightsize
+
+            # HPA style
+            HPAstyle = NodeStyle()
+            HPAstyle["fgcolor"] = "blue"
+            HPAstyle["bgcolor"] = "LightSteelBlue"
+            HPAstyle["size"] = highlightsize
+
+            # default node
+            defaultStyle = NodeStyle()
+            defaultStyle["fgcolor"] = "gray"
+            defaultStyle["size"] = nodesize
+
+            for n in t.traverse():
+                if n.name.startswith("PTHR"):
+                    n.set_style(nstyle)
+                elif n.name == LCA:
+                    n.set_style(LCAstyle)
+                elif n.name == HPA:
+                    n.set_style(HPAstyle)
+                else:
+                    n.set_style(defaultStyle)
+
+            
+            # plot to disk
+            _ = t.render(plotpath, w=320, units="mm", tree_style = ts)
+            no = no + 1
+            
     
     
     
