@@ -103,12 +103,6 @@ class eukcc():
         # place using pplacer and hmmer
         if place is None and not self.stopnow():
             self.placed = self.place(proteinfaa, bedfile)
-            #print("remove this")
-            #print('infer lineage')
-            #_ = self.inferLineage(self.placed[self.cfg['placementMethod']])
-            #print("plottin")
-            #_ = self.plot()
-            #return()
         else:
             print("check if placement can be found in tree")
             print("if so, use that and run next step")
@@ -299,7 +293,7 @@ class eukcc():
         for r in si:
             taxids[r['seqname']] = r["tax_id"]
         # load tree
-        tree = treelineage.treeHandler(self.config.tree)
+        tree = treelineage.treeHandler(self.config.tree, annotate = False)
         # for each placement:
         for p  in places:
             # get the GCA names
@@ -332,7 +326,6 @@ class eukcc():
                 desired_ranks  = ['superkingdom', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
                 lineage2ranks = ncbi.get_rank(lng)
                 ranks2lineage = dict((rank, taxid) for (taxid, rank) in lineage2ranks.items())
-                #print(ranks2lineage)
                 ranks  = {'{}_id'.format(rank): ranks2lineage.get(rank, 'NA') for rank in desired_ranks}
                 lng = [i for i in lng if i in ranks.values()]
             # get translator and make string
@@ -459,8 +452,11 @@ class eukcc():
                 
         # reduce placements to the placements with at least posterior of p
         log("reducing placements using likelyhood", self.cfg['verbose'])
+        if self.cfg['debug']:
+            print(pplaceOutReduced)
         pplaceOutReduced = pp.reduceJplace(pplaceOut, pplaceOutReduced, self.cfg['minPlacementLikelyhood'])
-        
+        if self.cfg['debug']:
+            print("Done plceing reduced")
         # run TOG to get a tree
         togTree = os.path.join(placerDir, "placement.tree")
         tg = tog("guppy", pplaceOutReduced, togTree)
@@ -471,21 +467,22 @@ class eukcc():
         log("Getting the best placement(s)", self.cfg['verbose'])
         # save path to togtree for plotting later
         self.cfg['togtreepath'] = togTree
+        self.cfg['togjson'] = pplaceOutReduced
         # now we can place the bin using the tree
-        t = treelineage.treeHandler(togTree)
-        t2 = treelineage.treeHandler(self.config.tree)
-        orignialleaves = t2.leaves()
+        t = treelineage.treeHandler(togTree, annotate = False)
+        t2 = treelineage.treeHandler(self.config.tree, annotate = False)
+        #orignialleaves = t2.leaves()
         sets = self.getSets()
-        
         # get HCA and LCA placements
         placements = {}
         for method in ['LCA', 'HPA']:
             placements[method] = t.getPlacement(method, 
                                     sets, 
-                                    orignialleaves, 
+                                    t2,
                                     self.cfg['nPlacements'], 
                                     self.cfg['minSupport'],
                                     self.cfg['debug'])
+
         self.updateStep('pplacer', 'finished')
         log("Done placing, continuing with quality estimates", self.cfg['verbose'])
         return(placements)
@@ -517,8 +514,11 @@ class eukcc():
 
     def plot(self):
         # load tree
-        log("Plotting a trees of placements and chosen evauation nodes")
-        t = treelineage.treeHandler(self.cfg['togtreepath'])
-        t.plot(self.placed, self.cfg['outdir'])
+        log("Plotting a trees of placements")
+        t = treelineage.treeHandler(self.cfg['togtreepath'], annotate = False)
+        t.plot(self.placed, 
+               self.cfg['togjson'],
+               self.cfg['outdir'],
+               self.cfg)
         return()
         

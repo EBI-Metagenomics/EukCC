@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 import operator
 import os
+import json
 from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
+
+
+
+def RGB_to_hex(RGB):
+    ''' [255,255,255] -> "#FFFFFF" '''
+    # Components need to be integers for hex to make sense
+    RGB = [int(x) for x in RGB]
+    return("#"+"".join(["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in RGB]))
 
 
 class treeHandler():
@@ -13,6 +22,9 @@ class treeHandler():
             self.root()
         if annotate:
             self.annotateTree()
+        else:
+            # always name root node0
+            self.t.get_tree_root().name = 'node0'
         
     def loadTree(self, tree):
         try:
@@ -68,26 +80,30 @@ class treeHandler():
         find and rturn all leafs belpongin as chidlren
         to a node
         '''
-        nn = self.t.search_nodes(name=nodename)[0].get_leaf_names()
+        try:
+            nn = self.t.search_nodes(name=nodename)[0].get_leaf_names()
+        except:
+            print(f"Could not find any children for node {nodename}")
+            nn = []
         return(nn)
 
         
     def write(self, file):
         self.t.write(format=1, outfile=file)
     
-    def getPlacement(self, mode, sets, nonplacements, nplacements = 2, atleast = 1, debug = False):
+    def getPlacement(self, mode, sets, originaltree, nplacements = 2, atleast = 1, debug = False):
         """
         function to find the set that has the most support given either LCA (default)
         or HPA placement .
         returns list of dict
         """
+        nonplacements = originaltree.leaves()
         # get all placements by subtsracting known leaves from all leave names
         placements = set(self.t.get_tree_root().get_leaf_names()) - set(nonplacements)
         remaining = placements
         results = []
         # while we have placements to cover, search for sets
         while nplacements > 0:
-            
             for i in range(len(sets)):
                 covering = set(self.children(sets[i]['node'])) & remaining
                 sets[i]['cover'] = len(covering)
@@ -108,8 +124,6 @@ class treeHandler():
             # sort now by cover, keeping the underlying order of genomes in case 
             # several sets cover the same amount of profiles
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
-            #for s in sets:
-            #    print(s)
             
             # only retain if at least N placements
             i = 0
@@ -152,7 +166,24 @@ class treeHandler():
         return(results)
     
     
-    def plot(self, placement, outdir):
+    def loadInfo(self, togjson):
+        info = {}
+        with open(togjson) as json_file:  
+            j = (json.load(json_file))
+            fields = j['fields']
+            # loop placements
+            for placement in j['placements']:
+                nm = placement['nm'][0][0]
+                ps = placement['p']
+                kp = []
+                for p in ps:
+                    d = {k: v for k,v in zip(fields, p)}
+                    
+                info[nm] = d
+        return(info)
+    
+   
+    def plot(self, placement, togjson, outdir, cfg):
         """
         plot a plcement in the tree
         show all pplacer placements and the LCA and HCA node 
@@ -160,7 +191,8 @@ class treeHandler():
         """
         # with no X display this needs to be set
         os.environ['QT_QPA_PLATFORM']='offscreen'
-        
+        info = self.loadInfo(togjson)
+
         no = 0
         for LCAp, HPAp in zip(placement["LCA"], placement['HPA']):
          
@@ -169,7 +201,6 @@ class treeHandler():
             # make shallow copy
             t = self.t
     
-
             LCA = LCAp['node']
             HPA = HPAp['node']
             # define basic tree style
@@ -183,7 +214,7 @@ class treeHandler():
             ts.arc_start = 0 # 0 degrees = 3 o'clock
             ts.arc_span = 350
 
-            highlightsize = 1000
+            highlightsize = 50
             nodesize = 10
             # define styles for special nodes
             # at the moment hard coded, but could be accesible for the user
@@ -208,10 +239,19 @@ class treeHandler():
             defaultStyle = NodeStyle()
             defaultStyle["fgcolor"] = "gray"
             defaultStyle["size"] = nodesize
-
+            
             for n in t.traverse():
                 if n.name.startswith("PTHR"):
+                    # set color based on posterior prob:
+                    x = (info[n.name]['post_prob'] - cfg['minPlacementLikelyhood'])/ (1-cfg['minPlacementLikelyhood'])
+                    c = [int(x * 255), 
+                         (1-x) * 120, 
+                         0]
+                    he = RGB_to_hex(c)
+                    # define back color of locations
+                    nstyle["bgcolor"] = he
                     n.set_style(nstyle)
+                    
                 elif n.name == LCA:
                     n.set_style(LCAstyle)
                 elif n.name == HPA:

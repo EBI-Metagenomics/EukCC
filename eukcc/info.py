@@ -22,7 +22,7 @@ defaults = {"verbose": True,
             "noplace": False,
             "lineage": "limited", # limited or full
             "cleanfasta": True,
-            "minPlacementLikelyhood": 0.5,
+            "minPlacementLikelyhood": 0.8,
             "evalue": 1e-5,
             "trainingEvalue": 10,
             "training": False,
