@@ -5,16 +5,18 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="eukcc",
-    version="0.0.1",
+    version="0.0.2",
     author="Paul Saary",
     author_email="eukcc@paulsaary.de",
     description="Check eukaryotic genomes or MAGs for completeness and contamination",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
-    py_modules = ['eukcc', 'base', 'fileoperations'],
-    scripts=["scripts/runGMES",
-             "scripts/EukCC.py"],
+    py_modules=['workflow', 'base', 'fileoperations'],
+    scripts=["scripts/runGMES"],
+    entry_points={
+        'console_scripts': ['eukcc = eukcc.__main__:main']
+        },
     install_requires=["ete3", "pyfaidx"],
     packages=setuptools.find_packages(),
     classifiers=[
