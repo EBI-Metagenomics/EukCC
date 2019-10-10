@@ -4,6 +4,7 @@ from eukcc.fileoperations import file
 from eukcc import base
 import operator 
 import json
+import logging
 
 from pyfaidx import Fasta
 
@@ -15,11 +16,12 @@ class run():
     check if a software exists
     handle input and output
     '''
-    def __init__(self, program, inf, outf, debug = False):
+    def __init__(self, program, inf, outf, debug = False, touch = False):
         # check software is in path:
         if run.which(program) is None:
             print("{} is not installed".format(program))
         self.debug = debug
+        self.touchonly = touch
         self.program = program
         self.input = inf
         self.output = outf
@@ -27,8 +29,22 @@ class run():
             # create output dir
             dc = file.isdir(os.path.dirname(self.output))
 
+    def touch(self, files=None):
+        '''
+        simple function, to only touch output files
+        '''
+        logging.debug("Only touching now")
+        if files is None:
+            path = self.output
+            with open(path, 'a'):
+                os.utime(path, None)
+        else:
+            for path in files:
+                with open(path, 'a'):
+                    os.utime(path, None)
+
     def doIneedTorun(self, force=False):
-        if force:
+        if force or self.touchonly:
             return(True)
         else:
             return(file.isnewer(self.input, self.output))
@@ -83,6 +99,9 @@ class gmes(run):
         lst = [self.program, "-i", self.input,
                "-o", self.output,
                "-n", str(cores)]
+        if self.touchonly:
+            self.touch()
+            return(True)
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
@@ -93,16 +112,25 @@ class gmes(run):
         
 class hmmpress(run):
     def run(self):
+        # if sometimes we just touch, for debugging
+        if self.touchonly:
+            self.touch()
+            return(True)
         lst = [self.program, "-f", self.input]
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
         except subprocess.CalledProcessError:
-            print("an error occured while executing {}".format(self.program))
-            return(False)
+            logging.error("an error occured while executing {}".format(self.program))
+            exit()
 
 class hmmer(run):
     def run(self, stdoutfile, hmmfiles, cores=1, evalue = 1e-5, training = False):
+        # if sometimes we just touch, for debugging
+        if self.touchonly:
+            self.touch()
+            return(True)
+
         lst = [self.program, "--cpu", str(cores),
                "-o", stdoutfile,
                "--tblout", self.output,
@@ -124,8 +152,8 @@ class hmmer(run):
             subprocess.run(lst,  check=True, shell=False)
             return(True)
         except subprocess.CalledProcessError:
-            print("an error occured while executing {}".format(self.program))
-            return(False)
+            logging.error("an error occured while executing {}".format(self.program))
+            exit()
     
 
     def clean(self, hmmer, bedfile, resultfile, mindist = 2000):
@@ -248,6 +276,11 @@ class hmmer(run):
 
 class hmmalign(run):
     def run(self, alignmentpath, hmmpath):
+        # if sometimes we just touch, for debugging
+        if self.touchonly:
+            self.touch()
+            return(True)
+
         lst = [self.program, "--outformat", "afa", 
                "--mapali",
                alignmentpath,  
@@ -261,15 +294,20 @@ class hmmalign(run):
             print("an error occured while executing {}".format(self.program))
             return(False)
 
-    
+
 class pplacer(run):
-    def run(self, pkg, cores = 1):
-        lst = [self.program, 
-                    "-o", self.output ,"-p", "--keep-at-most", "5",
-                    "-m", "LG",
-                    "-j", str(cores), 
-                    "-c", pkg , self.input]
-        #print(" ".join([str(i) for i in lst]))
+    def run(self, pkg, cores= 1):
+        # if sometimes we just touch, for debugging
+        if self.touchonly:
+            self.touch()
+            return(True)
+
+        lst = [self.program,
+               "-o", self.output, "-p", "--keep-at-most", "5",
+               "-m", "LG",
+               "-j", str(cores),
+               "-c", pkg, self.input]
+
         try:
             subprocess.run(lst,  check=True, shell=False)
             return(True)
@@ -382,6 +420,11 @@ class pplacer(run):
         
 class tog(run):
     def run(self):
+        # if sometimes we just touch, for debugging
+        if self.touchonly:
+            self.touch()
+            return(True)
+
         lst = [self.program, "tog", self.input, "-o", self.output]
         try:
             subprocess.run(lst,  check=True, shell=False)

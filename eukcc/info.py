@@ -1,11 +1,11 @@
 import os
 import json
+import logging
 from eukcc import base
 from eukcc.base import log
-import yaml
 
 
-defaults = {"verbose": True,
+old_defaults = {"verbose": True,
             "debug": False,
             "outfile": "eukcc.tsv",
             "isprotein": False,
@@ -33,18 +33,34 @@ defaults = {"verbose": True,
                       "runHmmer": False,
                       "estimatedCompleteness": False}}
 
+# default magic numbers are saved here
+# please keep it sorted alphabetically and coument
+defaults = {
+            "evalue": 1e-5,        # not used evalue
+            "trainingEvalue": 10   # evalue used in training mode
+            }
+
 
 class eukinfo():
-    def __init__(self, dirname):
-        self.dirname = dirname
-        v = self.checkForFiles(dirname)
+    def __init__(self, options):
+        self.setConfig(options)
+
+
+    def setConfig(self, options):
+        self.cfg = defaults
+        # loop over options and import into our configs
+        for k, v in vars(options).items():
+            self.cfg[k] = v
+        
+        # placements Methis
+        if options.HPA:
+            self.cfg['placementMethod'] = "HPA"
+        else:
+            self.cfg['placementMethod'] = "LCA"
         # define location of placement HMMs
-        self.placementHMMs = os.path.join(self.dirname, "hmms/concat.hmm")
+        self.placementHMMs = os.path.join(options.db, "hmms/concat.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
         
-        # define deaults and load config if any
-        self.cfg = defaults
-        self.loadConfig()
 
     def checkForFiles(self, dirname):
         required = ["profile.list", 
@@ -57,45 +73,26 @@ class eukinfo():
                 print("Configuartion folder does not contain: {}".format(f))
                 return(False)
         return(True)
-    
-    
-    def loadConfig(self):
-        """
-        See if config.yaml can be found and if so
-        load it and iverwrite defaults
-        """
-        cp = os.path.join(self.dirname, "config.yaml")
-        if not base.exists(cp):
-            return
-        with open(cp) as f:
-            cfg = yaml.load(f, Loader=yaml.FullLoader)
-            for k,v in cfg.items():
-                self.cfg[k] = v
-    
-    
+
     def pkgfile(self, name, t):
         """
         get a file path for a refpkg package
         """
         info = self.readInfo(name)
-        p = os.path.join(self.dirname, "refpkg", name, info['files'][t])
+        p = os.path.join(self.cfg['db'], "refpkg", name, info['files'][t])
         if base.exists(p):
             return(p)
         else:
             log("Could not find: {}".format(p))
-        
+            exit()
+
     def readInfo(self, name):
-        p = os.path.join(self.dirname, "refpkg", name, "CONTENTS.json")
+        p = os.path.join(self.cfg['db'], "refpkg", name, "CONTENTS.json")
         # raise error if we cant find the file
         if not base.exists(p):
             log("Could not find {}".format(p))
-            return
+            exit()
         # read and return json
-        with open(p) as json_file:  
+        with open(p) as json_file:
             j = json.load(json_file)
             return(j)
-        
-    
-    
-    
-

@@ -1,8 +1,7 @@
 #
 # file to keep track of simple function
-
+import logging
 import os
-import datetime
 import re
 from pyfaidx import Fasta
 
@@ -11,11 +10,10 @@ def exists(f):
     return(os.path.exists(f))
 
 
-def log(m, verbose = True):
-    ts = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-    if verbose:
-        print("{}: {}".format(ts, m))
-        
+def log(m, verbose=True):
+    logging.info(m)
+    logging.debug("Called from old log function")
+
 
 def gmesBED(gtf, output):
     """
@@ -28,28 +26,30 @@ def gmesBED(gtf, output):
         for line in f:
             if line.startswith("#"):
                 continue
-            
+
             l = line.split("\t")
             # regex match
             start = int(l[3])
             stop = int(l[4])
-            
+
             name = (nre.findall(l[8]))[0]
-            
+
             if name not in beds.keys():
                 beds[name] = {"chrom": l[0],
                               "r": []}
             beds[name]['r'].append(start)
             beds[name]['r'].append(stop)
-            
-    #write to file
+
+    # write to file
     with open(output, "w") as f:
         for name, v in beds.items():
-            l = "\t".join([v['chrom'], str(min(v['r'])), str(max(v['r'])), ".", name])
-            f.write("{}\n".format(l))
-            
+            vals = "\t".join([v['chrom'], str(min(v['r'])), str(max(v['r'])),
+                              ".", name])
+            f.write("{}\n".format(vals))
+
     return(output)
-            
+
+
 def readbed(bedfile):
     # read in bedfile
     bed = {}

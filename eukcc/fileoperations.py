@@ -49,6 +49,11 @@ class file():
             return(True)
         return(os.stat(fileA).st_mtime > os.stat(fileB).st_mtime)
 
+    @staticmethod
+    def touch(path):
+        with open(path, 'a'):
+            os.utime(path, None)
+
 
 
 

@@ -64,7 +64,8 @@ def main():
         logLevel = logging.WARNING
     elif options.debug:
         logLevel = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S: ',
+    logging.basicConfig(format='%(asctime)s %(message)s',
+                        datefmt='%m/%d/%Y %H:%M:%S: ',
                         level=logLevel)
     logging.debug("Launching EukCC in debug mode")
     logging.info("Starting EukCC")
@@ -73,34 +74,34 @@ def main():
     # All magic numbers should be defined in info.py if they are not
     # part of the configuration options
     m = workflow.eukcc(options)
-    
+
     # skip gene predition if this is already protein sequences
-    if options.bed is None and not m.stopnow():
+    if options.bed is None:
         # run gmes
         proteinfaa, bedfile = m.gmes(options.fasta)
     else:
         proteinfaa = options.fasta
         bedfile = options.bed
-    
+
     # run hmm file if we are asked to
-    # this is needed during for training 
+    # this is needed during for training
     if m.cfg['training'] or m.cfg['hmm']:
         logging.info("Running on custom hmm for training mode")
         m.runPlacedHMM(m.cfg['hmm'], proteinfaa, bedfile)
         logging.info("Stopping now as we are only doing training")
         exit()
-    
+
     # place using pplacer and hmmer
-    m.placed = m.place(proteinfaa, bedfile)
-    
+    m.place(proteinfaa, bedfile)
+
     # concat hmms for hmmer
-    hmmfile = m.concatHMM(m.placed)
+    hmmfile = m.concatHMM()
     # run Hmmer for sets of placement
     hits = m.runPlacedHMM(hmmfile, proteinfaa, bedfile)
     # infer lineage
-    _ = m.inferLineage(m.placed[m.cfg['placementMethod']])
+    _ = m.inferLineage(m.placements[m.cfg['placementMethod']])
     _ = m.plot()
-        
+
     # estimate completeness and contamiantion
-    outputfile = os.path.join(m.cfg['outdir'], m.cfg['outfile'])
-    m.estimate(hits, outputfile, m.placed[m.cfg['placementMethod']])
+    outputfile = os.path.join(m.cfg['outdir'], "eukcc.tsv")
+    m.estimate(hits, outputfile, m.placements[m.cfg['placementMethod']])
