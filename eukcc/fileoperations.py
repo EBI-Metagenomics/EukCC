@@ -4,21 +4,21 @@
 # used inthis package
 #
 import os
-from .message import log
+import logging
+
 
 class file():
 
     @staticmethod
     def isfile(f):
         return(os.path.exists(f))
-    
+
     @staticmethod
     def exists(f):
         return(os.path.exists(f))
-    
-    
+
     @staticmethod
-    def isdir(d, create = True):
+    def isdir(d, create=True):
         """
         check if dir exists and create if not
         """
@@ -27,14 +27,13 @@ class file():
                 try:
                     os.makedirs(d)
                     return(True)
-                except:
-                    print("Could not create dir: {}".format(d))
+                except OSError as e:
+                    logging.warning(f"Could not create dir: {d}\n{e}")
                     return(False)
             else:
                 return(False)
         else:
             return(True)
-
 
     @staticmethod
     def isnewer(fileA, fileB):
@@ -42,11 +41,10 @@ class file():
         Check if file A is newer than file B
         '''
         if not file.isfile(fileA):
-            log("{} is not a file".format(fileA))
+            logging.warning("{} is not a file".format(fileA))
             return(False)
 
         if not file.isfile(fileB):
-            #log("{} is not a file".format(fileB))
             # return true bc fileB does not exists!
             return(True)
         return(os.stat(fileA).st_mtime > os.stat(fileB).st_mtime)
