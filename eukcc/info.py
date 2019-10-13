@@ -45,13 +45,12 @@ class eukinfo():
     def __init__(self, options):
         self.setConfig(options)
 
-
     def setConfig(self, options):
         self.cfg = defaults
         # loop over options and import into our configs
         for k, v in vars(options).items():
             self.cfg[k] = v
-        
+
         # placements Methis
         if options.HPA:
             self.cfg['placementMethod'] = "HPA"
@@ -60,11 +59,10 @@ class eukinfo():
         # define location of placement HMMs
         self.placementHMMs = os.path.join(options.db, "hmms/concat.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
-        
 
     def checkForFiles(self, dirname):
-        required = ["profile.list", 
-                    "refpkg", 
+        required = ["profile.list",
+                    "refpkg",
                     "hmms/concat.hmm",
                     "sets/setinfo.csv"]
         for f in required:
