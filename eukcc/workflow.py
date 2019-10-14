@@ -128,21 +128,22 @@ class eukcc():
             file.touch(hmmconcat)
             return(hmmconcat)
 
-        profiles = []
+        profiles = set()
         for p in self.placements[self.cfg['placementMethod']]:
             localpath = os.path.join(self.cfg['db'],
                                      "sets", "{}.set".format(p['node']))
             with open(localpath) as f:
                 for line in f:
-                    profiles.append(line.strip())
-        #
+                    profiles.add(line.strip())
+        # make profiles to sorted list
+        profiles = list(profiles)
+        profiles.sort()
         # create all paths for all hmms
         hmmerpaths = [os.path.join(self.cfg['db'],
                                    "hmms", "panther",
                                    "{}.hmm".format(profile))
                       for profile in profiles]
         # sort and check if we already have the hmm for this
-        profiles.sort()
         canuseprev = False
         profilehash = hashlib.sha256("_".join(profiles).encode()).hexdigest()
         hashpath = os.path.join(hmmdir, "all.hash")
@@ -241,7 +242,7 @@ class eukcc():
 
             nodetaxid = lng[-1]
             # now we can make it pretty
-            if self.cfg['lineage'] == "limited":
+            if not self.cfg['fulllineage']:
                 # limit to desired ranks2
                 desired_ranks = ['superkingdom', 'kingdom',
                                  'phylum', 'class', 'order',
@@ -275,7 +276,6 @@ class eukcc():
         inputfasta = os.path.abspath(os.path.join(gmesDir, "input.fna"))
 
         # GeneMark-ES
-        print(f"Touch {self.cfg['touch']}")
         g = gmes("runGMES", fasta, gtffile, touch=self.cfg['touch'])
         if g.doIneedTorun(self.cfg['force']):
             # rename fasta entries, so we dont have white spaces in them
@@ -401,7 +401,8 @@ class eukcc():
                                             t2,
                                             self.cfg['nPlacements'], 
                                             self.cfg['minSupport'],
-                                            self.cfg['debug'])
+                                            maximum = self.cfg['nEvals'],
+                                            debug = self.cfg['debug'])
         else:
             self.placements = {'LCA': "touch",
                                'HCA': "touch"}
