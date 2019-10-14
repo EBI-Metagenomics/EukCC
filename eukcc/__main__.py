@@ -47,7 +47,7 @@ def main():
     parser.add_argument('--nPlacements', type=int, default=2, metavar = "n",
                         help = "Set number of proteins to support location \
                                 in tree (default: 2)")
-    parser.add_argument('--fulllineage', default = False, action='store_true',
+    parser.add_argument('--fullineage', default = False, action='store_true',
                         help = "Output full lineage for MAGs")
     parser.add_argument('--minPlacementLikelyhood', default = 0.4, type = float,
                         metavar="float",
@@ -56,6 +56,10 @@ def main():
                         help = "Distance to collapse hits (default: 2000)")
     parser.add_argument('--touch', default=False, action='store_true',
                         help="Do not run, but touch all output files")
+    parser.add_argument('--gmes', default = False, action='store_true',
+                        help = "only run GeneMark-ES")
+    parser.add_argument('--plot', default = False, action='store_true',
+                        help = "produce plots")
     options = parser.parse_args()
 
     # define logging
@@ -83,6 +87,12 @@ def main():
         proteinfaa = options.fasta
         bedfile = options.bed
 
+    # terminate if only gmes step was to be run
+    if m.cfg['gmes']:
+        logging.info("Finished running GeneMark-ES")
+        logging.info("Terminating as requested")
+        exit(0)
+
     # run hmm file if we are asked to
     # this is needed during for training
     if m.cfg['training'] or m.cfg['hmm']:
@@ -100,7 +110,8 @@ def main():
     hits = m.runPlacedHMM(hmmfile, proteinfaa, bedfile)
     # infer lineage
     _ = m.inferLineage(m.placements[m.cfg['placementMethod']])
-    _ = m.plot()
+    if m.cfg['plot']:
+        _ = m.plot()
 
     # estimate completeness and contamiantion
     outputfile = os.path.join(m.cfg['outdir'], "eukcc.tsv")
