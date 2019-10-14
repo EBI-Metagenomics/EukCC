@@ -28,7 +28,7 @@ and then install Genemark-ES manually.
 
 .. code-block:: shell
 
-   conda create -n eukcc -c bioconda -c biocore hmmer pplacer python=>3.7
+   conda create -n eukcc -c bioconda -c biocore hmmer pplacer python=3.7
    # we recommend installing ete3 from conda:
    conda activate eukcc
    conda install -c etetoolkit ete3 
