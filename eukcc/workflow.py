@@ -242,7 +242,7 @@ class eukcc():
 
             nodetaxid = lng[-1]
             # now we can make it pretty
-            if not self.cfg['fulllineage']:
+            if not self.cfg['fullineage']:
                 # limit to desired ranks2
                 desired_ranks = ['superkingdom', 'kingdom',
                                  'phylum', 'class', 'order',
