@@ -29,6 +29,9 @@ and then install Genemark-ES manually.
 .. code-block:: shell
 
    conda create -n eukcc -c bioconda -c biocore hmmer pplacer 
+   # we recommend installing ete3 from conda:
+   conda activate eukcc
+   conda install -c etetoolkit ete3 
 
 To install GeneMark-ES you will need to install perl and certain perl packages:
 
