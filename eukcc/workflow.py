@@ -225,7 +225,10 @@ class eukcc():
             # fetch lineages for all
             lngs = []
             for c in children:
-                lngs.append(ncbi.get_lineage(taxids[c]))
+                try:
+                    lngs.append(ncbi.get_lineage(taxids[c]))
+                except ValueError as e:
+                    logging.warning(e)
 
             # find common elements:
             common = set(lngs[0])
