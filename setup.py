@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="eukcc",
+    name="eukcc_dev",
     version="0.0.2",
     author="Paul Saary",
     author_email="eukcc@paulsaary.de",
@@ -17,7 +17,8 @@ setuptools.setup(
     entry_points={
         'console_scripts': ['eukcc = eukcc.__main__:main']
         },
-    install_requires=["ete3", "pyfaidx"],
+    install_requires=["ete3", "pyfaidx", "configargparse",
+                      "PyQt5"],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
