@@ -96,6 +96,8 @@ And then launch EukCC with:
    :maxdepth: 2
    :caption: Contents:
 
+   tutorial.rst
+
 
 
 Indices and tables
