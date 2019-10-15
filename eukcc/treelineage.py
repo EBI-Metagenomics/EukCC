@@ -2,6 +2,7 @@
 import operator
 import os
 import json
+import logging
 from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
 ncbi = NCBITaxa()
@@ -91,7 +92,10 @@ class treeHandler():
     def write(self, file):
         self.t.write(format=1, outfile=file)
     
-    def getPlacement(self, mode, sets, originaltree, nplacements = 2, atleast = 1, debug = False):
+    def getPlacement(self, mode, sets, originaltree, 
+                     nplacements = 2, atleast = 1,
+                     maximum = 3,
+                     debug = False):
         """
         function to find the set that has the most support given either LCA (default)
         or HPA placement .
@@ -119,24 +123,20 @@ class treeHandler():
                 sets.sort(key=operator.itemgetter("ngenomes"), reverse=False)
             else:
                 # we dont know what to do
-                print("Mode not know", mode)
-                return()
+                logging.warning("Mode not know", mode)
+                exit()
             # sort now by cover, keeping the underlying order of genomes in case 
             # several sets cover the same amount of profiles
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
-            
+
             # only retain if at least N placements
             i = 0
-            if debug:
-                maximum = 2
-            else:
-                maximum = 1
             # in debug mode we want to return all best placements, not just the LCA or HPA
             while i < maximum and sets[i]['cover'] >= atleast:
                 # break if new set has less more than 1 less covers than the best
                 if i > 0 and (results[0]['cover'] - sets[i]['cover']) > 1:
                     break
-                
+
                 # save set as a result
                 results.append(sets[i].copy())
                 # add neighbours 
@@ -157,15 +157,12 @@ class treeHandler():
 
                 # count up i, usually
                 i = i + 1
-                if debug:
-                    print(results[-1])
-            
+                logging.debug(results[-1])
+
             nplacements -= 1
 
-            
         return(results)
-    
-    
+
     def loadInfo(self, togjson):
         info = {}
         with open(togjson) as json_file:  

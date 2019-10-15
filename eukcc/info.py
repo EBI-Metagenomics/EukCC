@@ -37,6 +37,10 @@ old_defaults = {"verbose": True,
 # please keep it sorted alphabetically and coument
 defaults = {
             "evalue": 1e-5,        # not used evalue
+            "nEvals": 3,           # per placement show top n inferrals
+            "minGenomes": 3,       # minimal number of genomes in set
+            "minProfiles": 20,     # minimal profiles in set
+            "minSupport": 2,       # minimal profiles to support set
             "trainingEvalue": 10   # evalue used in training mode
             }
 
