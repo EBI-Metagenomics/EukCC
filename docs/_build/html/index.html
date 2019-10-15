@@ -34,7 +34,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial: Assemble, bin and asses eukaryotic bins" href="tutorial.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -78,20 +79,24 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to EukCC’s documentation!</a><ul>
-<li><a class="reference internal" href="#installation">Installation</a><ul>
-<li><a class="reference internal" href="#install-dependencies">Install dependencies</a></li>
-<li><a class="reference internal" href="#install-eukcc">Install EukCC</a></li>
-<li><a class="reference internal" href="#quickstart">Quickstart</a></li>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to EukCC’s documentation!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-dependencies">Install dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-eukcc">Install EukCC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quickstart">Quickstart</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a></li>
+</ul>
+
             
           
         </div>
@@ -167,7 +172,7 @@ of novel eukaryotic MAGs.</p>
 them before launching EukCC. It is best to create a conda enviorement
 and then install Genemark-ES manually.</p>
 <p><strong>With conda</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n eukcc -c bioconda -c biocore hmmer pplacer <span class="nv">python</span><span class="o">=</span>&gt;3.7
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n eukcc -c bioconda -c biocore hmmer pplacer <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
 <span class="c1"># we recommend installing ete3 from conda:</span>
 conda activate eukcc
 conda install -c etetoolkit ete3
@@ -215,6 +220,20 @@ pip3 install .
 </pre></div>
 </div>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to EukCC’s documentation!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#binning">Binning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#optional-filtering-for-euks">Optional: Filtering for euks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#estimate-bin-completeness-and-contamination-using-eukcc">Estimate bin completeness and contamination using EukCC</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -233,6 +252,13 @@ pip3 install .
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial: Assemble, bin and asses eukaryotic bins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
   
 
   <hr/>

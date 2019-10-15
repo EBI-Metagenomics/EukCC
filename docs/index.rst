@@ -96,6 +96,7 @@ And then launch EukCC with:
    :maxdepth: 2
    :caption: Contents:
 
+   index.rst
    tutorial.rst
 
 
