@@ -162,7 +162,7 @@ class eukcc():
         # concatenate
         if len(profiles) == 0:
             logging.error("We have no profiles to evaluate")
-            exit()
+            exit(1)
         
         log("{} hmm profiles need to be used for estimations".format(len(profiles)))
         log("Concatenating hmms, this might take a while (IO limited)")
@@ -297,7 +297,7 @@ class eukcc():
             # log and document failing
             # then stop pipeline
             logging.error("GeneMark-ES failed on this bin")
-            exit()
+            exit(1)
 
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")
@@ -319,10 +319,10 @@ class eukcc():
         # test if we can open the input files first
         if not base.exists(fasta):
             logging.error("Could not open fasta file")
-            exit()
+            exit(1)
         if not base.exists(bedfile):
             logging.error("Could not open bed file")
-            exit()
+            exit(1)
 
         # define output files
         hmmDir = os.path.join(self.cfg['outdir'], "workfiles", "hmmer")
@@ -364,7 +364,7 @@ class eukcc():
                                 self.config, self.cfg,  placerDirTmp)
             if pp.lenscmgs == 0 and not self.cfg['touch']:
                 logging.error("Could not find any marker genes")
-                exit()
+                exit(1)
             else:
                 logging.info("Placing proteins in tre")
                 self.updateStep('pplacer', 'starting')
