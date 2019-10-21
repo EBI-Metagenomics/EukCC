@@ -271,6 +271,7 @@ class eukcc():
         """
         predict proteins using gmes
         """
+        logging.debug("Starting gmes function")
         
         gmesDir = os.path.join(self.cfg['outdir'], "workfiles", "gmes")
         file.isdir(gmesDir)
@@ -279,7 +280,8 @@ class eukcc():
         inputfasta = os.path.abspath(os.path.join(gmesDir, "input.fna"))
 
         # GeneMark-ES
-        g = gmes("runGMES", fasta, gtffile, touch=self.cfg['touch'])
+        g = gmes("runGMES", fasta, [gtffile, gmesOut], touch=self.cfg['touch'])
+        logging.debug("Defined gmes run")
         if g.doIneedTorun(self.cfg['force']):
             # rename fasta entries, so we dont have white spaces in them
             # can be turned of via cleanfasta in config file
@@ -290,6 +292,9 @@ class eukcc():
 
             logging.info("Running GeneMark-ES")
             g.run(cores=self.cfg['ncores'])
+        else:
+            logging.debug("I do not need to run gmes, output exists:")
+            logging.debug(gtffile)
 
         # always check if gtffile exists, if not Genemark-ES failed and 
         # we can stop here

@@ -24,7 +24,16 @@ class run():
         self.touchonly = touch
         self.program = program
         self.input = inf
-        self.output = outf
+        # in case multiple output fiules are defined
+        # we set the first one as output but use all for testing
+        # is a rule has to be run
+        if isinstance(outf, list):
+            self.output = outf[0]
+            self.output_test = outf
+        else:
+            self.output = outf
+            self.output_test = [outf]
+
         if outf is not None:
             # create output dir
             dc = file.isdir(os.path.dirname(self.output))
@@ -44,10 +53,16 @@ class run():
                     os.utime(path, None)
 
     def doIneedTorun(self, force=False):
+        logging.debug("Testing if I need to run this step")
         if force or self.touchonly:
             return(True)
         else:
-            return(file.isnewer(self.input, self.output))
+            for p in self.output_test:
+                x = file.isnewer(self.input, p)
+                if x:
+                    logging.debug(f"Need to run because of file: {p}")
+                    return(x)
+            return(x)
 
     def which(program):
         # taken from
