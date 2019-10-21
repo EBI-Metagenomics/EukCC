@@ -116,7 +116,7 @@ if __name__ == "__main__":
                         help="all bins to classify",
                         type=str)
     parser.add_argument("--tempdir", type=str,
-                        help="Will safe temp files of the analysis here",
+                        help="Will save temp files of the analysis here",
                         default="tmp")
     parser.add_argument("--minl", type=int,
                         help="define minimal length of contig for EukRep \
