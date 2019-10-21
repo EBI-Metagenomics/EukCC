@@ -18,8 +18,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': ['eukcc = eukcc.__main__:main']
         },
-    install_requires=["ete3", "pyfaidx", "configargparse",
-                      "PyQt5"],
+    install_requires=["ete3", "pyfaidx", "configargparse"],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
