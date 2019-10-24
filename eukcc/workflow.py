@@ -374,7 +374,7 @@ class eukcc():
                 logging.info("Placing proteins in tre")
                 self.updateStep('pplacer', 'starting')
                 pp.run(os.path.join(self.cfg['db'], "refpkg", "concat.refpkg"),
-                       cores=self.cfg['ncores'])
+                       cores=self.cfg['ncorespplacer'])
 
         # reduce placements to the placements with at least posterior of p
         logging.debug("Reducing placements")

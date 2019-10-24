@@ -60,6 +60,11 @@ class eukinfo():
             self.cfg['placementMethod'] = "HPA"
         else:
             self.cfg['placementMethod'] = "LCA"
+        # figure if pplacer cores need to be adjusted
+        if self.cfg['ncorespplacer'] < 1:
+            logging.debug(f"Set pplacer cores to the same as all others ({self.cfg['ncores']})")
+            self.cfg['ncorespplacer']  = self.cfg['ncores']
+
         # define location of placement HMMs
         self.placementHMMs = os.path.join(options.db, "hmms/concat.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
