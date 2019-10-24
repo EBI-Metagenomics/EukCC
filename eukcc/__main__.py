@@ -23,6 +23,11 @@ def main():
     parser.add_argument('--ncores', '-n', metavar="int", type=int,
                         default=1,
                         help='set number of cores for GeneMark-ES, pplacer and Hmmer')
+    parser.add_argument('--ncorespplacer', metavar="int", type=int,
+                        default=0,
+                        help='pplacer requiers a lot of memory. If you want \
+                              you can set less cores for pplacer\
+                              which improves memory consumption significantly')
     parser.add_argument('--hmm', dest='hmm',  type=str, 
                         default=None, help='run hmmer on all these HMMs instead')
     parser.add_argument('--training', dest='training', action='store_true', 
