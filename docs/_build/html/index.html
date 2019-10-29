@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to EukCC’s documentation! &mdash; EukCC  documentation</title>
+  <title>EukCC &mdash; EukCC  documentation</title>
   
 
   
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial: Assemble, bin and asses eukaryotic bins" href="tutorial.html" /> 
+    <link rel="next" title="Tutorial: Assemble, bin and asses eukaryotic bins" href="usage/tutorial.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,21 +80,9 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to EukCC’s documentation!</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#install-dependencies">Install dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#install-eukcc">Install EukCC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#quickstart">Quickstart</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
 </ul>
 
             
@@ -140,7 +128,7 @@
     
       <li><a href="#">Docs</a> &raquo;</li>
         
-      <li>Welcome to EukCC’s documentation!</li>
+      <li>EukCC</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -159,8 +147,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-eukcc-s-documentation">
-<h1>Welcome to EukCC’s documentation!<a class="headerlink" href="#welcome-to-eukcc-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="eukcc">
+<h1>EukCC<a class="headerlink" href="#eukcc" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/tutorial.html#binning">Binning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/tutorial.html#optional-filtering-for-euks">Optional: Filtering for euks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/tutorial.html#estimate-bin-completeness-and-contamination-using-eukcc">Estimate bin completeness and contamination using EukCC</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="FAQ.html#genemark-es-problems">GeneMark-ES problems</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <p>EukCC is a command line too written in python3 to estimate completeness and contamination
 of novel eukaryotic MAGs.</p>
 <p>The project is hosted on github: <a class="reference external" href="https://github.com/openpaul/EukCC">https://github.com/openpaul/EukCC</a></p>
@@ -207,44 +210,36 @@ pip3 install .
 </pre></div>
 </div>
 <p>EukCC requires python 3.7</p>
-</div>
-<div class="section" id="quickstart">
-<h3>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h3>
-<p>The database is currently located under:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 14. october 2019</span>
-/hps/nobackup2/production/metagenomics/saary/databases/eukcc/balanced5_einsi
+<p><strong>Get database from the EBI cluster</strong></p>
+<p>This will only work for EBI users and this section will be removed in
+the future.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp /hps/nobackup2/production/metagenomics/saary/databases/eukcc/eukcc_db_20191023.tar.gz .
+tar -xzvf eukcc_db_20191023.tar.gz
+mv eukcc_db_20191023 eukccdb
 </pre></div>
 </div>
-<p>And then launch EukCC with:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>eukcc --db eukccdb MAG.fa
+<p>Now that the database is fetched you can invoke eukcc with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>eukcc --db eukccb MAG.fa
 </pre></div>
 </div>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to EukCC’s documentation!</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial: Assemble, bin and asses eukaryotic bins</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#binning">Binning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#optional-filtering-for-euks">Optional: Filtering for euks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#estimate-bin-completeness-and-contamination-using-eukcc">Estimate bin completeness and contamination using EukCC</a></li>
-</ul>
-</li>
-</ul>
+</div>
+<div class="section" id="quickstart-and-testing">
+<h3>Quickstart and testing<a class="headerlink" href="#quickstart-and-testing" title="Permalink to this headline">¶</a></h3>
+<p>Assuming you installed eukcc and fetched the database you can start eukcc
+and test for function with this command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>wget -O testgenome.fa ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+eukcc --db eukccdb  <span class="se">\</span>
+    --ncores <span class="m">4</span> <span class="se">\</span>
+    --ncorespplacer <span class="m">1</span> <span class="se">\</span>
+    --outdir eukcc_testgenome <span class="se">\</span>
+    testgenome.fa
+</pre></div>
+</div>
+<p>..* <a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a>
+..* <a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a>
+..* <a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p>
 </div>
 </div>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
 </div>
 
 
@@ -255,7 +250,7 @@ pip3 install .
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial: Assemble, bin and asses eukaryotic bins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="usage/tutorial.html" class="btn btn-neutral float-right" title="Tutorial: Assemble, bin and asses eukaryotic bins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>

@@ -3,8 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to EukCC's documentation!
 =================================
+EukCC
+=================================
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Contents:
+
+    Tutorial <usage/tutorial.rst>
+    FAQ <FAQ.rst>
 
 EukCC is a command line too written in python3 to estimate completeness and contamination
 of novel eukaryotic MAGs.
@@ -107,19 +115,11 @@ and test for function with this command:
         testgenome.fa
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   index.rst
-   tutorial.rst
-   FAQ.rst
 
 
+.. Indices and tables
+.. ==================
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+..* :ref:`genindex`
+..* :ref:`modindex`
+..* :ref:`search`
