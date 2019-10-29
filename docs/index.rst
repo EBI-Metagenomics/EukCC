@@ -73,23 +73,38 @@ Fetch from github and install in the conda environment:
 
 EukCC requires python 3.7
 
+**Get database from the EBI cluster**
 
-Quickstart
+This will only work for EBI users and this section will be removed in 
+the future.
+
+.. code-block:: shell
+    
+    cp /hps/nobackup2/production/metagenomics/saary/databases/eukcc/eukcc_db_20191023.tar.gz .
+    tar -xzvf eukcc_db_20191023.tar.gz
+    mv eukcc_db_20191023 eukccdb
+
+Now that the database is fetched you can invoke eukcc with:
+
+.. code-block:: shell
+    
+    eukcc --db eukccb MAG.fa
+
+
+Quickstart and testing
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The database is currently located under:
+Assuming you installed eukcc and fetched the database you can start eukcc
+and test for function with this command:
 
 .. code-block:: shell
 
-    # 14. october 2019
-    /hps/nobackup2/production/metagenomics/saary/databases/eukcc/balanced5_einsi
-
-
-And then launch EukCC with:
-
-.. code-block:: shell
-
-   eukcc --db eukccdb MAG.fa
+    wget -O testgenome.fa ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+    eukcc --db eukccdb  \
+        --ncores 4 \
+        --ncorespplacer 1 \
+        --outdir eukcc_testgenome \
+        testgenome.fa
 
 
 .. toctree::
@@ -98,6 +113,7 @@ And then launch EukCC with:
 
    index.rst
    tutorial.rst
+   FAQ.rst
 
 
 
