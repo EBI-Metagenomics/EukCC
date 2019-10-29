@@ -11,7 +11,7 @@ def main():
     parser = configargparse.ArgumentParser(description='Evaluate completeness \
                         and contamination of a MAG.')
     parser.add_argument('fasta',  type=str,
-                        help='run script on this bin (fasta file)')
+                        help='Run script on this bin (fasta file)')
     parser.add_argument('--db', type=str, required=True,
                         help='Path to EukCC DB')
     parser.add_argument('--outdir', '-o', type=str, default="./",
@@ -25,28 +25,28 @@ def main():
                         help='set number of cores for GeneMark-ES, pplacer and Hmmer')
     parser.add_argument('--ncorespplacer', metavar="int", type=int,
                         default=0,
-                        help='pplacer requiers a lot of memory. If you want \
-                              you can set less cores for pplacer\
+                        help='Pplacer requires a lot of memory. If you want \
+                              you can set less cores for pplacer,\
                               which improves memory consumption significantly')
     parser.add_argument('--hmm', dest='hmm',  type=str, 
                         default=None, help='run hmmer on all these HMMs instead')
     parser.add_argument('--training', dest='training', action='store_true', 
-                        default=False, help='run EukCC in training mode (needed to create a new release of the DB)')
+                        default=False, help='Run EukCC in training mode (needed to create a new release of the DB)')
     parser.add_argument('--bed', '-b', metavar="file.bed", type=str,
                         default=None,
-                        help='pass bedfile if you called genes manually. \
+                        help='Pass bedfile if you called genes manually. \
                         Assumes only a single fasta (protein) is passed and implies --noglob')
     parser.add_argument('--force', '-f', dest='force', action='store_true',
-                        default=False, help='force rerun of computation even if \
+                        default=False, help='Force rerun of computation even if \
                                               output is newer than input. Don\'t resume previous run.')
     parser.add_argument('--fplace', '-p', dest='fplace', action='store_true',
-                        default=False, help='force rerun of placement and subsequent steps')
+                        default=False, help='Force rerun of placement and subsequent steps')
     parser.add_argument('--noglob', '-g', dest='noglob', action='store_true',
                         default=False, help='Do not expand paths using glob')
     parser.add_argument('--quiet', '-q', dest='quiet', action='store_true',
-                        default=False, help='silcence most output')
+                        default=False, help='Silcence most output')
     parser.add_argument('--debug', '-d',  action='store_true',
-                        default=False, help='debug and thus ignore safety')
+                        default=False, help='Debug and thus ignore safety')
     parser.add_argument('--HPA',  default=False, action='store_true',
                         help = "Set placement method to HPA")
     parser.add_argument('--nPlacements', type=int, default=2, metavar = "n",
