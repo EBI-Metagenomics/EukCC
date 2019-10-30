@@ -17,9 +17,13 @@ no prior towards prokariotic sequences. Thus you will not be able
 to use neither maxbin2 not metabat. We suggest the use of CONCOCT, but 
 any unbiased binner will work.
 
-.. code-block:: shell
+Follow the github page of CONCOCT if you want:
 
-   concoct .. bin 
+https://github.com/BinPro/CONCOCT
+
+We assume for this tutorial that your bins are in the folder 
+fasta_bins
+and end with .fa.
    
 Optional: Filtering for euks
 ----------------------------------
@@ -34,6 +38,8 @@ DNA. We noticed a ratio of at least 20 % eukaryotic DNA will already make sure
 to exclude any bacterial bins.
 
 This can be done using our helper script "filter_euk_bins.py"
+
+Make sure you have EukRep (https://github.com/patrickwest/EukRep) installed.
 
 .. code-block:: shell
    
@@ -63,15 +69,37 @@ All options are described in the help:
    filter_euk_bins.py -h
 
 
+Copy eukaryotic bins to new folder
+-----------------------------------------
+
+If you want you can now copy or symlink the eukaryotic bins into
+a new folder.
+
+.. code-block:: shell
 
 
 Estimate bin completeness and contamination using EukCC
 -------------------------------------------------------
+Now for every bin in the eukaryotic folder we can run EukCC.
+
+We noticed that sometimes GeneMark-ES does get confused when we start
+many jobs in parallel. So in case the gene prediction fails, try launching 
+jobs sequentially as we do here.
+
+We assume that you located the eukccdb in your home folder, you might need
+to adjust that path.
 
 
 .. code-block:: shell
 
-   eukcc --db $HOME/eukccdb/ -n 8 --outdir eukcc/bin.0/ fasta_bins/bin.0.fa
+    while IFS=, read -r bin col2 euk col4
+    do
+        if [ $euk == "True" ]; then
+            NAME=$(basename $bin)
+            bsub -M 80000 -J eukcc_$bin -n 16 -o logs/eukcc_$bin.log "eukcc --db $HOME/eukccdb --ncores 16 --ncorespplacer 1 --outdir eukcc/$NAME $bin"
+        fi  
+    done < asignment.csv
+
 
 Optimizing memory
 ##################
