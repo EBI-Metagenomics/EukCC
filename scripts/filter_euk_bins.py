@@ -112,7 +112,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output",
                         help="path for the output table",
-                        default="asignment.csv",
+                        default="assignment.csv",
                         type=str)
     parser.add_argument("bins", nargs="+",
                         help="all bins to classify",

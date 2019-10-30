@@ -6,8 +6,6 @@ We assume for this tutorial, that you have sequenced
 and assembled your metagenomic reads without prior filtering
 using your assembler of choice (metaSPAdes, flye, megahit, etc.).
 
-We assume the scaffolds to be in the folder.
-
 
 Binning 
 ---------------------
@@ -45,15 +43,16 @@ Make sure you have EukRep (https://github.com/patrickwest/EukRep) installed.
    
    filter_euk_bins.py fasta_bins/*.fa
 
-This will create a file `asignment.csv` containing comma seperated 
+This will create a file `assignment.csv` containing comma seperated 
 columns with stats about the bin including one column 'eukaryotic', which
 can help you decide.
 
 The assignent file looks like:
 
-   path,binname,eukaryotic,eukbases,bacbases,unassigned,sum
-   fasta_bins/0.fa,0.fa,True,2593713,0,0,2593713
-   fasta_bins/1.fa,1.fa,False,36682,394058,3639,434379
+.. csv-table:: assignment.csv
+    :file: ../_static/assignment.csv
+    :header-rows: 1
+
 
 Try adjusting the ratios using the flags, if you are unhappy with the defaults.
 
@@ -69,26 +68,14 @@ All options are described in the help:
    filter_euk_bins.py -h
 
 
-Copy eukaryotic bins to new folder
------------------------------------------
-
-If you want you can now copy or symlink the eukaryotic bins into
-a new folder.
-
-.. code-block:: shell
-
 
 Estimate bin completeness and contamination using EukCC
 -------------------------------------------------------
-Now for every bin in the eukaryotic folder we can run EukCC.
-
-We noticed that sometimes GeneMark-ES does get confused when we start
-many jobs in parallel. So in case the gene prediction fails, try launching 
-jobs sequentially as we do here.
+Now we can launch EukCC for each eukaryotic bin. We suggest submitting 
+EukCC to a compute cluster, in this example we use LSF bsub:
 
 We assume that you located the eukccdb in your home folder, you might need
 to adjust that path.
-
 
 .. code-block:: shell
 
@@ -96,20 +83,62 @@ to adjust that path.
     do
         if [ $euk == "True" ]; then
             NAME=$(basename $bin)
-            bsub -M 80000 -J eukcc_$bin -n 16 -o logs/eukcc_$bin.log "eukcc --db $HOME/eukccdb --ncores 16 --ncorespplacer 1 --outdir eukcc/$NAME $bin"
+            bsub -M 80000 -J eukcc_$bin -n 16 \
+                "eukcc --db $HOME/eukccdb --ncores 16 \
+                 --plot \
+                 --ncorespplacer 1 --outdir eukcc/$NAME $bin"
         fi  
     done < asignment.csv
 
+In this example we allocate 80 Gb in memory for EukCC and use 16 cores for 
+gene prediction and annotation. To reduce memory consumption we only use a 
+single thread for pplacer.
 
-Optimizing memory
-##################
-Running EukCC will require serveral Gb of memory (>50 Gb). This is due to
-the usage of pplacer. 
 
-In a first step, it will run GeneMark-ES, which depending on the 
-size of the bin and the number of cores provided can take up to several
-hours and uses very little memory. 
+EukCC ouput
+#################
 
-If you want to streamline your pipeline, you can use EukCC to only run 
-GeneMark-ES first (on a low memory machine) and then relaunch with the same 
-parameters on a higher memory machine. 
+EukCC will create a structure like this:
+
+.. code-block:: shell
+
+    $ tree -L 2 eukcc/1.fa
+        eukcc/1.fa
+        ├── eukcc.tsv
+        └── workfiles
+            ├── gmes
+            ├── hmmer
+            └── pplacer
+
+The main output is the file `eukcc.tsv`. It will contain predictions with up
+to three sets chosen to best encompass the phylogenetic location of the bin.
+
+.. csv-table:: eukcc.csv
+    :file: ../_static/eukcc.csv
+    :header-rows: 1
+
+In this table up to three quality estimates are given. These are the three 
+best sets found to estimate the quality of this MAG. The best set is the 
+first row. It can be interesting to look at more than one set as sometimes 
+a lower set gives a more robust estimate.
+
+Most columns of the table will be self explanatory. We want to highlight a few 
+critical ones:
+
+- **n**: This is the number of protein-profiles used to estimate completeness
+  and contamination
+
+- **node**: This is the location in the reference tree and can be used to 
+  see if different mags are located in the same area of the tree.
+
+- **ngenomes**: This is the number of reference genomes used to construct the
+  set used to estimate bin quality. A low number will suggest a less stable
+  estimate.
+
+- **nPlacements and cover**: `nPlacements` is the number of proteins placed 
+  in the reference tree and `cover` is the number of these placed below the
+  `node`-set used to estimate completeness.
+
+
+
+
