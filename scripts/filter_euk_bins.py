@@ -72,12 +72,14 @@ class bin():
 
     def stats(self):
         """read bin content and figure genomic composition"""
+        logging.debug("Loading bin")
         fa_file = Fasta(self.path)
         stats = {'euks': 0,
                  'bacs': 0,
                  'NA': 0,
                  'sum': 0}
         # loop and compute stats
+        logging.debug(f"Make per bin stats ({len(fa_file.keys())} contigs)")
         for seq in fa_file:
             if seq.name in self.e.euks:
                 stats['euks'] += len(seq)
@@ -130,6 +132,9 @@ if __name__ == "__main__":
             help="discard bins with bactrial ratio of higher than\
                     (default: 0.1)",
                         default=0.1)
+    parser.add_argument("--rerun", action="store_true",
+                        help="rerun even if output exists",
+                        default=False)
     parser.add_argument("--quiet", action="store_true",
                         help="supress information",
                         default=False)
@@ -154,7 +159,10 @@ if __name__ == "__main__":
     # concatenate fastas as we need single file for EukRep
     contigs = os.path.join(args.tempdir, "contigs.fna")
     logging.info("Concatenating bins")
-    concatenate_bins(args.bins, contigs)
+    if args.rerun or not os.path.exists(contigs):
+        concatenate_bins(args.bins, contigs)
+    else:
+        logging.debug("Reusing concatenated contigs")
 
     # launch EukRep
     eukfile = os.path.join(args.tempdir, "euks.fna")
@@ -163,12 +171,18 @@ if __name__ == "__main__":
                            eukfile,
                            bacfile,
                            minl=args.minl)
-    logging.info("Running EukRep on concatenated contigs")
-    eukrep_result.run()
+
+    if args.rerun or not os.path.exists(eukfile):
+        logging.info("Running EukRep on concatenated contigs")
+        eukrep_result.run()
+    else:
+        logging.debug("Reusing EukRep run from before")
+        eukrep_result.read_result()
 
     with open(args.output, "w") as outfile:
         outfile.write("path,binname,eukaryotic,eukbases,bacbases,unassigned,sum\n")
         for path in args.bins:
+            logging.info(f"Deciding on bin: {path}")
             b = bin(path, eukrep_result)
             b.stats()
             b.decide(eukratio=args.eukratio,
