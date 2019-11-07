@@ -105,24 +105,16 @@ def readFasta(file):
 def readFastaNames(file):
     f = Fasta(file)
     return(list(f.keys()))
-    #names = []
-    #with open(file) as f:
-    #    for line in f:
-    #        if line.startswith(">"):
-    #            names.append(line.strip())
-    #        else:
-    #            continue
-    #return(names)
+
 
 def horizontalConcat(output, files, profiles, sourcealignment):
     seqs = {}
     allnames = set()
     for profile, f in zip(profiles, files):
-        #print("Reding {} {}".format(profile,f))
         seqs[profile] = readFasta(f)
         for name, seq in seqs[profile].items():
             allnames.add(name)
-    
+
     # length matter
     # as I will need to pad single seqs
     lengths = {}
@@ -130,33 +122,32 @@ def horizontalConcat(output, files, profiles, sourcealignment):
         for k, s in seq.items():
             lengths[profile] = len(s)
             break
-            
+
     # add names from source alignment to
     # the alignment, as this will make pplacer happy
     sa = readFastaNames(sourcealignment)
     sa = [">{}".format(s) for s in sa]
     allnames |= set(sa)
-        
-    
+
     # add missing seqences as strings of spaces
     for profile, seq in seqs.items():
         for name in allnames:
             if name not in seqs[profile].keys():
                 seqs[profile][name] = "".join(lengths[profile] * ["-"])
-            
+
     mergedSeqs = {}
     for name in allnames:
         s = ""
         for p in profiles:
             s += seqs[p][name]
         mergedSeqs[name] = s
-    
+
     # write output:
     with open(output, "w") as f:
         for name, seq in mergedSeqs.items():
             seq = seq.replace(".", "-")
             f.write("{}\n{}\n".format(name, seq))
-    
+
     return(output)
 
 def concatenate(output, filenames, ungap = True):

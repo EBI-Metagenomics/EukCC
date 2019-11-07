@@ -430,9 +430,8 @@ class pplacer(run):
         with open(jplaceselection, "w") as f:
             json.dump(jn,f)
         return(jplaceselection)
-        
 
-        
+
 class tog(run):
     def run(self):
         # if sometimes we just touch, for debugging
@@ -448,7 +447,7 @@ class tog(run):
             print("an error occured while executing {}".format(self.program))
             return(False)
 
-        
+
 def checkDependencies(dep):
     """
     simple function to check all dependencies
