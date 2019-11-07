@@ -25,11 +25,6 @@ dep = {
       }
 
 
-def updateConf(cfg, k, v):
-    if v is not None:
-        cfg[k] = v
-    return(cfg)
-    
 
 class eukcc():
     def __init__(self, options):
