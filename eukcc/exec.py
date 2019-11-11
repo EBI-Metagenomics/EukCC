@@ -141,7 +141,7 @@ class hmmpress(run):
 
 
 class hmmer(run):
-    def run(self, stdoutfile, hmmfiles, cores=1, evalue=1e-5, training=False):
+    def run(self, stdoutfile, hmmfiles, cores=1, modus = "bitscore", evalue=False, training=False):
         # if sometimes we just touch, for debugging
         if self.touchonly:
             self.touch()
@@ -161,7 +161,7 @@ class hmmer(run):
         ]
         # in training mode we dont cut of using ga but use an evalue
         # cutoff, so we can learn the bitscore tresholds
-        if training:
+        if (training or modus == "evalue") and evalue:
             lst = [
                 self.program,
                 "--cpu",
@@ -175,6 +175,7 @@ class hmmer(run):
                 hmmfiles,
                 self.input,
             ]
+
 
         if self.debug:
             print(" ".join(lst))

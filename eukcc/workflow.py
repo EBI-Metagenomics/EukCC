@@ -36,6 +36,10 @@ class eukcc:
         self.cfg["name"] = name = os.path.splitext(os.path.basename(options.fasta))[0]
         if self.cfg["training"]:
             self.cfg["evalue"] = self.cfg["trainingEvalue"]
+            logging.info("Defining e-value for training as %", self.cfg['evalue'])
+        elif self.cfg['dbinfo']['modus'] == "evalue":
+            logging.debug("Defining e-value to match DB info")
+            self.cfg["evalue"] = self.cfg['dbinfo']['evalue']
 
     def checkIO(self, fastapath, outdir):
         # create outdir if not exists
@@ -190,6 +194,7 @@ class eukcc:
             h.run(
                 hmmOus,
                 hmmfiles=hmmfile,
+                modus=self.cfg['dbinfo']['modus'],
                 evalue=self.cfg["evalue"],
                 cores=self.cfg["ncores"],
                 training=self.cfg["training"],
