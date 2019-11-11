@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import yaml
 from eukcc import base
 from eukcc.base import log
 
@@ -53,6 +54,8 @@ class eukinfo:
         for k, v in vars(options).items():
             self.cfg[k] = v
 
+        self.loadDBinfo()
+
         # placements Methis
         if options.HPA:
             self.cfg["placementMethod"] = "HPA"
@@ -60,12 +63,34 @@ class eukinfo:
             self.cfg["placementMethod"] = "LCA"
         # figure if pplacer cores need to be adjusted
         if self.cfg["ncorespplacer"] < 1:
-            logging.debug(f"Set pplacer cores to the same as all others ({self.cfg['ncores']})")
+            logging.debug("Set pplacer cores to the same as all others (%)", self.cfg['ncores'])
             self.cfg["ncorespplacer"] = self.cfg["ncores"]
 
         # define location of placement HMMs
         self.placementHMMs = os.path.join(options.db, "hmms/concat.hmm")
         self.tree = self.pkgfile("concat.refpkg", "tree")
+
+    def loadDBinfo(self):
+        dbinfopath = os.path.join(self.cfg["db"], "dbconfig.yml")
+        if not os.path.exists(dbinfopath):
+            logging.info("This is an old database, it does not profide machine readable information about the database")
+            # for now we maintain this section, setting defaults
+            # to make the software compatible with testing old DB versions
+            # but in the future this should be changed
+            self.cfg['dbinfo'] = {}
+            self.cfg['dbinfo']['modus'] = "bitscore"
+            logging.debug("Remove this manual setting of options to break backwards compatibility, to make use of old DB versions impossible")
+        else:
+            with open(dbinfopath, 'r') as stream:
+                try:
+                    dbinfo = yaml.safe_load(stream)
+                    # copy the dbinfo into the config
+                    self.cfg['dbinfo'] = {}
+                    for key, value in dbinfo.items():
+                        self.cfg['dbinfo'][key] = value
+                except yaml.YAMLError as exc:
+                    logging.error("We could not open the DBinfo file:")
+                    print(exc)
 
     def checkForFiles(self, dirname):
         required = ["profile.list", "refpkg", "hmms/concat.hmm", "sets/setinfo.csv"]
