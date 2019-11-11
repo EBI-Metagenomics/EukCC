@@ -7,15 +7,14 @@ import os
 import logging
 
 
-class file():
-
+class file:
     @staticmethod
     def isfile(f):
-        return(os.path.exists(f))
+        return os.path.exists(f)
 
     @staticmethod
     def exists(f):
-        return(os.path.exists(f))
+        return os.path.exists(f)
 
     @staticmethod
     def isdir(d, create=True):
@@ -26,34 +25,30 @@ class file():
             if create:
                 try:
                     os.makedirs(d)
-                    return(True)
+                    return True
                 except OSError as e:
                     logging.warning(f"Could not create dir: {d}\n{e}")
-                    return(False)
+                    return False
             else:
-                return(False)
+                return False
         else:
-            return(True)
+            return True
 
     @staticmethod
     def isnewer(fileA, fileB):
-        '''
+        """
         Check if file A is newer than file B
-        '''
+        """
         if not file.isfile(fileA):
             logging.warning("{} is not a file".format(fileA))
-            return(False)
+            return False
 
         if not file.isfile(fileB):
             # return true bc fileB does not exists!
-            return(True)
-        return(os.stat(fileA).st_mtime > os.stat(fileB).st_mtime)
+            return True
+        return os.stat(fileA).st_mtime > os.stat(fileB).st_mtime
 
     @staticmethod
     def touch(path):
-        with open(path, 'a'):
+        with open(path, "a"):
             os.utime(path, None)
-
-
-
-

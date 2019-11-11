@@ -7,7 +7,7 @@ from pyfaidx import Fasta
 
 
 def exists(f):
-    return(os.path.exists(f))
+    return os.path.exists(f)
 
 
 def log(m, verbose=True):
@@ -35,19 +35,17 @@ def gmesBED(gtf, output):
             name = (nre.findall(l[8]))[0]
 
             if name not in beds.keys():
-                beds[name] = {"chrom": l[0],
-                              "r": []}
-            beds[name]['r'].append(start)
-            beds[name]['r'].append(stop)
+                beds[name] = {"chrom": l[0], "r": []}
+            beds[name]["r"].append(start)
+            beds[name]["r"].append(stop)
 
     # write to file
     with open(output, "w") as f:
         for name, v in beds.items():
-            vals = "\t".join([v['chrom'], str(min(v['r'])), str(max(v['r'])),
-                              ".", name])
+            vals = "\t".join([v["chrom"], str(min(v["r"])), str(max(v["r"])), ".", name])
             f.write("{}\n".format(vals))
 
-    return(output)
+    return output
 
 
 def readbed(bedfile):
@@ -56,15 +54,17 @@ def readbed(bedfile):
     with open(bedfile) as b:
         for line in b:
             l = line.split()
-            bed[l[4]] = {"chrom": l[0],
-                         "start": int(l[1]), 
-                         "stop": int(l[2]),
-                         "strand": l[3]}
-    return(bed)
+            bed[l[4]] = {
+                "chrom": l[0],
+                "start": int(l[1]),
+                "stop": int(l[2]),
+                "strand": l[3],
+            }
+    return bed
 
 
-def mergeOverlaps(intervals, dist = 0):
-    '''https://codereview.stackexchange.com/a/69249'''
+def mergeOverlaps(intervals, dist=0):
+    """https://codereview.stackexchange.com/a/69249"""
     sorted_by_lower_bound = sorted(intervals, key=lambda tup: tup[0])
     merged = []
 
@@ -81,13 +81,13 @@ def mergeOverlaps(intervals, dist = 0):
             else:
                 merged.append(higher)
 
-    return(merged)
+    return merged
+
 
 def writeFasta(path, name, seq):
     with open(path, "w") as f:
         f.write(">{}\n{}\n".format(name, seq))
-    return(path)
-
+    return path
 
 
 def readFasta(file):
@@ -99,12 +99,12 @@ def readFasta(file):
                 seqs[name] = ""
             else:
                 seqs[name] += line.strip()
-    return(seqs)
+    return seqs
 
 
 def readFastaNames(file):
     f = Fasta(file)
-    return(list(f.keys()))
+    return list(f.keys())
 
 
 def horizontalConcat(output, files, profiles, sourcealignment):
@@ -148,14 +148,15 @@ def horizontalConcat(output, files, profiles, sourcealignment):
             seq = seq.replace(".", "-")
             f.write("{}\n{}\n".format(name, seq))
 
-    return(output)
+    return output
 
-def concatenate(output, filenames, ungap = True):
-    with open(output, 'w') as outfile:
+
+def concatenate(output, filenames, ungap=True):
+    with open(output, "w") as outfile:
         for fname in filenames:
             with open(fname) as infile:
                 outfile.write(infile.read())
-    return(output)
+    return output
 
 
 def readTSV(fp):
@@ -169,12 +170,13 @@ def readTSV(fp):
                 cols = l
             else:
                 n = {}
-                for k,v in zip(cols, l):
+                for k, v in zip(cols, l):
                     n[k] = v
                 res.append(n)
-    return(res)
+    return res
 
-def readCSV(fp, sep = ","):
+
+def readCSV(fp, sep=","):
     res = []
     with open(fp) as f:
         cols = []
@@ -185,10 +187,11 @@ def readCSV(fp, sep = ","):
                 cols = l
             else:
                 n = {}
-                for k,v in zip(cols, l):
+                for k, v in zip(cols, l):
                     n[k] = v
                 res.append(n)
-    return(res)
+    return res
+
 
 def clearFastaNames(fastaIn, fastaOut):
     nms = []
@@ -201,10 +204,10 @@ def clearFastaNames(fastaIn, fastaOut):
                     n = N
                     i = 0
                     while n in nms:
-                        n = "{}.{}".format(N ,i)
+                        n = "{}.{}".format(N, i)
                         i += 1
                     o.write("{}\n".format(n))
                     nms.append(n)
                 else:
                     o.write(line)
-    return(fastaOut)
+    return fastaOut

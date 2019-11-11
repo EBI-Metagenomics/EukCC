@@ -12,12 +12,9 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="",
-    py_modules=['workflow', 'base', 'fileoperations'],
-    scripts=["scripts/runGMES", 
-             "scripts/filter_euk_bins.py"],
-    entry_points={
-        'console_scripts': ['eukcc = eukcc.__main__:main']
-        },
+    py_modules=["workflow", "base", "fileoperations"],
+    scripts=["scripts/runGMES", "scripts/filter_euk_bins.py"],
+    entry_points={"console_scripts": ["eukcc = eukcc.__main__:main"]},
     install_requires=["ete3", "pyfaidx", "configargparse"],
     packages=setuptools.find_packages(),
     classifiers=[
