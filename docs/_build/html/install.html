@@ -1,0 +1,277 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; EukCC  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial: Assemble, bin and asses eukaryotic bins" href="usage/tutorial.html" />
+    <link rel="prev" title="EukCC" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EukCC
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-dependencies">Install dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-eukcc">Install EukCC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quickstart-and-testing">Quickstart and testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EukCC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="install-dependencies">
+<h2>Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>EukCC depends on hmmer, Genemark-ES and pplacer. So you will need to install
+them before launching EukCC. It is best to create a conda enviorement
+and then install Genemark-ES manually.</p>
+<p><strong>With conda</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n eukcc -c bioconda -c biocore hmmer pplacer <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
+<span class="c1"># we recommend installing ete3 from conda:</span>
+conda activate eukcc
+conda install -c etetoolkit ete3
+</pre></div>
+</div>
+<p>To install GeneMark-ES you will need to install perl and certain perl packages:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda activate eukcc
+conda install -c anaconda perl <span class="se">\</span>
+              -c bioconda perl-app-cpanminus
+cpanm YAML
+cpanm Logger::Simple
+cpanm Parallel::ForkManager.pm
+</pre></div>
+</div>
+<p>Once you installed these dependencies you need to download GeneMark-ES
+from <a class="reference external" href="http://exon.gatech.edu/GeneMark/license_download.cgi">http://exon.gatech.edu/GeneMark/license_download.cgi</a> and deposit the
+license key in your home directory as <cite>.gm_key</cite>.</p>
+<p>Make sure <cite>gmes_petap.pl</cite> is availiable from your $PATH:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>which gmes_petap.pl
+<span class="c1">#~/software/genemark_es/gmes_petap.pl</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-eukcc">
+<h2>Install EukCC<a class="headerlink" href="#install-eukcc" title="Permalink to this headline">¶</a></h2>
+<p><strong>Install from github (access required)</strong></p>
+<p>Fetch from github and install in the conda environment:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/openpaul/eukcc
+<span class="nb">cd</span> eukcc
+conda activate eukcc
+pip3 install .
+</pre></div>
+</div>
+<p>EukCC requires python 3.7</p>
+<p><strong>Get database from the EBI cluster</strong></p>
+<p>This will only work for EBI users and this section will be removed in
+the future.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp /hps/nobackup2/production/metagenomics/saary/databases/eukcc/eukcc_db_20191023.tar.gz .
+tar -xzvf eukcc_db_20191023.tar.gz
+mv eukcc_db_20191023 eukccdb
+</pre></div>
+</div>
+<p>Now that the database is fetched you can invoke eukcc with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>eukcc --db eukccb MAG.fa
+</pre></div>
+</div>
+</div>
+<div class="section" id="quickstart-and-testing">
+<h2>Quickstart and testing<a class="headerlink" href="#quickstart-and-testing" title="Permalink to this headline">¶</a></h2>
+<p>Assuming you installed eukcc and fetched the database you can start eukcc
+and test for function with this command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>wget -O testgenome.fa ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+eukcc --db eukccdb  <span class="se">\</span>
+    --ncores <span class="m">4</span> <span class="se">\</span>
+    --ncorespplacer <span class="m">1</span> <span class="se">\</span>
+    --outdir eukcc_testgenome <span class="se">\</span>
+    testgenome.fa
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="usage/tutorial.html" class="btn btn-neutral float-right" title="Tutorial: Assemble, bin and asses eukaryotic bins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="EukCC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Paul Saary
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
