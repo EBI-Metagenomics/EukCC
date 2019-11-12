@@ -2,9 +2,20 @@
 **this software is under development and unstable. Updates might break or 
 enhance your experience**
 
+
 ## Install
 
 Please see the docs folder: (docs/_build/html)
+
+## Contributing
+To contribute to this project setup the build enviorement like this:
+   
+```
+git clone https://github.com/openpaul/eukcc
+cd eukcc
+pip install -r requirements-dev.py
+pre-commit install
+```
 
 ## FAQ
 
