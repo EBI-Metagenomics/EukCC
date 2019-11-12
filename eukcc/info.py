@@ -63,7 +63,7 @@ class eukinfo:
             self.cfg["placementMethod"] = "LCA"
         # figure if pplacer cores need to be adjusted
         if self.cfg["ncorespplacer"] < 1:
-            logging.debug("Set pplacer cores to the same as all others (%)", self.cfg['ncores'])
+            logging.debug("Set pplacer cores to the same as all others (%)", self.cfg["ncores"])
             self.cfg["ncorespplacer"] = self.cfg["ncores"]
 
         # define location of placement HMMs
@@ -77,17 +77,19 @@ class eukinfo:
             # for now we maintain this section, setting defaults
             # to make the software compatible with testing old DB versions
             # but in the future this should be changed
-            self.cfg['dbinfo'] = {}
-            self.cfg['dbinfo']['modus'] = "bitscore"
-            logging.debug("Remove this manual setting of options to break backwards compatibility, to make use of old DB versions impossible")
+            self.cfg["dbinfo"] = {}
+            self.cfg["dbinfo"]["modus"] = "bitscore"
+            logging.debug(
+                "Remove this manual setting of options to break backwards compatibility, to make use of old DB versions impossible"
+            )
         else:
-            with open(dbinfopath, 'r') as stream:
+            with open(dbinfopath, "r") as stream:
                 try:
                     dbinfo = yaml.safe_load(stream)
                     # copy the dbinfo into the config
-                    self.cfg['dbinfo'] = {}
+                    self.cfg["dbinfo"] = {}
                     for key, value in dbinfo.items():
-                        self.cfg['dbinfo'][key] = value
+                        self.cfg["dbinfo"][key] = value
                 except yaml.YAMLError as exc:
                     logging.error("We could not open the DBinfo file:")
                     print(exc)

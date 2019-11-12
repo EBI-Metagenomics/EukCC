@@ -110,7 +110,7 @@ class run:
                     return True
         return False
 
-    def cleanup(self, folders = None):
+    def cleanup(self, folders=None):
         """Remove temporary folders
 
         Given a list of folder names we will remove one after
@@ -119,7 +119,7 @@ class run:
 
         if folders is not None:
             if type(folders) == str:
-                folders = [folders] 
+                folders = [folders]
             for path in folders:
                 if os.path.exists(path):
                     shutil.rmtree(path)
@@ -159,7 +159,7 @@ class hmmpress(run):
 
 
 class hmmer(run):
-    def run(self, stdoutfile, hmmfiles, cores=1, modus = "bitscore", evalue=False, training=False):
+    def run(self, stdoutfile, hmmfiles, cores=1, modus="bitscore", evalue=False, training=False):
         # if sometimes we just touch, for debugging
         if self.touchonly:
             self.touch()
@@ -193,7 +193,6 @@ class hmmer(run):
                 hmmfiles,
                 self.input,
             ]
-
 
         if self.debug:
             print(" ".join(lst))

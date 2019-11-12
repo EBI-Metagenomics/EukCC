@@ -74,7 +74,7 @@ def main():
         dest="clean",
         action="store_false",
         default=True,
-        help="Keep all temporary files, by default EukCC will remove some temp files"
+        help="Keep all temporary files, by default EukCC will remove some temp files",
     )
     parser.add_argument(
         "--fplace",

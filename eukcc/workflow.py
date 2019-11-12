@@ -36,10 +36,10 @@ class eukcc:
         self.cfg["name"] = name = os.path.splitext(os.path.basename(options.fasta))[0]
         if self.cfg["training"]:
             self.cfg["evalue"] = self.cfg["trainingEvalue"]
-            logging.info("Defining e-value for training as %", self.cfg['evalue'])
-        elif self.cfg['dbinfo']['modus'] == "evalue":
+            logging.info("Defining e-value for training as %", self.cfg["evalue"])
+        elif self.cfg["dbinfo"]["modus"] == "evalue":
             logging.debug("Defining e-value to match DB info")
-            self.cfg["evalue"] = self.cfg['dbinfo']['evalue']
+            self.cfg["evalue"] = self.cfg["dbinfo"]["evalue"]
 
     def checkIO(self, fastapath, outdir):
         # create outdir if not exists
@@ -194,7 +194,7 @@ class eukcc:
             h.run(
                 hmmOus,
                 hmmfiles=hmmfile,
-                modus=self.cfg['dbinfo']['modus'],
+                modus=self.cfg["dbinfo"]["modus"],
                 evalue=self.cfg["evalue"],
                 cores=self.cfg["ncores"],
                 training=self.cfg["training"],
@@ -311,7 +311,7 @@ class eukcc:
             # then stop pipeline
             logging.error("GeneMark-ES failed on this bin")
             exit(1)
-        elif self.cfg['clean']:
+        elif self.cfg["clean"]:
             # clean temp dirs
             _tmpdirs = ["data", "run", "info", "output"]
             tempdirs = [os.path.join(gmesDir, x) for x in _tmpdirs]
@@ -390,9 +390,9 @@ class eukcc:
                 logging.info("Placing proteins in tree")
                 self.updateStep("pplacer", "starting")
                 pp.run(
-                    os.path.join(self.cfg["db"], "refpkg", "concat.refpkg"), 
-                    logfile = pplaceLog,
-                    cores=self.cfg["ncorespplacer"]
+                    os.path.join(self.cfg["db"], "refpkg", "concat.refpkg"),
+                    logfile=pplaceLog,
+                    cores=self.cfg["ncorespplacer"],
                 )
 
         # reduce placements to the placements with at least posterior of p
