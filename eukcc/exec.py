@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 from eukcc.fileoperations import file
 from eukcc import base
 import operator
@@ -108,6 +109,23 @@ class run:
                 if not line.startswith(comment):
                     return True
         return False
+
+    def cleanup(self, folders = None):
+        """Remove temporary folders
+
+        Given a list of folder names we will remove one after
+        another, so that temporary directories are gone.
+        """
+
+        if folders is not None:
+            if type(folders) == str:
+                folders = [folders] 
+            for path in folders:
+                if os.path.exists(path):
+                    shutil.rmtree(path)
+                    logging.debug("Removed temp folder: %", path)
+                else:
+                    logging.warning("Cant remove folder, as it does not exists: %", path)
 
 
 # defining classes based on run for executing gmes and hmmscan

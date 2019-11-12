@@ -311,6 +311,11 @@ class eukcc:
             # then stop pipeline
             logging.error("GeneMark-ES failed on this bin")
             exit(1)
+        elif self.cfg['clean']:
+            # clean temp dirs
+            _tmpdirs = ["data", "run", "info", "output"]
+            tempdirs = [os.path.join(gmesDir, x) for x in _tmpdirs]
+            g.cleanup(tempdirs)
 
         # make a bed file from GTF
         bedf = os.path.join(gmesDir, "proteins.bed")

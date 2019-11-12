@@ -70,6 +70,13 @@ def main():
                                               output is newer than input. Don't resume previous run.",
     )
     parser.add_argument(
+        "--keeptemp",
+        dest="clean",
+        action="store_false",
+        default=True,
+        help="Keep all temporary files, by default EukCC will remove some temp files"
+    )
+    parser.add_argument(
         "--fplace",
         "-p",
         dest="fplace",
