@@ -123,9 +123,9 @@ class run:
             for path in folders:
                 if os.path.exists(path):
                     shutil.rmtree(path)
-                    logging.debug("Removed temp folder: %", path)
+                    logging.debug("Removed temp folder: %s", path)
                 else:
-                    logging.warning("Cant remove folder, as it does not exists: %", path)
+                    logging.debug("Cant remove folder, as it does not exists: %s", path)
 
 
 # defining classes based on run for executing gmes and hmmscan
@@ -151,7 +151,7 @@ class hmmpress(run):
             return True
         lst = [self.program, "-f", self.input]
         try:
-            subprocess.run(lst, check=True, shell=False)
+            subprocess.run(lst, check=True, shell=False, stdout=subprocess.DEVNULL)
             return True
         except subprocess.CalledProcessError:
             logging.error("an error occured while executing {}".format(self.program))
@@ -343,7 +343,7 @@ class hmmalign(run):
 
 
 class pplacer(run):
-    def run(self, pkg, cores=1):
+    def run(self, pkg, logfile, cores=1):
         # if sometimes we just touch, for debugging
         if self.touchonly:
             self.touch()
@@ -366,7 +366,8 @@ class pplacer(run):
         ]
 
         try:
-            subprocess.run(lst, check=True, shell=False)
+            with open(logfile, "w") as lg:
+                subprocess.run(lst, check=True, shell=False, stdout=lg)
             return True
         except subprocess.CalledProcessError:
             print("an error occured while executing {}".format(self.program))

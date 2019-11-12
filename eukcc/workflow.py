@@ -365,6 +365,7 @@ class eukcc:
         placerDirTmp = os.path.join(placerDir, "tmp")
         pplaceAlinment = os.path.join(placerDir, "horizontalAlignment.fasta")
         pplaceOut = os.path.join(placerDir, "placement.jplace")
+        pplaceLog = os.path.join(placerDir, "placement.log")
         pplaceOutReduced = os.path.join(placerDir, "placementReduced.jplace")
         file.isdir(placerDirTmp)
 
@@ -386,10 +387,12 @@ class eukcc:
                 logging.error("Could not find any marker genes")
                 exit(1)
             else:
-                logging.info("Placing proteins in tre")
+                logging.info("Placing proteins in tree")
                 self.updateStep("pplacer", "starting")
                 pp.run(
-                    os.path.join(self.cfg["db"], "refpkg", "concat.refpkg"), cores=self.cfg["ncorespplacer"],
+                    os.path.join(self.cfg["db"], "refpkg", "concat.refpkg"), 
+                    logfile = pplaceLog,
+                    cores=self.cfg["ncorespplacer"]
                 )
 
         # reduce placements to the placements with at least posterior of p
