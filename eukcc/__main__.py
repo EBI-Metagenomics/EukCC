@@ -7,10 +7,7 @@ import os
 def main():
     # set arguments
     # arguments are passed to classes
-    parser = configargparse.ArgumentParser(
-        description="Evaluate completeness \
-                        and contamination of a MAG."
-    )
+    parser = configargparse.ArgumentParser(description="Evaluate completeness and contamination of a MAG.")
     parser.add_argument("fasta", type=str, help="Run script on this bin (fasta file)")
     parser.add_argument("--db", type=str, required=True, help="Path to EukCC DB")
     parser.add_argument(
@@ -18,8 +15,7 @@ def main():
         "-o",
         type=str,
         default="./",
-        help="Location for the output. Names will be prefixed using \
-                              the bin filenames",
+        help="Location for the output. Names will be prefixed using the bin filenames",
     )
     parser.add_argument(
         "--config", "-c", type=str, required=False, is_config_file=True, help="Config file to define parameters, YAML",
@@ -74,7 +70,7 @@ def main():
         dest="clean",
         action="store_false",
         default=True,
-        help="Keep all temporary files, by default EukCC will remove some temp files"
+        help="Keep all temporary files, by default EukCC will remove some temp files",
     )
     parser.add_argument(
         "--fplace",
