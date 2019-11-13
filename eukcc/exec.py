@@ -39,7 +39,7 @@ class run:
 
         if outf is not None:
             # create output dir
-            dc = file.isdir(os.path.dirname(self.output))
+            file.isdir(os.path.dirname(self.output))
 
     def touch(self, files=None):
         """
@@ -165,21 +165,10 @@ class hmmer(run):
             self.touch()
             return True
 
-        lst = [
-            self.program,
-            "--cpu",
-            str(cores),
-            "-o",
-            stdoutfile,
-            "--tblout",
-            self.output,
-            "--cut_ga",
-            hmmfiles,
-            self.input,
-        ]
         # in training mode we dont cut of using ga but use an evalue
         # cutoff, so we can learn the bitscore tresholds
         if (training or modus == "evalue") and evalue:
+            logging.debug("Using evlaue hmmsearch")
             lst = [
                 self.program,
                 "--cpu",
@@ -190,6 +179,20 @@ class hmmer(run):
                 self.output,
                 "-E",
                 str(evalue),
+                hmmfiles,
+                self.input,
+            ]
+        else:
+            logging.debug("Using bitscore hmmsearch")
+            lst = [
+                self.program,
+                "--cpu",
+                str(cores),
+                "-o",
+                stdoutfile,
+                "--tblout",
+                self.output,
+                "--cut_ga",
                 hmmfiles,
                 self.input,
             ]
@@ -286,17 +289,17 @@ class hmmer(run):
                         keepJ = False
 
             # save which row we keep
-            if "keep" not in table[j].keys() or keepJ == False:
+            if "keep" not in table[j].keys() or not keepJ:
                 table[j]["keep"] = keepJ
-            if "keep" not in table[i].keys() or keepI == False:
+            if "keep" not in table[i].keys() or not keepI:
                 table[i]["keep"] = keepI
 
             # update j, so index to lastrow
-            if keepJ == False:
+            if not keepJ:
                 j = i
-            elif keepJ == True and keepI == True:
+            elif keepJ and keepI:
                 j = i
-            elif keepJ == True and keepI == False:
+            elif keepJ and keepI is False:
                 # j stays the same
                 j = j  # obv redundant, but nice for making sense of this code
 
@@ -305,7 +308,7 @@ class hmmer(run):
         with open(resultfile, "w") as f:
             f.write("\t".join(cols + ["\n"]))
             for row in table:
-                if row["keep"] == False:
+                if not row["keep"]:
                     continue
                 # print if we keep the row
                 v = [str(row[k]) for k in cols] + ["\n"]
@@ -383,7 +386,7 @@ class pplacer(run):
             for l in pl:
                 profiles.append(l.strip())
         # read in hmmer output to get seqnames of target proteins
-        cols = []
+        # cols = []
         # hmmer = []
         # scmgsr = []
 
