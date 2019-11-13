@@ -85,7 +85,7 @@ class eukcc:
             placements[i]["completeness"] = round(cmpl * 100, 2)
             placements[i]["contamination"] = round(cont * 100, 2)
 
-        log("finished estimating")
+        log("Finished estimating")
 
         # write to output file
         k = [
