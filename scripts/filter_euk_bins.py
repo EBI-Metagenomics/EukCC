@@ -25,10 +25,10 @@ def create_dir(d):
             logging.warning(f"Could not create dir: {d}\n{e}")
 
 
-class EukRep():
+class EukRep:
     """Class to call and handle EukRep data"""
-    def __init__(self, fasta, eukout, bacout=None, minl=1500,
-                 tie='euk'):
+
+    def __init__(self, fasta, eukout, bacout=None, minl=1500, tie="euk"):
         self.fasta = fasta
         self.eukout = eukout
         self.bacout = bacout
@@ -37,16 +37,23 @@ class EukRep():
 
     def run(self):
         # command list will be called
-        cmd = ['EukRep', '--min', str(self.minl),
-               '-i', self.fasta,
-               '--seq_names',
-               "-ff",
-               "--tie", self.tie,
-               '-o', self.eukout]
+        cmd = [
+            "EukRep",
+            "--min",
+            str(self.minl),
+            "-i",
+            self.fasta,
+            "--seq_names",
+            "-ff",
+            "--tie",
+            self.tie,
+            "-o",
+            self.eukout,
+        ]
         if self.bacout is not None:
-            cmd.extend(['--prokarya', self.bacout])
+            cmd.extend(["--prokarya", self.bacout])
 
-        subprocess.run(cmd,  check=True, shell=False)
+        subprocess.run(cmd, check=True, shell=False)
 
         self.read_result()
 
@@ -62,10 +69,10 @@ class EukRep():
         with open(path) as infile:
             for line in infile:
                 lst.append(line.strip())
-        return(lst)
+        return lst
 
 
-class bin():
+class bin:
     def __init__(self, path, eukrep):
         self.path = path
         self.e = eukrep
@@ -74,73 +81,78 @@ class bin():
         """read bin content and figure genomic composition"""
         logging.debug("Loading bin")
         fa_file = Fasta(self.path)
-        stats = {'euks': 0,
-                 'bacs': 0,
-                 'NA': 0,
-                 'sum': 0}
+        stats = {"euks": 0, "bacs": 0, "NA": 0, "sum": 0}
         # loop and compute stats
         logging.debug(f"Make per bin stats ({len(fa_file.keys())} contigs)")
         for seq in fa_file:
             if seq.name in self.e.euks:
-                stats['euks'] += len(seq)
+                stats["euks"] += len(seq)
             elif seq.name in self.e.bacs:
-                stats['bacs'] += len(seq)
+                stats["bacs"] += len(seq)
             else:
-                stats['NA'] += len(seq)
+                stats["NA"] += len(seq)
 
-        stats['sum'] = sum([v for k, v in stats.items()])
+        stats["sum"] = sum([v for k, v in stats.items()])
 
         self.table = stats
 
-    def decide(self, eukratio=0.2, bacratio=0.1):
+    def decide(self, eukratio=0.2, bacratio=0.1, minbp=100000):
         """
         rule to handle decision logic
         """
         keep = True
-        allb = self.table['sum']
-        if self.table['euks']/allb <= eukratio:
+        allb = self.table["sum"]
+        if self.table["euks"] / allb <= eukratio:
             keep = False
             logging.info(f"Rejecting because eukaryotic DNA ratio not higher than {eukratio}")
 
-        if self.table['bacs']/allb >= bacratio:
+        if self.table["bacs"] / allb >= bacratio:
             keep = False
             logging.info(f"Rejecting because bacterial DNA content higher than {bacratio}")
 
+        if self.table["sum"] < minbp:
+            keep = False
+            logging.info("Rejecting as we did not find at least %d bp of DNA", minbp)
+
         self.keep = keep
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output",
-                        help="path for the output table",
-                        default="assignment.csv",
-                        type=str)
-    parser.add_argument("bins", nargs="+",
-                        help="all bins to classify",
-                        type=str)
-    parser.add_argument("--tempdir", type=str,
-                        help="Will save temp files of the analysis here",
-                        default="tmp")
-    parser.add_argument("--minl", type=int,
-                        help="define minimal length of contig for EukRep \
+    parser.add_argument("--output", help="path for the output table", default="assignment.csv", type=str)
+    parser.add_argument("bins", nargs="+", help="all bins to classify", type=str)
+    parser.add_argument("--tempdir", type=str, help="Will save temp files of the analysis here", default="tmp")
+    parser.add_argument(
+        "--minl",
+        type=int,
+        help="define minimal length of contig for EukRep \
                         to classify (default: 1500)",
-                        default=1500)
-    parser.add_argument("--eukratio", type=float,
-            help="This ratio of eukaryotic DNA to all DNA has to be found\
-                    at least (default: 0.2)",
-                        default=0.2)
-    parser.add_argument("--bacratio", type=float,
-            help="discard bins with bactrial ratio of higher than\
-                    (default: 0.1)",
-                        default=0.1)
-    parser.add_argument("--rerun", action="store_true",
-                        help="rerun even if output exists",
-                        default=False)
-    parser.add_argument("--quiet", action="store_true",
-                        help="supress information",
-                        default=False)
-    parser.add_argument("--debug", action="store_true",
-                        help="Make it more verbose",
-                        default=False)
+        default=1500,
+    )
+    parser.add_argument(
+        "--eukratio",
+        type=float,
+        help="This ratio of eukaryotic DNA to all DNA has to be found\
+                    at least (default: 0.1)",
+        default=0.1,
+    )
+    parser.add_argument(
+        "--bacratio",
+        type=float,
+        help="discard bins with bacterial ratio of higher than\
+                    (default: 0.4)",
+        default=0.4,
+    )
+    parser.add_argument(
+        "--minbp",
+        type=float,
+        help="Only keep bins with at least n bp of dna\
+                    (default: 100000)",
+        default=100000,
+    )
+    parser.add_argument("--rerun", action="store_true", help="rerun even if output exists", default=False)
+    parser.add_argument("--quiet", action="store_true", help="supress information", default=False)
+    parser.add_argument("--debug", action="store_true", help="Make it more verbose", default=False)
 
     args = parser.parse_args()
 
@@ -150,9 +162,7 @@ if __name__ == "__main__":
         logLevel = logging.WARNING
     elif args.debug:
         logLevel = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(message)s',
-                        datefmt='%m/%d/%Y %H:%M:%S: ',
-                        level=logLevel)
+    logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %H:%M:%S: ", level=logLevel)
 
     # creating tmp dir if not exists
     create_dir(args.tempdir)
@@ -167,10 +177,7 @@ if __name__ == "__main__":
     # launch EukRep
     eukfile = os.path.join(args.tempdir, "euks.fna")
     bacfile = os.path.join(args.tempdir, "bacs.fna")
-    eukrep_result = EukRep(contigs,
-                           eukfile,
-                           bacfile,
-                           minl=args.minl)
+    eukrep_result = EukRep(contigs, eukfile, bacfile, minl=args.minl)
 
     if args.rerun or not os.path.exists(eukfile):
         logging.info("Running EukRep on concatenated contigs")
@@ -185,9 +192,8 @@ if __name__ == "__main__":
             logging.info(f"Deciding on bin: {path}")
             b = bin(path, eukrep_result)
             b.stats()
-            b.decide(eukratio=args.eukratio,
-                     bacratio=args.bacratio)
+            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp)
             bname = os.path.basename(path)
-            outfile.write(f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n")
-
-    
+            outfile.write(
+                f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
+            )
