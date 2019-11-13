@@ -3,6 +3,13 @@ Frequently asked questions:
 =============================
 
 
+**Can't run EukCC I get the error: "ImportError: cannot import name 'TreeStyle'**
+
+This is caused by the PyQT5 libary, which is dependend on having a grafic driver.
+Make first sure you have the PyQt5 library installed and if the error persists
+you can try to install `libgl1-mesa-glx` on your operating system or in your
+container.
+
 GeneMark-ES problems
 ========================
 

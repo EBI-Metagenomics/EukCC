@@ -13,10 +13,10 @@ and then install Genemark-ES manually.
 
 .. code-block:: shell
 
-   conda create -n eukcc -c bioconda -c biocore hmmer pplacer python=3.7
+   conda create -n eukcc -c bioconda -c biocore hmmer>3.2 pplacer python=3.7
    # we recommend installing ete3 from conda:
    conda activate eukcc
-   conda install -c etetoolkit ete3 
+   conda install -c etetoolkit -c anaconda ete3 pyqt>5
 
 To install GeneMark-ES you will need to install perl and certain perl packages:
 
@@ -25,9 +25,11 @@ To install GeneMark-ES you will need to install perl and certain perl packages:
    conda activate eukcc
    conda install -c anaconda perl \
                  -c bioconda perl-app-cpanminus 
-   cpanm YAML
+   cpanm Test::Pod
    cpanm Logger::Simple
    cpanm Parallel::ForkManager.pm
+   cpanm YAML
+   cpanm Hash::Merge module
 
 Once you installed these dependencies you need to download GeneMark-ES
 from http://exon.gatech.edu/GeneMark/license_download.cgi and deposit the
@@ -84,7 +86,8 @@ and test for function with this command:
 
 .. code-block:: shell
 
-    wget -O testgenome.fa ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+    wget -O testgenome.fa.gz ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+    gunzip testgenome.fa.gz
     eukcc --db eukccdb  \
         --ncores 4 \
         --ncorespplacer 1 \
