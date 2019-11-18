@@ -170,9 +170,10 @@ def main():
     hits = m.runPlacedHMM(hmmfile, proteinfaa, bedfile)
     # infer lineage
     _ = m.inferLineage(m.placements[m.cfg["placementMethod"]])
-    if m.cfg["plot"]:
-        _ = m.plot()
 
     # estimate completeness and contamiantion
     outputfile = os.path.join(m.cfg["outdir"], "eukcc.tsv")
     m.estimate(hits, outputfile, m.placements[m.cfg["placementMethod"]])
+
+    if m.cfg["plot"]:
+        _ = m.plot()
