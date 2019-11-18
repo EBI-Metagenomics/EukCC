@@ -101,6 +101,13 @@ def main():
                                 in tree (default: 2)",
     )
     parser.add_argument(
+        "--minGenomes",
+        type=int,
+        default=3,
+        metavar="n",
+        help="Minimal number of genomes to support a set (default: 3)",
+    )
+    parser.add_argument(
         "--fullineage", default=False, action="store_true", help="Output full lineage for MAGs",
     )
     parser.add_argument(

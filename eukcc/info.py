@@ -6,38 +6,11 @@ from eukcc import base
 from eukcc.base import log
 
 
-old_defaults = {
-    "verbose": True,
-    "debug": False,
-    "outfile": "eukcc.tsv",
-    "isprotein": False,
-    "outdir": ".",
-    "place": None,
-    "hmm": False,
-    "force": False,
-    "threads": 1,
-    "placementMethod": "LCA",
-    "minProfiles": 20,
-    "minGenomes": 3,
-    "minSupport": 2,
-    "nPlacements": 2,
-    "noplace": False,
-    "lineage": "limited",  # limited or full
-    "cleanfasta": True,
-    "minPlacementLikelyhood": 0.8,
-    "evalue": 1e-5,
-    "trainingEvalue": 10,
-    "training": False,
-    "mindist": 2000,
-    "steps": {"gmes": False, "findprots": False, "pplacer": False, "runHmmer": False, "estimatedCompleteness": False,},
-}
-
 # default magic numbers are saved here
 # please keep it sorted alphabetically and coument
 defaults = {
     "evalue": 1e-5,  # not used evalue
     "nEvals": 3,  # per placement show top n inferrals
-    "minGenomes": 3,  # minimal number of genomes in set
     "minProfiles": 20,  # minimal profiles in set
     "minSupport": 2,  # minimal profiles to support set
     "trainingEvalue": 10,  # evalue used in training mode
@@ -80,7 +53,8 @@ class eukinfo:
             self.cfg["dbinfo"] = {}
             self.cfg["dbinfo"]["modus"] = "bitscore"
             logging.debug(
-                "Remove this manual setting of options to break backwards compatibility, to make use of old DB versions impossible"
+                "Remove this manual setting of options to break backwards compatibility,\
+                        to make use of old DB versions impossible"
             )
         else:
             with open(dbinfopath, "r") as stream:
