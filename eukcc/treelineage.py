@@ -5,6 +5,8 @@ import json
 import logging
 from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
+from ete3 import parser
+
 
 ncbi = NCBITaxa()
 
@@ -30,7 +32,8 @@ class treeHandler:
     def loadTree(self, tree):
         try:
             self.t = Tree(tree)
-        except:
+        except parser.newick.NewickError:
+            logging.warning("Trying to use tree format 1")
             self.t = Tree(tree, format=1)
 
     def annotateTree(self):
@@ -46,7 +49,7 @@ class treeHandler:
                 n = self.t.search_nodes(taxid=int(leave))[0]
             else:
                 n = self.t.search_nodes(name=leave)[0]
-        except:
+        except IndexError:
             print("Node {} not found".format(leave))
             return False
         l = []
@@ -54,7 +57,7 @@ class treeHandler:
             try:
                 l.append(n.name)
                 n = n.up
-            except:
+            except AttributeError:
                 break
         l.reverse()
         return l
@@ -64,7 +67,7 @@ class treeHandler:
             try:
                 n = self.t.search_nodes(name=GCA)[0]
                 n.add_feature("taxid", int(tax))
-            except:
+            except IndexError:
                 continue
 
     def root(self):
@@ -83,7 +86,7 @@ class treeHandler:
         """
         try:
             nn = self.t.search_nodes(name=nodename)[0].get_leaf_names()
-        except:
+        except IndexError:
             print(f"Could not find any children for node {nodename}")
             nn = []
         return nn
@@ -168,7 +171,6 @@ class treeHandler:
             for placement in j["placements"]:
                 nm = placement["nm"][0][0]
                 ps = placement["p"]
-                kp = []
                 for p in ps:
                     d = {k: v for k, v in zip(fields, p)}
 
@@ -178,7 +180,7 @@ class treeHandler:
     def plot(self, placement, togjson, outdir, cfg):
         """
         plot a plcement in the tree
-        show all pplacer placements and the LCA and HCA node 
+        show all pplacer placements and the LCA and HCA node
         as well as the inferred lineage
         """
         # with no X display this needs to be set
@@ -238,7 +240,9 @@ class treeHandler:
                     x = (info[n.name]["post_prob"] - cfg["minPlacementLikelyhood"]) / (
                         1 - cfg["minPlacementLikelyhood"]
                     )
-                    c = [int(x * 255), (1 - x) * 120, 0]
+                    x = 1 - x
+                    # purple to green gradient from 0 to 1 posterior propability
+                    c = [x * 220, (1 - x) * 200, x * 200]
                     he = RGB_to_hex(c)
                     # define back color of locations
                     nstyle["bgcolor"] = he
