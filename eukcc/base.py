@@ -3,6 +3,7 @@
 import logging
 import os
 import re
+import gzip
 from pyfaidx import Fasta
 
 
@@ -196,8 +197,17 @@ def readCSV(fp, sep=","):
 def clearFastaNames(fastaIn, fastaOut):
     nms = []
     with open(fastaOut, "w") as o:
-        with open(fastaIn) as f:
+        if fastaIn.endswith(".gz"):
+            openMethod = gzip.open
+            gz = True
+            logging.debug("reding gzipped file")
+        else:
+            openMethod = open
+            gz = False
+        with openMethod(fastaIn) as f:
             for line in f:
+                if gz:
+                    line = line.decode()
                 if line.startswith(">"):
                     l = line.split()
                     N = l[0].strip()

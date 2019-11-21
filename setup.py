@@ -15,7 +15,7 @@ setuptools.setup(
     py_modules=["workflow", "base", "fileoperations"],
     scripts=["scripts/runGMES", "scripts/filter_euk_bins.py"],
     entry_points={"console_scripts": ["eukcc = eukcc.__main__:main"]},
-    install_requires=["ete3", "pyfaidx", "configargparse", "pyyaml"],
+    install_requires=["ete3", "pyfaidx", "configargparse", "pyyaml", "gzip"],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
