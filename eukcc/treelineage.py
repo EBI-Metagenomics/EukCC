@@ -7,6 +7,7 @@ from collections import defaultdict
 from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
 from ete3 import parser
+from ete3 import CircleFace, TextFace, RectFace
 
 
 ncbi = NCBITaxa()
@@ -17,6 +18,18 @@ def RGB_to_hex(RGB):
     # Components need to be integers for hex to make sense
     RGB = [int(x) for x in RGB]
     return "#" + "".join(["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in RGB])
+
+
+def p_to_color(x):
+    """Takes a float between 0 and 1 and calcualtes hex gradient from
+    start RGB to end rgb"""
+    start = [94, 60, 153]  # purple
+    end = [230, 97, 1]  # orange
+    c = []
+    for s, e in zip(start, end):
+        c.append(((s - e) * x) + e)
+    he = RGB_to_hex(c)
+    return he
 
 
 class treeHandler:
@@ -208,28 +221,29 @@ class treeHandler:
             ts = TreeStyle()
             # hide leave names
             ts.show_leaf_name = False
-
+            ts.root_opening_factor = 1
             # circular tree
             ts.mode = "c"
             ts.rotation = 210
             ts.arc_start = 0  # 0 degrees = 3 o'clock
             ts.arc_span = 350
 
-            highlightsize = 50
+            highlightsize = 80
             nodesize = 10
+
             # define styles for special nodes
             # at the moment hard coded, but could be accesible for the user
 
             # LCA style
             LCAstyle = NodeStyle()
-            LCAstyle["fgcolor"] = "green"
-            LCAstyle["bgcolor"] = "DarkSeaGreen"
+            LCAstyle["fgcolor"] = "#33a02c"
+            LCAstyle["bgcolor"] = "#b2df8a"
             LCAstyle["size"] = highlightsize
 
             # HPA style
             HPAstyle = NodeStyle()
-            HPAstyle["fgcolor"] = "blue"
-            HPAstyle["bgcolor"] = "LightSteelBlue"
+            HPAstyle["fgcolor"] = "#1f78b4"
+            HPAstyle["bgcolor"] = "#a6cee3"
             HPAstyle["size"] = highlightsize
 
             # default node
@@ -237,18 +251,31 @@ class treeHandler:
             defaultStyle["fgcolor"] = "gray"
             defaultStyle["size"] = nodesize
 
+            # add legend
+            ts.legend_position = 1
+            ts.legend.add_face(CircleFace(40, LCAstyle["fgcolor"]), column=1)
+            ts.legend.add_face(TextFace(f"LCA", fsize=50), column=2)
+            ts.legend.add_face(CircleFace(40, HPAstyle["fgcolor"]), column=1)
+            ts.legend.add_face(TextFace(f"HPA", fsize=50), column=2)
+            i = 1
+            ts.legend.add_face(TextFace(f"p = {i}", fsize=50), column=1)
+            while i > 0:
+                temp_face = RectFace(60, 10, fgcolor=p_to_color(i), bgcolor=p_to_color(i))
+                temp_face.margin_top = -4
+                ts.legend.add_face(temp_face, column=1)
+                i -= 0.01
+            ts.legend.add_face(TextFace(f"p = 0", fsize=50), column=1)
+
+            # add highlights for each placed protein
             for n in t.traverse():
                 if n.name.startswith("PTHR"):
                     # set color based on posterior prob:
                     x = (info[n.name]["post_prob"] - cfg["minPlacementLikelyhood"]) / (
                         1 - cfg["minPlacementLikelyhood"]
                     )
-                    x = 1 - x
-                    # purple to green gradient from 0 to 1 posterior propability
-                    c = [x * 220, (1 - x) * 200, x * 200]
-                    he = RGB_to_hex(c)
+                    # orange to purple gradient from 0 to 1 posterior propability
+                    he = p_to_color(x)
                     nodeStyles[he]["bgcolor"] = he
-                    logging.debug(f"x: {x}, c: {c}")
                     # define back color of locations
                     n.set_style(nodeStyles[he])
 
