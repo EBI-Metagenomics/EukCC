@@ -219,10 +219,6 @@ class treeHandler:
             nodesize = 10
             # define styles for special nodes
             # at the moment hard coded, but could be accesible for the user
-            # PTHR style
-            nstyle = NodeStyle()
-            nstyle["fgcolor"] = "red"
-            nstyle["size"] = highlightsize
 
             # LCA style
             LCAstyle = NodeStyle()
@@ -254,7 +250,6 @@ class treeHandler:
                     nodeStyles[he]["bgcolor"] = he
                     logging.debug(f"x: {x}, c: {c}")
                     # define back color of locations
-                    nstyle["bgcolor"] = he
                     n.set_style(nodeStyles[he])
 
                 elif n.name == LCA:
