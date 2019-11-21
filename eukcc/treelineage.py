@@ -34,7 +34,7 @@ class treeHandler:
         try:
             self.t = Tree(tree)
         except parser.newick.NewickError:
-            logging.warning("Trying to use tree format 1")
+            logging.debug("Trying to use tree format 1")
             self.t = Tree(tree, format=1)
 
     def annotateTree(self):
