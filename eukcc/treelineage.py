@@ -3,6 +3,7 @@ import operator
 import os
 import json
 import logging
+from collections import defaultdict
 from ete3 import Tree, NodeStyle, TreeStyle
 from ete3 import NCBITaxa
 from ete3 import parser
@@ -183,9 +184,15 @@ class treeHandler:
         show all pplacer placements and the LCA and HCA node
         as well as the inferred lineage
         """
+        logging.debug("Plotting trees now")
         # with no X display this needs to be set
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
         info = self.loadInfo(togjson)
+
+        def defaultNodeStyle():
+            return NodeStyle()
+
+        nodeStyles = defaultdict(defaultNodeStyle)
 
         no = 0
         for LCAp, HPAp in zip(placement["LCA"], placement["HPA"]):
@@ -244,9 +251,11 @@ class treeHandler:
                     # purple to green gradient from 0 to 1 posterior propability
                     c = [x * 220, (1 - x) * 200, x * 200]
                     he = RGB_to_hex(c)
+                    nodeStyles[he]["bgcolor"] = he
+                    logging.debug(f"x: {x}, c: {c}")
                     # define back color of locations
                     nstyle["bgcolor"] = he
-                    n.set_style(nstyle)
+                    n.set_style(nodeStyles[he])
 
                 elif n.name == LCA:
                     n.set_style(LCAstyle)
