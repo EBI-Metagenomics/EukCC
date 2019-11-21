@@ -264,7 +264,7 @@ class treeHandler:
                 temp_face.margin_top = -4
                 ts.legend.add_face(temp_face, column=1)
                 i -= 0.01
-            ts.legend.add_face(TextFace(f"p = 0", fsize=50), column=1)
+            ts.legend.add_face(TextFace(f"p = {cfg['minPlacementLikelyhood']}", fsize=50), column=1)
 
             # add highlights for each placed protein
             for n in t.traverse():
