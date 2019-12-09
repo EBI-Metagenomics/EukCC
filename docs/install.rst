@@ -67,9 +67,9 @@ the future.
 
 .. code-block:: shell
     
-    cp /hps/nobackup2/production/metagenomics/saary/databases/eukcc/eukcc_db_20191023.tar.gz .
-    tar -xzvf eukcc_db_20191023.tar.gz
-    mv eukcc_db_20191023 eukccdb
+    wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc_db_v1.tar.gz
+    tar -xzvf eukcc_db_v1.tar.gz
+    mv eukcc_db_v1  eukccdb
 
 Now that the database is fetched you can invoke eukcc with:
 
