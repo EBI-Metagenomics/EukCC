@@ -162,19 +162,21 @@
 them before launching EukCC. It is best to create a conda enviorement
 and then install Genemark-ES manually.</p>
 <p><strong>With conda</strong></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n eukcc -c bioconda -c biocore hmmer pplacer <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda create -n eukcc -c bioconda -c biocore hmmer&gt;3.2 pplacer <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7
 <span class="c1"># we recommend installing ete3 from conda:</span>
 conda activate eukcc
-conda install -c etetoolkit ete3
+conda install -c etetoolkit -c anaconda ete3 pyqt&gt;5
 </pre></div>
 </div>
 <p>To install GeneMark-ES you will need to install perl and certain perl packages:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda activate eukcc
 conda install -c anaconda perl <span class="se">\</span>
               -c bioconda perl-app-cpanminus
-cpanm YAML
+cpanm Test::Pod
 cpanm Logger::Simple
 cpanm Parallel::ForkManager.pm
+cpanm YAML
+cpanm Hash::Merge module
 </pre></div>
 </div>
 <p>Once you installed these dependencies you need to download GeneMark-ES
@@ -214,7 +216,8 @@ mv eukcc_db_20191023 eukccdb
 <h2>Quickstart and testing<a class="headerlink" href="#quickstart-and-testing" title="Permalink to this headline">¶</a></h2>
 <p>Assuming you installed eukcc and fetched the database you can start eukcc
 and test for function with this command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>wget -O testgenome.fa ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>wget -O testgenome.fa.gz ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/251/995/GCF_002251995.1_ASM225199v2/GCF_002251995.1_ASM225199v2_genomic.fna.gz
+gunzip testgenome.fa.gz
 eukcc --db eukccdb  <span class="se">\</span>
     --ncores <span class="m">4</span> <span class="se">\</span>
     --ncorespplacer <span class="m">1</span> <span class="se">\</span>
