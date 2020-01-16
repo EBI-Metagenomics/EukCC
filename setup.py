@@ -3,9 +3,13 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+version = {}
+with open("eukcc/version.py") as fp:
+    exec(fp.read(), version)
+
 setuptools.setup(
     name="eukcc",
-    version="0.0.2",
+    version=version["__version__"],
     author="Paul Saary",
     author_email="eukcc@paulsaary.de",
     description="Check eukaryotic genomes or MAGs for completeness and contamination",

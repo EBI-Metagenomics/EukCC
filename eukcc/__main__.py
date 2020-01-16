@@ -16,6 +16,7 @@
 import logging
 import configargparse
 from eukcc import workflow
+import eukcc.version as version
 import os
 
 
@@ -142,6 +143,7 @@ def main():
         "--gmes", default=False, action="store_true", help="only run GeneMark-ES",
     )
     parser.add_argument("--plot", default=False, action="store_true", help="produce plots")
+    parser.add_argument("-v", "--version", action="version", version=f"EukCC version {version.__version__}")
     options = parser.parse_args()
 
     # define logging
