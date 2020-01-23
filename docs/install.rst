@@ -35,7 +35,7 @@ Once you installed these dependencies you need to download GeneMark-ES
 from http://exon.gatech.edu/GeneMark/license_download.cgi and deposit the
 license key in your home directory as `.gm_key`.
 
-Make sure `gmes_petap.pl` is availiable from your $PATH:
+Make sure `gmes_petap.pl`  and `get_sequence_from_GTF.pl` are availiable from your $PATH:
 
 .. code-block:: shell
 
