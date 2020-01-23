@@ -88,7 +88,7 @@ to adjust that path.
                  --plot \
                  --ncorespplacer 1 --outdir eukcc/$NAME $bin"
         fi  
-    done < asignment.csv
+    done < assignment.csv
 
 In this example we allocate 80 Gb in memory for EukCC and use 16 cores for 
 gene prediction and annotation. To reduce memory consumption we only use a 
