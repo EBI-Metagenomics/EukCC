@@ -17,6 +17,8 @@ import logging
 import configargparse
 from eukcc import workflow
 import eukcc.version as version
+from eukcc.base import faabed
+from eukcc.fileoperations import file
 import os
 
 
@@ -64,13 +66,15 @@ def main():
         help="Run EukCC in training mode (needed to create a new release of the DB)",
     )
     parser.add_argument(
+        "--proteins", default=False, action="store_true", dest="proteins", help="Input fasta is proteins"
+    )
+    parser.add_argument(
         "--bed",
         "-b",
         metavar="file.bed",
         type=str,
         default=None,
-        help="Pass bedfile if you called genes manually. \
-                        Assumes only a single fasta (protein) is passed and implies --noglob",
+        help="You can pass a bedfile of the protein location to omit fragmented proteins being detected twice",
     )
     parser.add_argument(
         "--force",
@@ -164,12 +168,19 @@ def main():
     m = workflow.eukcc(options)
 
     # skip gene predition if this is already protein sequences
-    if options.bed is None:
+    if options.bed is None and options.proteins is False:
         # run gmes
         proteinfaa, bedfile = m.gmes(options.fasta)
     else:
         proteinfaa = options.fasta
-        bedfile = options.bed
+        if options.bed is None:
+            # create bed file
+            bedpath = os.path.join(options.outdir, "workfiles", "proteins_tmp.bed")
+            file.isdir(os.path.join(options.outdir, "workfiles"))
+
+            bedfile = faabed(proteinfaa, bedpath)
+        else:
+            bedfile = options.bed
 
     # terminate if only gmes step was to be run
     if m.cfg["gmes"]:

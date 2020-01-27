@@ -63,6 +63,20 @@ def gmesBED(gtf, output):
     return output
 
 
+def faabed(faa, output):
+    """
+    create a fake bed file to keep backwards compatibility
+    """
+    fa = Fasta(faa)
+    chrom = 1
+    with open(output, "w") as fbed:
+        for seq in fa:
+            s = "chrom_{}\t1\t{}\t.\t{}\n".format(chrom, len(seq), seq.name)
+            fbed.write(s)
+            chrom += 1
+    return output
+
+
 def readbed(bedfile):
     # read in bedfile
     bed = {}
