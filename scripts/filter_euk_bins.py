@@ -29,9 +29,10 @@ def concatenate_bins(bins, outf):
     with open(outf, "w") as outfile:
         for path in bins:
             logging.info(f"Concatenating bin {path}")
-            with open(path) as infile:
-                for line in infile:
-                    outfile.write(line)
+            fa = Fasta(path)
+            name = os.path.basename(path)
+            for seq in fa:
+                outfile.write(">{}_binsep_{}\n{}\n".format(name, seq.name, seq))
 
 
 def create_dir(d):
@@ -98,13 +99,15 @@ class bin:
         """read bin content and figure genomic composition"""
         logging.debug("Loading bin")
         fa_file = Fasta(self.path)
+        name = os.path.basename(self.path)
         stats = {"euks": 0, "bacs": 0, "NA": 0, "sum": 0}
         # loop and compute stats
         logging.debug(f"Make per bin stats ({len(fa_file.keys())} contigs)")
         for seq in fa_file:
-            if seq.name in self.e.euks:
+            ename = "{}_binsep_{}".format(name, seq.name)
+            if ename in self.e.euks:
                 stats["euks"] += len(seq)
-            elif seq.name in self.e.bacs:
+            elif ename in self.e.bacs:
                 stats["bacs"] += len(seq)
             else:
                 stats["NA"] += len(seq)
