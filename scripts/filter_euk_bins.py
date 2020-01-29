@@ -78,15 +78,15 @@ class EukRep:
     def read_result(self):
         self.euks = self.read_eukfile(self.eukout)
 
-        self.bacs = []
+        self.bacs = set()
         if self.bacout is not None:
             self.bacs = self.read_eukfile(self.bacout)
 
     def read_eukfile(self, path):
-        lst = []
+        lst = set()
         with open(path) as infile:
             for line in infile:
-                lst.append(line.strip())
+                lst.add(line.strip())
         return lst
 
 
