@@ -84,7 +84,7 @@ to adjust that path.
     while IFS=, read -r binpath binname passed bp_eukaryote bp_prokaryote bp_unassigned bp_sum
     do
         if [[ $passed == "True" ]]; then
-            NAME=binname
+            NAME=$binname
             bsub -M 40000 -J eukcc_$bin -n 16 \
                 "eukcc --db $HOME/eukccdb --ncores 16 \
                  --plot \
