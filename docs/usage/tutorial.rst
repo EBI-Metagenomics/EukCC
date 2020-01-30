@@ -85,7 +85,7 @@ to adjust that path.
     do
         if [[ $passed == "True" ]]; then
             NAME=$binname
-            bsub -M 40000 -J eukcc_$bin -n 16 \
+            bsub -M 40000 -J eukcc_$NAME -n 16 \
                 "eukcc --db $HOME/eukccdb --ncores 16 \
                  --plot \
                  --ncorespplacer 1 --outdir eukcc/$NAME $binpath"
