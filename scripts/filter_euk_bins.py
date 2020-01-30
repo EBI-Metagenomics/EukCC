@@ -218,13 +218,14 @@ if __name__ == "__main__":
         eukrep_result.read_result()
 
     with open(args.output, "w") as outfile:
-        outfile.write("path,binname,eukaryotic,eukbases,bacbases,unassigned,sum\n")
+        outfile.write("path,binname,passed,bp_eukaryote,bp_prokaryote,bp_unassigned,bp_sum\n")
         for path in args.bins:
             logging.info(f"Deciding on bin: {path}")
             b = bin(path, eukrep_result)
             b.stats()
-            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, mineukbp=args.minbpeuks)
+            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, minbpeuks=args.minbpeuks)
             bname = os.path.basename(path)
+            path = os.path.abspath(path)
             outfile.write(
                 f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
             )
