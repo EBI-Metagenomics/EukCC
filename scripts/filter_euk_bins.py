@@ -116,23 +116,27 @@ class bin:
 
         self.table = stats
 
-    def decide(self, eukratio=0.2, bacratio=0.1, minbp=100000):
+    def decide(self, eukratio=0.2, bacratio=0.1, minbp=100000, minbpeuks=1000000):
         """
         rule to handle decision logic
         """
         keep = True
         allb = self.table["sum"]
-        if self.table["euks"] / allb <= eukratio:
+        if self.table["euks"] < minbpeuks:
             keep = False
-            logging.info(f"Rejecting because eukaryotic DNA ratio not higher than {eukratio}")
+            logging.info(f"Eukaryotic DNA amount only {self.table['euks']} instead of target {minbpeuks}")
 
-        if self.table["bacs"] / allb >= bacratio:
+        elif self.table["euks"] / allb <= eukratio:
             keep = False
-            logging.info(f"Rejecting because bacterial DNA content higher than {bacratio}")
+            logging.info(f"Eukaryotic DNA ratio not higher than {eukratio}")
 
-        if self.table["sum"] < minbp:
+        elif self.table["bacs"] / allb >= bacratio:
             keep = False
-            logging.info("Rejecting as we did not find at least %d bp of DNA", minbp)
+            logging.info(f"Bacterial DNA content higher than {bacratio}")
+
+        elif self.table["sum"] < minbp:
+            keep = False
+            logging.info("We did not find at least %d bp of DNA", minbp)
 
         self.keep = keep
 
@@ -153,15 +157,15 @@ if __name__ == "__main__":
         "--eukratio",
         type=float,
         help="This ratio of eukaryotic DNA to all DNA has to be found\
-                    at least (default: 0.1)",
-        default=0.1,
+                    at least (default: 0)",
+        default=0,
     )
     parser.add_argument(
         "--bacratio",
         type=float,
         help="discard bins with bacterial ratio of higher than\
-                    (default: 0.4)",
-        default=0.4,
+                    (default: 1)",
+        default=1,
     )
     parser.add_argument(
         "--minbp",
@@ -169,6 +173,13 @@ if __name__ == "__main__":
         help="Only keep bins with at least n bp of dna\
                     (default: 100000)",
         default=100000,
+    )
+    parser.add_argument(
+        "--minbpeuks",
+        type=float,
+        help="Only keep bins with at least n bp of Eukaryotic dna\
+                    (default: 1000000)",
+        default=1000000,
     )
     parser.add_argument("--rerun", action="store_true", help="rerun even if output exists", default=False)
     parser.add_argument("--quiet", action="store_true", help="supress information", default=False)
@@ -212,7 +223,7 @@ if __name__ == "__main__":
             logging.info(f"Deciding on bin: {path}")
             b = bin(path, eukrep_result)
             b.stats()
-            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp)
+            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, mineukbp=args.minbpeuks)
             bname = os.path.basename(path)
             outfile.write(
                 f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
