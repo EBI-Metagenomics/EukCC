@@ -105,14 +105,14 @@ class eukinfo:
             return p
         else:
             log("Could not find: {}".format(p))
-            exit()
+            exit(12)
 
     def readInfo(self, name):
         p = os.path.join(self.cfg["db"], "refpkg", name, "CONTENTS.json")
         # raise error if we cant find the file
         if not base.exists(p):
             log("Could not find {}".format(p))
-            exit()
+            exit(13)
         # read and return json
         with open(p) as json_file:
             j = json.load(json_file)

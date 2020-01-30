@@ -194,7 +194,7 @@ def main():
         logging.info("Running on custom hmm for training mode")
         m.runPlacedHMM(m.cfg["hmm"], proteinfaa, bedfile)
         logging.info("Stopping now as we are only doing training")
-        exit()
+        exit(0)
 
     # place using pplacer and hmmer
     m.place(proteinfaa, bedfile)

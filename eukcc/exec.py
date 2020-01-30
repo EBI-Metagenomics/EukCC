@@ -169,7 +169,7 @@ class hmmpress(run):
             return True
         except subprocess.CalledProcessError:
             logging.error("an error occured while executing {}".format(self.program))
-            exit()
+            exit(14)
 
 
 class hmmer(run):
@@ -218,7 +218,7 @@ class hmmer(run):
             return True
         except subprocess.CalledProcessError:
             logging.error("an error occured while executing {}".format(self.program))
-            exit()
+            exit(16)
 
     def clean(self, hmmer, bedfile, resultfile, mindist=2000):
         bed = base.readbed(bedfile)
