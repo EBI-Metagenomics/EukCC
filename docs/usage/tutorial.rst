@@ -41,7 +41,9 @@ Make sure you have EukRep (https://github.com/patrickwest/EukRep) installed.
 
 .. code-block:: shell
    
-   filter_euk_bins.py fasta_bins/*.fa
+    filter_euk_bins.py concoct_bins/*.fa 
+    # optionally remove tmp folder again
+    # rm -r tmp
 
 This will create a file `assignment.csv` containing comma seperated 
 columns with stats about the bin including one column 'eukaryotic', which
@@ -58,9 +60,7 @@ Try adjusting the ratios using the flags, if you are unhappy with the defaults.
 
 .. code-block:: shell
 
-   filter_euk_bins.py concoct_bins/*.fa --tempdir filtertmp
-   # optionally remove tmp folder again
-   # rm -r filtertmp
+   filter_euk_bins.py concoct_bins/*.fa --minbpeuks 500000 --eukratio 0.2
 
 
 All options are described in the help:
