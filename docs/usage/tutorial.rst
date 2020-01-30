@@ -58,7 +58,9 @@ Try adjusting the ratios using the flags, if you are unhappy with the defaults.
 
 .. code-block:: shell
 
-   filter_euk_bins.py fasta_bins/*.fa --eukratio 0.5 --bacratio 0.4
+   filter_euk_bins.py concoct_bins/*.fa --tempdir filtertmp
+   # optionally remove tmp folder again
+   # rm -r filtertmp
 
 
 All options are described in the help:
@@ -79,18 +81,18 @@ to adjust that path.
 
 .. code-block:: shell
 
-    while IFS=, read -r bin col2 euk col4
+    while IFS=, read -r binpath binname passed bp_eukaryote bp_prokaryote bp_unassigned bp_sum
     do
-        if [ $euk == "True" ]; then
-            NAME=$(basename $bin)
-            bsub -M 80000 -J eukcc_$bin -n 16 \
+        if [[ $passed == "True" ]]; then
+            NAME=binname
+            bsub -M 40000 -J eukcc_$bin -n 16 \
                 "eukcc --db $HOME/eukccdb --ncores 16 \
                  --plot \
-                 --ncorespplacer 1 --outdir eukcc/$NAME $bin"
-        fi  
+                 --ncorespplacer 1 --outdir eukcc/$NAME $binpath"
+        fi
     done < assignment.csv
 
-In this example we allocate 80 Gb in memory for EukCC and use 16 cores for 
+In this example we allocate 40 Gb in memory for EukCC and use 16 cores for 
 gene prediction and annotation. To reduce memory consumption we only use a 
 single thread for pplacer.
 
@@ -112,6 +114,13 @@ EukCC will create a structure like this:
 
 The main output is the file `eukcc.tsv`. It will contain predictions with up
 to three sets chosen to best encompass the phylogenetic location of the bin.
+
+If EukCC fails to process the bin, it is likely due to GeneMark-ES not being able
+to predict any proteins. In this case you might consider predicting proteins ahead
+of time using AUGUSTUS or another solution.
+But often this means, the bin is of low quality and can be ignored when searching for high
+quality MAGs.
+
 
 .. csv-table:: eukcc.csv
     :file: ../_static/eukcc.csv
