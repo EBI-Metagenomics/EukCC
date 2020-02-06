@@ -54,7 +54,7 @@ class eukinfo:
             self.cfg["placementMethod"] = "LCA"
         # figure if pplacer cores need to be adjusted
         if self.cfg["ncorespplacer"] < 1:
-            logging.debug("Set pplacer cores to the same as all others (%)", self.cfg["ncores"])
+            logging.debug("Set pplacer cores to the same as all others (%d)", self.cfg["ncores"])
             self.cfg["ncorespplacer"] = self.cfg["ncores"]
 
         # define location of placement HMMs
