@@ -331,7 +331,7 @@ class eukcc:
             exit(1)
         elif self.cfg["clean"]:
             # clean temp dirs
-            _tmpdirs = ["data", "run", "info", "output"]
+            _tmpdirs = ["data", "run", "info", "output/data", "output/gmhmm"]
             tempdirs = [os.path.join(gmesDir, x) for x in _tmpdirs]
             g.cleanup(tempdirs)
 
