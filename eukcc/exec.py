@@ -388,6 +388,10 @@ class pplacer(run):
         except subprocess.CalledProcessError:
             print("an error occured while executing {}".format(self.program))
             return False
+        except Exception as e:
+            print("Pplacer failed with unkown reason")
+            print(e)
+            return False
 
     def prepareAlignment(
         self, pplaceAlinment, hmmerOutput, proteinList, proteinFasta, config, cfg, tmpDir,

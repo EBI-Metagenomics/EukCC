@@ -411,11 +411,14 @@ class eukcc:
             else:
                 logging.info("Placing proteins in tree")
                 self.updateStep("pplacer", "starting")
-                pp.run(
+                pplacer_success = pp.run(
                     os.path.join(self.cfg["db"], "refpkg", "concat.refpkg"),
                     logfile=pplaceLog,
                     cores=self.cfg["ncorespplacer"],
                 )
+                if pplacer_success is False:
+                    logging.warning("Pplacer could not finish. Exiting now")
+                    exit(1)
 
         # reduce placements to the placements with at least posterior of p
         logging.debug("Reducing placements")
