@@ -146,6 +146,13 @@ def main():
     parser.add_argument(
         "--gmes", default=False, action="store_true", help="only run GeneMark-ES",
     )
+    parser.add_argument(
+        "--pygmes",
+        default=False,
+        action="store_true",
+        help="Use pygmes, will improve eukccs capability of running on highly fragmented bins but will take longer",
+    )
+    parser.add_argument("--diamond", default=None, type=str, help="required to use pygmes option")
     parser.add_argument("--plot", default=False, action="store_true", help="produce plots")
     parser.add_argument("-v", "--version", action="version", version=f"EukCC version {version.__version__}")
     options = parser.parse_args()
@@ -168,9 +175,11 @@ def main():
     m = workflow.eukcc(options)
 
     # skip gene predition if this is already protein sequences
-    if options.bed is None and options.proteins is False:
+    if options.bed is None and options.proteins is False and options.pygmes is False:
         # run gmes
         proteinfaa, bedfile = m.gmes(options.fasta)
+    elif options.bed is None and options.proteins is False and options.pygmes is True:
+        proteinfaa, bedfile = m.pygmes(options.fasta, options.diamond)
     else:
         proteinfaa = options.fasta
         if options.bed is None:

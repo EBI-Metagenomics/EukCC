@@ -346,6 +346,24 @@ class eukcc:
             g.touch([bedf, gmesOut])
         return (gmesOut, bedf)
 
+    def pygmes(self, fasta, db):
+        outdir = os.path.join(self.cfg["outdir"], "workfiles", "pygmes")
+        faafile = os.path.join(outdir, "predicted_proteins.faa")
+        bedfile = os.path.join(outdir, "predicted_proteins.bed")
+        from pygmes import pygmes
+
+        pygmes(fasta, outdir, db=db, clean=True, ncores=self.cfg["ncores"])
+        # check if pg worked
+        if os.path.exists(faafile) and os.path.exists(bedfile):
+            if os.stat(faafile).st_size == 0 or os.stat(bedfile).st_size == 0:
+                logging.warning("No predicted proteins")
+                exit(1)
+            else:
+                return (faafile, bedfile)
+        else:
+            logging.warning("No predicted proteins, pyfaidx failed")
+            exit(1)
+
     def place(self, fasta, bedfile):
         """
         main function to place a bin in the tree.
