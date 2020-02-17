@@ -144,7 +144,25 @@ class run:
 
 # defining classes based on run for executing gmes and hmmscan
 class gmes(run):
+    def find_license(self):
+        home = os.path.expanduser("~")
+        pwd = os.getcwd()
+        dirs = [home, pwd]
+        key = ".gm_key"
+        foundKey = False
+        for directory in dirs:
+            if os.path.exists(os.path.join(directory, key)):
+                foundKey = True
+                break
+        return foundKey
+
     def run(self, cores=1):
+        # before starting, check if the license key is anywhere we can find it
+        if not self.find_license():
+            logging.warning(
+                "I could not find the license of GeneMark-ES. Make sure you have a valid license in your home directory with the name '.gm_key'. Will try to run GeneMark-ES regardless, but it will likely fail"
+            )
+
         lst = [self.program, "-i", self.input, "-o", self.output, "-n", str(cores)]
         if self.touchonly:
             self.touch()
