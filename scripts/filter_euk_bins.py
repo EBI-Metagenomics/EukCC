@@ -23,13 +23,48 @@ import subprocess
 import logging
 
 
+# backup fasta handler, so we can use readonly directories
+class fa_class:
+    def __init__(self, seq, name, long_name):
+        self.seq = seq
+        self.name = name
+        self.long_name = long_name
+
+    def __str__(self):
+        return self.seq
+
+    def __len__(self):
+        return len(self.seq)
+
+
+def Fasta_ro(path):
+    entry = False
+
+    with open(path) as fin:
+        for line in fin:
+            if line.startswith(">"):
+                if entry is not False:
+                    yield entry
+                # define new entry
+                long_name = line.strip()[1:]
+                name = long_name.split()[0]
+                entry = fa_class("", name, long_name)
+            else:
+                entry.seq = entry.seq + line.strip()
+        # yield last one
+        yield entry
+
+
 def concatenate_bins(bins, outf):
     """simple function to merge all
     bins into scaffolds file"""
     with open(outf, "w") as outfile:
         for path in bins:
-            logging.info(f"Concatenating bin {path}")
-            fa = Fasta(path)
+            logging.debug(f"Concatenating bin {path}")
+            try:
+                fa = Fasta(path)
+            except IOError:
+                fa = Fasta_ro(path)
             name = os.path.basename(path)
             for seq in fa:
                 outfile.write(">{}_binsep_{}\n{}\n".format(name, seq.name, seq))
@@ -98,11 +133,14 @@ class bin:
     def stats(self):
         """read bin content and figure genomic composition"""
         logging.debug("Loading bin")
-        fa_file = Fasta(self.path)
+        try:
+            fa_file = Fasta(self.path)
+        except IOError:
+            fa_file = Fasta_ro(self.path)
         name = os.path.basename(self.path)
         stats = {"euks": 0, "bacs": 0, "NA": 0, "sum": 0}
         # loop and compute stats
-        logging.debug(f"Make per bin stats ({len(fa_file.keys())} contigs)")
+        logging.debug(f"Make per bin stats")
         for seq in fa_file:
             ename = "{}_binsep_{}".format(name, seq.name)
             if ename in self.e.euks:
