@@ -174,7 +174,7 @@ class eukcc:
 
         if canuseprev:
             # we can use the existing file, so no need to continue
-            log("Using pressed hmms from last run")
+            logging.info("Using pressed hmms from last run")
             return hmmconcat
 
         # concatenate
