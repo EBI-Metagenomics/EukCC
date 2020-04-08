@@ -54,7 +54,7 @@ Fetch from github and install in the conda environment:
 .. code-block:: shell
     
     git clone https://github.com/Finn-Lab/EukCC/
-    cd eukcc
+    cd EukCC
     conda activate eukcc
     pip3 install . 
 
