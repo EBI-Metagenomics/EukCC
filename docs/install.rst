@@ -56,7 +56,7 @@ Fetch from github and install in the conda environment:
     git clone https://github.com/Finn-Lab/EukCC/ eukcc
     cd eukcc
     conda activate eukcc
-    pip3 install . 
+    pip install .  # might be pip3 if you have two versions of python in your path
 
 EukCC requires python 3.7
 
