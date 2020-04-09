@@ -21,6 +21,6 @@ of novel eukaryotic MAGs.
 
 .. If you use it please cite:
 
-The project is hosted on github: https://github.com/openpaul/EukCC
+The project is hosted on GitHub: https://github.com/Finn-Lab/EukCC/
 
 
