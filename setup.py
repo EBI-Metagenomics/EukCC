@@ -15,7 +15,7 @@ setuptools.setup(
     description="Check eukaryotic genomes or MAGs for completeness and contamination",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/Finn-Lab/EukCC/",
     py_modules=["workflow", "base", "fileoperations"],
     scripts=["scripts/runGMES", "scripts/filter_euk_bins.py"],
     entry_points={"console_scripts": ["eukcc = eukcc.__main__:main"]},
