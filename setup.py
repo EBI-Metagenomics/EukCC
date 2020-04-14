@@ -19,11 +19,13 @@ setuptools.setup(
     py_modules=["workflow", "base", "fileoperations"],
     scripts=["scripts/runGMES", "scripts/filter_euk_bins.py"],
     entry_points={"console_scripts": ["eukcc = eukcc.__main__:main"]},
-    install_requires=["ete3", "pyfaidx", "configargparse", "pyyaml", "pyqt5==5.14"],
+    install_requires=["ete3", "pyfaidx", "configargparse", "pyyaml", "pyqt5==5.14", "pygmes"],
     packages=setuptools.find_packages(),
+    python_requires=">=3.6",
+    license="GPLv3",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "License :: OSI Approved :: GPLv3",
+        "Operating System :: Linux",
     ],
 )
