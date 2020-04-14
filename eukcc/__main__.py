@@ -166,6 +166,12 @@ def main():
     logging.basicConfig(
         format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %H:%M:%S: ", level=logLevel,
     )
+
+    # for pygmes we need a diamond DB
+    if options.pygmes and options.diamond is None:
+        logging.error("For pygmes you need to provide a diamond database with taxonomic information")
+        exit(1)
+
     logging.debug("Launching EukCC in debug mode")
     logging.info("Starting EukCC")
 
