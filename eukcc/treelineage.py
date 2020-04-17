@@ -22,12 +22,8 @@ import json
 import logging
 from collections import defaultdict
 from ete3 import Tree, NodeStyle, TreeStyle
-from ete3 import NCBITaxa
 from ete3 import parser
 from ete3 import CircleFace, TextFace, RectFace
-
-
-ncbi = NCBITaxa()
 
 
 def RGB_to_hex(RGB):

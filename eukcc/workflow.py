@@ -29,10 +29,7 @@ from eukcc import base
 from eukcc import treelineage
 from eukcc.fileoperations import file
 import hashlib
-
 from ete3 import NCBITaxa
-
-ncbi = NCBITaxa()
 
 
 dep = {
@@ -230,6 +227,7 @@ class eukcc:
         """
         if self.cfg["touch"]:
             return
+        ncbi = NCBITaxa()
         # fetch file and load taxinformation
         seqinfo = self.config.pkgfile("concat.refpkg", "seq_info")
         taxids = {}
