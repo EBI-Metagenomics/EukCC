@@ -359,7 +359,14 @@ class eukcc:
         bedfile = os.path.join(outdir, "predicted_proteins.bed")
         from pygmes import pygmes
 
-        pygmes(fasta, outdir, db=db, clean=True, ncores=self.cfg["ncores"])
+        # check if we need to launch
+        need_run = False
+        if not file().exists(faafile) or not file().exists(bedfile):
+            need_run = True
+        elif file.isnewer(fasta, faafile):
+            need_run = True
+        if need_run:
+            pygmes(fasta, outdir, db=db, clean=True, ncores=self.cfg["ncores"])
         # check if pg worked
         if os.path.exists(faafile) and os.path.exists(bedfile):
             if os.stat(faafile).st_size == 0 or os.stat(bedfile).st_size == 0:
