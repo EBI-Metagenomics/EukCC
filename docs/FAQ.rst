@@ -15,6 +15,13 @@ Make first sure you have the PyQt5 library installed and if the error persists
 you can try to install `libgl1-mesa-glx` on your operating system or in your
 container.
 
+Cwd.c: loadable library and perl binaries are mismatched 
+---------------------------------------------------------------------------------
+We noticed this warning when using perl from conda. This is caused by compilations of 
+perl modules from an older or newer perl library.
+it is caused by modules needed for GeneMark-ES. Try debugging by running `gmes_petap.pl` 
+in the command line. It should output a help page.
+
 EukCC fails to run
 =====================
 

@@ -2,38 +2,46 @@
 Installation
 ---------------
 
-Install dependencies
+EukCC is avaliable to install from bioconda (https://anaconda.org/bioconda/eukcc)
+or pypi (https://pypi.org/project/eukcc/).
+
+You can also fetch the source code from GitHub: https://github.com/Finn-Lab/EukCC/
+
+Install via conda
 ~~~~~~~~~~~~~~~~~~~~~~
-EukCC depends on hmmer, Genemark-ES and pplacer. So you will need to install 
-them before launching EukCC. It is best to create a conda enviorement
-and then install Genemark-ES manually.
+Installing EukCC via conda will install all dependencies 
+**except for GeneMark-ES**.  If you want to use GeneMark-ES
+you will need to download a 64 bit version with the license here:
+http://exon.gatech.edu/GeneMark/license_download.cgi
 
-
-**With conda**
-
-.. code-block:: shell
-
-   conda create -n eukcc -c bioconda -c biocore hmmer>3.2 pplacer python=3.7
-   # we recommend installing ete3 from conda:
-   conda activate eukcc
-   conda install -c etetoolkit -c anaconda ete3 pyqt>5
-
-To install GeneMark-ES you will need to install perl and certain perl packages:
+We noticed that insaling perl and modules for GeneMark-ES
+can lead to problems. If you have any issues feel free to open an issue
+at Github:  https://github.com/Finn-Lab/EukCC/issues
 
 .. code-block:: shell
 
-   conda activate eukcc
-   conda install -c anaconda perl \
-                 -c bioconda perl-app-cpanminus 
-   cpanm Test::Pod
-   cpanm Logger::Simple
-   cpanm Parallel::ForkManager.pm
-   cpanm YAML
-   cpanm Hash::Merge module
+    conda install -c bioconda  -c conda-forge eukcc
+
+
+To install GeneMark-ES you will need to install perl and certain perl packages. 
+This could look like this:
+
+.. code-block:: shell
+
+    apt install -y cpanminus make gcc  dialog
+    cpanm inc::Module::Install::DSL Hash::Merge MCE::Mutex FindBin Test::Pod Logger::Simple  Parallel::ForkManager.pm YAML
 
 Once you installed these dependencies you need to download GeneMark-ES
 from http://exon.gatech.edu/GeneMark/license_download.cgi and deposit the
 license key in your home directory as `.gm_key`.
+
+.. code-block:: shell
+
+    tar -xzvf gmes_linux_64.tar.gz
+    cp gmes_linux_64/* ~/local/bin/
+    
+    # extract the key file
+    zcat gm_key.gz > ~/.gm_key
 
 Make sure `gmes_petap.pl`  and `get_sequence_from_GTF.pl` are availiable from your $PATH:
 
@@ -43,27 +51,7 @@ Make sure `gmes_petap.pl`  and `get_sequence_from_GTF.pl` are availiable from yo
    #~/software/genemark_es/gmes_petap.pl
 
 
-
-Install EukCC
-~~~~~~~~~~~~~~~~
-
-**Install from github (access required)**
-
-Fetch from github and install in the conda environment:
-
-.. code-block:: shell
-    
-    git clone https://github.com/Finn-Lab/EukCC/ eukcc
-    cd eukcc
-    conda activate eukcc
-    pip install .  # might be pip3 if you have two versions of python in your path
-
-EukCC requires python 3.7
-
 **Get database from the EBI cluster**
-
-This will only work for EBI users and this section will be removed in 
-the future.
 
 .. code-block:: shell
     
@@ -93,5 +81,4 @@ and test for function with this command:
         --ncorespplacer 1 \
         --outdir eukcc_testgenome \
         testgenome.fa
-
 
