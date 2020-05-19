@@ -148,7 +148,7 @@ class treeHandler:
             else:
                 # we dont know what to do
                 logging.warning("Mode not know", mode)
-                exit()
+                exit(17)
             # sort now by cover, keeping the underlying order of genomes in case
             # several sets cover the same amount of profiles
             sets.sort(key=operator.itemgetter("cover"), reverse=True)
