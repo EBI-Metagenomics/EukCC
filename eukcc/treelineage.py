@@ -60,6 +60,8 @@ class treeHandler:
         except parser.newick.NewickError:
             logging.debug("Trying to use tree format 1")
             self.t = Tree(tree, format=1)
+        except parser.newick.NewickError:
+            logging.debug("Tree format is unkown")
 
     def annotateTree(self):
         i = 0

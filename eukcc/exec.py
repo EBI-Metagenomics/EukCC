@@ -519,6 +519,7 @@ class pplacer(run):
 class tog(run):
     def run(self):
         # if sometimes we just touch, for debugging
+        logging.debug("Launching guppy tog")
         if self.touchonly:
             self.touch()
             return True
@@ -528,7 +529,7 @@ class tog(run):
             subprocess.run(lst, check=True, shell=False)
             return True
         except subprocess.CalledProcessError:
-            print("an error occured while executing {}".format(self.program))
+            logging.error("an error occured while executing {}".format(self.program))
             return False
 
 

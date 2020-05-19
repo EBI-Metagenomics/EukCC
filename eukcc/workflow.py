@@ -463,7 +463,10 @@ class eukcc:
         tg = tog("guppy", pplaceOutReduced, togTree, touch=self.cfg["touch"])
         if tg.doIneedTorun(self.cfg["force"]):
             logging.debug("Fetching tree")
-            tg.run()
+            r = tg.run()
+            if r is False:
+                logging.debug("No placement found")
+                self.write_outfile()
 
         logging.debug("Getting best placements")
         # save path to togtree for plotting later
