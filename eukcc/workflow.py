@@ -101,7 +101,14 @@ class eukcc:
             placements[i]["contamination"] = round(cont * 100, 2)
 
         log("Finished estimating")
+        self.write_outfile(outfile, placements)
 
+        # done
+        return True
+
+    def write_outfile(self, outfile=None, result=None):
+        if outfile is None:
+            outfile = os.path.join(self.cfg["outdir"], "eukcc.tsv")
         # write to output file
         k = [
             "completeness",
@@ -118,16 +125,16 @@ class eukcc:
         ]
         with open(outfile, "w") as f:
             f.write("{}\n".format("\t".join(k)))
-            for p in placements:
+            if result is None:
+                logging.warning("No estimates were written")
+                exit(11)
+            for p in result:
                 # insert the file name
                 p["file"] = self.cfg["name"]
                 # write to file
                 f.write("{}\n".format("\t".join([str(p[key]) for key in k])))
 
         log("Wrote estimates to: {}".format(outfile))
-
-        # done
-        return True
 
     def readSet(self, node):
         profiles = []
@@ -177,6 +184,7 @@ class eukcc:
         # concatenate
         if len(profiles) == 0:
             logging.error("We have no profiles to evaluate")
+            self.write_outfile()
             exit(1)
 
         log("{} hmm profiles need to be used for estimations".format(len(profiles)))
@@ -326,6 +334,7 @@ class eukcc:
             # log and document failing
             # then stop pipeline
             logging.error("GeneMark-ES failed on this bin")
+            self.write_outfile()
             exit(1)
         elif self.cfg["clean"]:
             # clean temp dirs
@@ -355,11 +364,13 @@ class eukcc:
         if os.path.exists(faafile) and os.path.exists(bedfile):
             if os.stat(faafile).st_size == 0 or os.stat(bedfile).st_size == 0:
                 logging.warning("No predicted proteins")
+                self.write_outfile()
                 exit(1)
             else:
                 return (faafile, bedfile)
         else:
             logging.warning("No predicted proteins, pyfaidx failed")
+            self.write_outfile()
             exit(1)
 
     def place(self, fasta, bedfile):
@@ -370,9 +381,11 @@ class eukcc:
         # test if we can open the input files first
         if not base.exists(fasta):
             logging.error("Could not open fasta file")
+            self.write_outfile()
             exit(1)
         if not base.exists(bedfile):
             logging.error("Could not open bed file")
+            self.write_outfile()
             exit(1)
 
         # define output files
@@ -423,6 +436,7 @@ class eukcc:
             )
             if pp.lenscmgs == 0 and not self.cfg["touch"]:
                 logging.error("Could not find any marker genes")
+                self.write_outfile()
                 exit(1)
             else:
                 logging.info("Placing proteins in tree")
@@ -434,6 +448,7 @@ class eukcc:
                 )
                 if pplacer_success is False:
                     logging.warning("Pplacer could not finish. Exiting now")
+                    self.write_outfile()
                     exit(1)
 
         # reduce placements to the placements with at least posterior of p
