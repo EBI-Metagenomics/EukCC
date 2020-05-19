@@ -13,6 +13,7 @@ EukCC
 
     Install <install.rst>
     Tutorial <usage/tutorial.rst>
+    EukCC options <usage/options.rst>
     FAQ <FAQ.rst>
 
 
