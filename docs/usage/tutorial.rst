@@ -1,5 +1,5 @@
 =====================================================
-Tutorial: Assemble, bin and asses eukaryotic bins
+Tutorial: Assemble, bin and assess eukaryotic bins
 =====================================================
 
 We assume for this tutorial, that you have sequenced 
