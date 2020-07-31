@@ -30,6 +30,8 @@ from eukcc import treelineage
 from eukcc.fileoperations import file
 import hashlib
 from ete3 import NCBITaxa
+from pyfaidx import Fasta
+from collections import defaultdict
 
 
 dep = {
@@ -46,6 +48,7 @@ class eukcc:
         # stores all magic numbers and user settings
         self.config = eukinfo(options)
         self.cfg = self.config.cfg
+        self._clean_fasta = None
 
         # set name of run
         self.cfg["name"] = os.path.splitext(os.path.basename(options.fasta))[0]
@@ -68,6 +71,43 @@ class eukcc:
 
     def writeProcess(self):
         print(self.config.cfg["GeneMark-ES"])
+
+    def get_silent_contig(self, fasta, hits, placements):
+        """
+        given hits and the fasta file, we can calculate how many
+        DNA bp can not be detected as contaminant, because no markers
+        are on these contigs
+        """
+        logging.debug("Calculating silent contig fraction")
+        if fasta is None:
+            logging.debug("As no DNA fasta was given, we can't compute the contig fraction")
+            for placement in placements:
+                placement["max_silent_contamination"] = "NA"
+            return
+
+        # get dict to link profile to contigs
+        profile_2_contigs = defaultdict(set)
+        for row in base.readTSV(hits):
+            profile_2_contigs[row["profile"]].add(row["chrom"])
+
+        # read in fasta once
+        dna_lens = {}
+        for rec in Fasta(fasta):
+            dna_lens[rec.name] = len(str(rec))
+        total_len = sum([v for k, v in dna_lens.items()])
+
+        # for each placement compute the silent fraction
+        for placement in placements:
+            contigs = set()
+            # make union of contigs
+            for profile in placement["set"]:
+                contigs = contigs | profile_2_contigs[profile]
+            # define missing contigs as contig names we did not locate any marker genes on
+            m_contigs = set(dna_lens.keys()) - contigs
+            missing_len = sum([dna_lens[contig] for contig in m_contigs])
+            placement["max_silent_contamination"] = round(missing_len / total_len * 100, 2)
+            logging.debug("The silent fraction could be up to {}%".format(placement["max_silent_contamination"]))
+        return
 
     def estimate(self, hits, outfile, placements):
         hit = {}
@@ -92,6 +132,7 @@ class eukcc:
         # now we can estimate completeness and contamination for each placement
         for i in range(len(placements)):
             s = self.readSet(placements[i]["node"])
+            placements[i]["set"] = s
             # completeness is the overap of both sets
             cmpl = len(singletons & s) / len(s)
             cont = len(multitons & s) / len(s)
@@ -99,6 +140,9 @@ class eukcc:
             # make to percentage and round to 2 positions
             placements[i]["completeness"] = round(cmpl * 100, 2)
             placements[i]["contamination"] = round(cont * 100, 2)
+
+        # compute silent fraction per placement and set
+        self.get_silent_contig(self._clean_fasta, hits, placements)
 
         log("Finished estimating")
         self.write_outfile(outfile, placements)
@@ -113,6 +157,7 @@ class eukcc:
         k = [
             "completeness",
             "contamination",
+            "max_silent_contamination",
             "node",
             "n",
             "ngenomes",
@@ -351,12 +396,14 @@ class eukcc:
         # touch files expected for next step
         if self.cfg["touch"]:
             g.touch([bedf, gmesOut])
+        self._clean_fasta = inputfasta
         return (gmesOut, bedf)
 
     def pygmes(self, fasta, db):
         outdir = os.path.join(self.cfg["outdir"], "workfiles", "pygmes")
         faafile = os.path.join(outdir, "predicted_proteins.faa")
         bedfile = os.path.join(outdir, "predicted_proteins.bed")
+        self._clean_fasta = os.path.join(outdir, "gmesclean_{}".format(os.path.basename(fasta)))
         from pygmes import pygmes
 
         # check if we need to launch
