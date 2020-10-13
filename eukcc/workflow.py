@@ -303,17 +303,23 @@ class eukcc:
                     logging.warning(e)
 
             # find common elements:
-            common = set(lngs[0])
-            for l in lngs[1:]:
-                common = common & set(l)
+            if len(lngs) == 0:
+                logging.warning(
+                    "Could not determine common lineage. Please update your ete3 taxonomic information: http://etetoolkit.org/docs/latest/tutorial/tutorial_ncbitaxonomy.html#upgrading-the-local-database"
+                )
+                lng = [1]
+            else:
+                common = set(lngs[0])
+                for l in lngs[1:]:
+                    common = common & set(l)
 
-            # common lineage
-            lng = []
-            for v in lngs[0]:
-                if v not in common:
-                    break
-                # add common elements
-                lng.append(v)
+                # common lineage
+                lng = []
+                for v in lngs[0]:
+                    if v not in common:
+                        break
+                    # add common elements
+                    lng.append(v)
 
             nodetaxid = lng[-1]
             # now we can make it pretty
