@@ -20,6 +20,7 @@ import os
 import argparse
 import subprocess
 import logging
+import tempfile
 
 
 # backup fasta handler, so we can use readonly directories
@@ -232,36 +233,37 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %H:%M:%S: ", level=logLevel)
 
     # creating tmp dir if not exists
-    create_dir(args.tempdir)
-    # concatenate fastas as we need single file for EukRep
-    contigs = os.path.join(args.tempdir, "contigs.fna")
-    logging.info("Concatenating bins")
-    if args.rerun or not os.path.exists(contigs):
-        concatenate_bins(args.bins, contigs)
-    else:
-        logging.debug("Reusing concatenated contigs")
+    with tempfile.TemporaryDirectory(prefix="filter_EukRep_") as tmp_dir:
+        logging.debug("Created tempdir: {}".format(tmp_dir))
+        # concatenate fastas as we need single file for EukRep
+        contigs = os.path.join(tmp_dir, "contigs.fna")
+        logging.info("Concatenating bins")
+        if args.rerun or not os.path.exists(contigs):
+            concatenate_bins(args.bins, contigs)
+        else:
+            logging.debug("Reusing concatenated contigs")
 
-    # launch EukRep
-    eukfile = os.path.join(args.tempdir, "euks.fna")
-    bacfile = os.path.join(args.tempdir, "bacs.fna")
-    eukrep_result = EukRep(contigs, eukfile, bacfile, minl=args.minl)
+        # launch EukRep
+        eukfile = os.path.join(tmp_dir, "euks.fna")
+        bacfile = os.path.join(tmp_dir, "bacs.fna")
+        eukrep_result = EukRep(contigs, eukfile, bacfile, minl=args.minl)
 
-    if args.rerun or not os.path.exists(eukfile):
-        logging.info("Running EukRep on concatenated contigs")
-        eukrep_result.run()
-    else:
-        logging.debug("Reusing EukRep run from before")
-        eukrep_result.read_result()
+        if args.rerun or not os.path.exists(eukfile):
+            logging.info("Running EukRep on concatenated contigs")
+            eukrep_result.run()
+        else:
+            logging.debug("Reusing EukRep run from before")
+            eukrep_result.read_result()
 
-    with open(args.output, "w") as outfile:
-        outfile.write("path,binname,passed,bp_eukaryote,bp_prokaryote,bp_unassigned,bp_sum\n")
-        for path in args.bins:
-            logging.info(f"Deciding on bin: {path}")
-            b = bin(path, eukrep_result)
-            b.stats()
-            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, minbpeuks=args.minbpeuks)
-            bname = os.path.basename(path)
-            path = os.path.abspath(path)
-            outfile.write(
-                f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
-            )
+        with open(args.output, "w") as outfile:
+            outfile.write("path,binname,passed,bp_eukaryote,bp_prokaryote,bp_unassigned,bp_sum\n")
+            for path in args.bins:
+                logging.info(f"Deciding on bin: {path}")
+                b = bin(path, eukrep_result)
+                b.stats()
+                b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, minbpeuks=args.minbpeuks)
+                bname = os.path.basename(path)
+                path = os.path.abspath(path)
+                outfile.write(
+                    f"{path},{bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
+                )
