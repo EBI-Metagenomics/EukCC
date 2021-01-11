@@ -30,6 +30,11 @@ file to EukCC. Such a file can easily be prepared from
 gtf or gff files. If no bed file is provided, this step 
 will be skipped.
 
+The bed file needs to be a simple five column bed file containing the contig, start and end of the gene, 
+the strand and finally the name of the gene. Exons and introns are ignored as only start and end of the coding regions matter. 
+
+Befor submissint predicted proteins make sure to remove any stop codons (*), as they cause issues with pplacer (https://github.com/Finn-Lab/EukCC/issues/14).
+
 
 .. code-block:: shell
 
