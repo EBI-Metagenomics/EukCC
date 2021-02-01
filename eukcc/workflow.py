@@ -553,7 +553,6 @@ class eukcc:
         else:
             self.placements = {"LCA": "touch", "HCA": "touch"}
 
-        print(self.placements)
         logging.info("MAG succesfully placed in tree")
 
     def node_placement(self, node):
