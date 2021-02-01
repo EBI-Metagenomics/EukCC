@@ -21,6 +21,7 @@ import argparse
 import subprocess
 import logging
 import tempfile
+import gzip
 from multiprocessing import Pool
 
 
@@ -59,6 +60,22 @@ def Fasta(path):
         # yield last one
         entry.seq = "".join(entry.seq)
         yield entry
+
+
+def gunzip(path, tmp_dir):
+    """
+    Gunzip a file for EukRep
+    """
+    if path.endswith(".gz"):
+        fna_path = os.path.join(tmp_dir, "contigs.fna")
+        logging.debug("Going to unzip fasta into {}".format(fna_path))
+        with gzip.open(path, "r") as fin, open(fna_path, "w") as fout:
+            for line in fin:
+                fout.write(line.decode())
+        path = fna_path
+        logging.debug("Done unzipping {}".format(fna_path))
+
+    return path
 
 
 class EukRep:
@@ -218,11 +235,19 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %H:%M:%S: ", level=logLevel)
 
     def evaluate_bin(path):
+        if not os.path.exists(path):
+            logging.error("Can not find file {}".format(path))
+            exit(1)
+
         logging.info("Launch on {}".format(path))
         with tempfile.TemporaryDirectory(prefix="filter_EukRep_") as tmp_dir:
             logging.debug("Using tmp folder: {}".format(tmp_dir))
             eukfile = os.path.join(tmp_dir, "euks.fna")
             bacfile = os.path.join(tmp_dir, "bacs.fna")
+            # EukRep can not deal with Gzipped Fasta files, so we unzip it in case it is a Gzip file
+            path = gunzip(path, tmp_dir)
+            # Launching EukRep
+            logging.debug(f"Starting EukRep on {path}")
             eukrep_result = EukRep(path, eukfile, bacfile, minl=args.minl)
             eukrep_result.run()
             b = bin(path, eukrep_result)
