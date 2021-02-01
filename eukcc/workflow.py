@@ -293,14 +293,15 @@ class eukcc:
         logging.debug("Infering lineages now")
         for p in places:
             # get the GCA names
-            children = p["sisters"]
-            # fetch lineages for all
+            children = p.get("sisters")
             lngs = []
-            for c in children:
-                try:
-                    lngs.append(ncbi.get_lineage(taxids[c]))
-                except ValueError as e:
-                    logging.warning(e)
+            if children is not None:
+                # fetch lineages for all
+                for c in children:
+                    try:
+                        lngs.append(ncbi.get_lineage(taxids[c]))
+                    except ValueError as e:
+                        logging.warning(e)
 
             # find common elements:
             if len(lngs) == 0:
@@ -552,7 +553,25 @@ class eukcc:
         else:
             self.placements = {"LCA": "touch", "HCA": "touch"}
 
+        print(self.placements)
         logging.info("MAG succesfully placed in tree")
+
+    def node_placement(self, node):
+        sets = self.getSets()
+        nodes = node.split(",")
+        placements = []
+        for s in sets:
+            if s["node"] in nodes:
+                placements.append(s.copy())
+        for pl in placements:
+            pl["cover"] = "NA"
+            pl["nPlacements"] = "NA"
+        self.placements = {self.cfg["placementMethod"]: placements}
+        if len(placements) == 0:
+            logging.error(
+                "No provided node was found valid, please check your input. Nodes can be provided as comma sperated list e.g node1,node201"
+            )
+            exit(1)
 
     def getSets(self):
         setinfo = os.path.join(self.cfg["db"], "sets", "setinfo.csv")

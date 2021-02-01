@@ -56,6 +56,9 @@ def main():
                               which improves memory consumption significantly",
     )
     parser.add_argument(
+        "--node", dest="node", type=str, default=None, help="Use Node (default: None)",
+    )
+    parser.add_argument(
         "--hmm", dest="hmm", type=str, default=None, help="run hmmer on all these HMMs instead",
     )
     parser.add_argument(
@@ -212,7 +215,12 @@ def main():
         exit(0)
 
     # place using pplacer and hmmer
-    m.place(proteinfaa, bedfile)
+    if m.cfg["node"] is None:
+        m.place(proteinfaa, bedfile)
+    else:
+        # we reuse the provided node
+        logging.info("Skipping placement and relying on user provided node")
+        m.node_placement(m.cfg["node"])
 
     # concat hmms for hmmer
     hmmfile = m.concatHMM()
