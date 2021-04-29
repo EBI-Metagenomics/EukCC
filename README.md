@@ -1,4 +1,4 @@
-# EukCC beta
+# EukCC 
 
 ![Coverage.py coverage](badges/coverage.svg)
 
@@ -8,8 +8,21 @@ and isolate genomes.
 This is version 2, which should provide a better experience than
 version 1. We aim at creating a stable package with long term support.
 
-We are actuively working on this sofwtare and its not yet ready for release. Thats why the database is not yet 
-availiable. EukCC2 will **not** work with EukCC1 databases.
+## Documentation
+Got over to eukcc.readthedocs.io/ to check out the documentation.
+
+## Get the container
+
+Get EukCC quickly by fetching the container.
+```
+docker pull ...
+singularity pull docker://
+```
+Make sure to also fetch the database for version 2:
+
+http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
+
+
 
 ## Changed compared to EukCC 1
 - Users can set the prevalence threshold  for marker sets. In EukCC 1 
