@@ -14,22 +14,11 @@ Installing EukCC via conda will install all dependencies
 you will need to download a 64 bit version with the license here:
 http://exon.gatech.edu/GeneMark/license_download.cgi
 
-We noticed that insaling perl and modules for GeneMark-ES
-can lead to problems. If you have any issues feel free to open an issue
-at Github:  https://github.com/Finn-Lab/EukCC/issues
-
 .. code-block:: shell
 
-    conda install -c bioconda  -c conda-forge eukcc
-
-
-To install GeneMark-ES you will need to install perl and certain perl packages. 
-This could look like this:
-
-.. code-block:: shell
-
-    apt install -y cpanminus make gcc  dialog
-    cpanm inc::Module::Install::DSL Hash::Merge MCE::Mutex FindBin Test::Pod Logger::Simple  Parallel::ForkManager.pm YAML
+    conda install -c bioconda  -c conda-forge eukcc perl-app-cpanminus
+    # now install perl dependencies for GeneMark-ES using cpanminus
+    env PERL5LIB="" PERL_LOCAL_LIB_ROOT="" PERL_MM_OPT="" PERL_MB_OPT="" $CONDA_PREFIX/bin/cpanm inc::Module::Install::DSL Hash::Merge MCE::Mutex FindBin Test::Pod Logger::Simple  Parallel::ForkManager.pm YAML Math::Utils
 
 Once you installed these dependencies you need to download GeneMark-ES
 from http://exon.gatech.edu/GeneMark/license_download.cgi and deposit the
