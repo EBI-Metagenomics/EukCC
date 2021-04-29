@@ -22,6 +22,15 @@ Make sure to also fetch the database for version 2:
 
 http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
 
+## Cite
+
+If you use EukCC make sure to cite:
+
+```
+Saary, Paul, Alex L. Mitchell, and Robert D. Finn. "Estimating the quality of eukaryotic genomes recovered from metagenomic analysis with EukCC." Genome biology 21.1 (2020): 1-21.
+```
+
+EukCC also uses metaEUK, hmmer, pplacer, ete3 and epa-ng. 
 
 
 ## Changed compared to EukCC 1
