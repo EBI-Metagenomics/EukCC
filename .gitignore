@@ -1,2 +1,8 @@
-
+wt
+__pycache__
+pip-wheel-metadata/
+docs/_static/
 docs/_build/
+eukcc.egg-info/
+dist
+build
