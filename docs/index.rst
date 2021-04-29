@@ -1,27 +1,12 @@
-.. EukCC documentation master file, created by
-   sphinx-quickstart on Thu Oct 10 10:56:39 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+=================================
+EukCC 2
+=================================
 
-=================================
-EukCC
-=================================
+This is an update to EukCC with the working title
+EukCC 2, which could just change to eukcc in the future.
 
 .. toctree::
     :maxdepth: 2
     :caption: Contents:
 
-    Install <install.rst>
-    Tutorial <usage/tutorial.rst>
-    EukCC options <usage/options.rst>
-    FAQ <FAQ.rst>
-
-
-EukCC is a command line too written in python3 to estimate completeness and contamination
-of novel eukaryotic MAGs.
-
-.. If you use it please cite:
-
-The project is hosted on GitHub: https://github.com/Finn-Lab/EukCC/
-
-
+    modules <modules.rst>

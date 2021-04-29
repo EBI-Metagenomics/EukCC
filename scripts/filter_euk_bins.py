@@ -183,7 +183,11 @@ if __name__ == "__main__":
     parser.add_argument("--output", help="path for the output table", default="assignment.csv", type=str)
     parser.add_argument("bins", nargs="+", help="all bins to classify", type=str)
     parser.add_argument(
-        "--threads", "-t", type=int, help="How many bins should be run in parallel (Default: 1)", default=1,
+        "--threads",
+        "-t",
+        type=int,
+        help="How many bins should be run in parallel (Default: 1)",
+        default=1,
     )
     parser.add_argument(
         "--minl",

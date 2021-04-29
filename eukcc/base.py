@@ -1,165 +1,274 @@
-# This file is part of the EukCC (https://github.com/openpaul/eukcc).
-# Copyright (c) 2019 Paul Saary
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-# file to keep track of simple function
-import logging
 import os
-import re
 import gzip
-from pyfaidx import Fasta
+import csv
+import logging
+from random import seed, sample
+from collections import defaultdict
+from ete3 import NCBITaxa
+from eukcc.fasta import Fasta
 
 
-def exists(f):
-    return os.path.exists(f)
+def compute_silent_contamination(fna, faa, hits):
+    prot_contigs = set()
+    for seq in Fasta(faa):
+        contig = seq.name.split("_", 1)[1].rsplit("_", 1)[0]
+        prot_contigs.add(contig)
+
+    hit_contigs = set()
+    for row in hits:
+        contig = row["target"].split("_", 1)[1].rsplit("_", 1)[0]
+        hit_contigs.add(contig)
+
+    contigs = {}
+    total_bp = 0
+    for rec in Fasta(fna):
+        contigs[rec.name] = len(rec.seq)
+        total_bp += len(rec.seq)
+
+    # count all the stats
+    stats = {
+        "contigs": len(contigs),
+        "contigs_w_hits": 0,
+        "bp_w_hits": 0,
+        "contigs_w_proteins": 0,
+        "total_bp": total_bp,
+    }
+    for contig, size in contigs.items():
+        if contig in prot_contigs:
+            stats["contigs_w_proteins"] += 1
+        if contig in hit_contigs:
+            stats["contigs_w_hits"] += 1
+            stats["bp_w_hits"] += size
+    return stats
 
 
-def log(m, verbose=True):
-    logging.info(m)
-    logging.debug("Called from old log function")
-
-
-def gmesBED(gtf, output):
+def load_tax_info(path, sep=","):
     """
-    given a gmes gtf it will extract ranges and write
-    a bed line for each transcript
+    Load taxonomic information from two column csv
+    With first column giving the taxid and second column
+    giving the name of the tree leaf.
+
+
+    :param path: path to csv file
+    :return: dictionary of accession: ncbi_lineage
     """
-    nre = re.compile(r'gene_id "([0-9]+_g)\";')
-    beds = {}
-    with open(gtf) as f:
-        for line in f:
+    ncbi = NCBITaxa()
+    d = {}
+    with open(path) as fin:
+        reader = csv.reader(fin, delimiter=sep)
+        for row in reader:
+            d[row[1]] = [str(x) for x in ncbi.get_lineage(row[0])]
+    return d
+
+
+def Counter(x):
+    """
+    Fast defaultdict Counter implementation
+    Faster than collections.Counter
+    """
+    counter = defaultdict(int)
+    for k in x:
+        counter[k] += 1
+    return counter
+
+
+def percentage_sets(sets, percent=50, atmost=500):
+    """
+    function to return sets of values if present in a fraction of the sets
+
+    :param sets: list of sets to reduce
+    :param pecent: percentage of prevalence needed to include a value
+    :param atmost: reduce final set to at most n values
+
+    :return: set of values
+    """
+    n = len(sets)
+    universe = []
+    keep = set()
+    for s in sets:
+        universe.extend(list(s))
+    C = Counter(universe)
+    for element, count in C.items():
+        if (count / n * 100) >= percent:
+            keep.add(element)
+    # reduce set to at most n elements
+    # sorting and seting of the seed, will enforce reproducibility
+    if len(keep) > atmost and atmost > 0:
+        seed(125465)  # seed required to obtain the same SCMGs when reducing size, leading to reproducible results
+        x = list(keep)
+        x.sort()
+        keep = set(sample(x, atmost))
+
+    return keep
+
+
+def union_sets(sets):
+    """
+    Given a list of sets will return the union between
+    all sets
+
+    :param sets: list of sets
+    :type sets: lst
+
+    :return: set with the union of all sets
+    :rtype: set
+    """
+    if type(sets) is not list:
+        raise TypeError("sets should be a list of sets")
+    s = sets[0]
+    for ss in sets:
+        s = s.intersection(ss)
+    return s
+
+
+def load_SCMGs(path, sep=","):
+    """
+    Function to load and return all SCMGs found in a gzipped
+    or not gipped file as a dictionary of sets
+    with first column as key
+
+
+    :param path: path to a two column csv file
+    :type path: str
+    :param sep: delimiter passed to `csv.reader`
+    :type sep: str, optional
+
+
+    :return: dictionary
+    :rtype: dict
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError("Could not find SCMG file")
+
+    scmg = {}
+    if path.endswith(".gz"):
+        scmg_csv = gzip.open(path, mode="rt")
+    else:
+        scmg_csv = open(path)
+
+    reader = csv.reader(scmg_csv, delimiter=sep)
+    for row in reader:
+        if len(row) != 2:
+            raise ValueError("Expected exactly two columns")
+        node, profile = row
+        if node in scmg.keys():
+            scmg[node].add(profile)
+        else:
+            scmg[node] = set([profile])
+
+    scmg_csv.close()
+
+    return scmg
+
+
+def which(program):
+    """
+    test if w programm is avaliable
+
+    :param programm: name of an executable
+
+    :rtype: bool
+    """
+    # taken from
+    # https://stackoverflow.com/questions/377017/\
+    # test-if-executable-exists-in-python
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
+def read_hmmer(path, cutoffs_p=None):
+    """
+    Read in a hmmer output file and return dictionary of columns
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError("Could not find hmmer file")
+
+    # load cutoffs from csv if avail
+    cutoffs = defaultdict(str)
+    if cutoffs_p is not None:
+        with open(cutoffs_p) as fin:
+            for row in csv.DictReader(fin):
+                cutoffs[row["query"]] = row["GA"]
+
+    columns = {"target": 0, "query": 2, "bitscore": 5, "evalue": 4}
+    data = []
+    with open(path) as hin:
+        for line in hin:
             if line.startswith("#"):
                 continue
+            row = line.strip().split()
+            d = {k: row[v] for k, v in columns.items()}
+            if cutoffs_p is not None:
+                d["expected_GA"] = cutoffs[row[columns["query"]]]
+            data.append(d)
 
-            l = line.split("\t")
-            # regex match
-            start = int(l[3])
-            stop = int(l[4])
-
-            name = (nre.findall(l[8]))[0]
-
-            if name not in beds.keys():
-                beds[name] = {"chrom": l[0], "r": []}
-            beds[name]["r"].append(start)
-            beds[name]["r"].append(stop)
-
-    # write to file
-    with open(output, "w") as f:
-        for name, v in beds.items():
-            vals = "\t".join([v["chrom"], str(min(v["r"])), str(max(v["r"])), ".", name])
-            f.write("{}\n".format(vals))
-
-    return output
+    return data
 
 
-def faabed(faa, output):
+def hmmer_cutoffs(path, outfile):
     """
-    create a fake bed file to keep backwards compatibility
+    Read in a hmmer input file and return dictionary of columns
     """
-    fa = Fasta(faa)
-    chrom = 1
-    with open(output, "w") as fbed:
-        for seq in fa:
-            s = "chrom_{}\t1\t{}\t.\t{}\n".format(chrom, len(seq), seq.name)
-            fbed.write(s)
-            chrom += 1
-    return output
+    if not os.path.exists(path):
+        raise FileNotFoundError("Could not find hmm file")
 
-
-def readbed(bedfile):
-    # read in bedfile
-    bed = {}
-    with open(bedfile) as b:
-        for line in b:
+    name = False
+    with open(path) as hin, open(outfile, "w") as fout:
+        of = csv.DictWriter(fout, delimiter=",", fieldnames=["query", "GA"])
+        of.writeheader()
+        # parse hmm file
+        for line in hin:
+            if line.startswith("#"):
+                continue
             l = line.split()
-            bed[l[4]] = {
-                "chrom": l[0],
-                "start": int(l[1]),
-                "stop": int(l[2]),
-                "strand": l[3],
-            }
-    return bed
+            if l[0] in ["NAME", "GA"]:
+                if l[0] == "NAME":
+                    name = l[1]
+                elif name is not False:
+                    of.writerow({"query": name, "GA": l[1]})
+    return outfile
 
 
-def mergeOverlaps(intervals, dist=0):
-    """https://codereview.stackexchange.com/a/69249"""
-    sorted_by_lower_bound = sorted(intervals, key=lambda tup: tup[0])
-    merged = []
+def horizontal_concatenate(output, files, profiles):
+    """
+    Horizontally concatenate fasta files
 
-    for higher in sorted_by_lower_bound:
-        if not merged:
-            merged.append(higher)
-        else:
-            lower = merged[-1]
-            # test for intersection between lower and higher:
-            # we know via sorting that lower[0] <= higher[0]
-            if higher[0] <= (lower[1] + dist):
-                upper_bound = max(lower[1], higher[1])
-                merged[-1] = [lower[0], upper_bound]  # replace by merged interval
-            else:
-                merged.append(higher)
+    """
 
-    return merged
+    def read_fasta(path):
+        seqs = {}
+        for record in Fasta(path):
+            seqs[record.name] = record.seq
+        return seqs
 
-
-def writeFasta(path, name, seq):
-    with open(path, "w") as f:
-        f.write(">{}\n{}\n".format(name, seq))
-    return path
-
-
-def readFasta(file):
+    # make sure profiles are sorted
+    profiles.sort()
     seqs = {}
-    with open(file) as f:
-        for line in f:
-            if line.startswith(">"):
-                name = line.strip()
-                seqs[name] = ""
-            else:
-                seqs[name] += line.strip()
-    return seqs
-
-
-def readFastaNames(file):
-    f = Fasta(file)
-    return list(f.keys())
-
-
-def horizontalConcat(output, files, profiles, sourcealignment):
-    seqs = {}
+    # first we detect the set of all names
     allnames = set()
+    # determine the length of each alignment for padding
+    lengths = defaultdict(int)
     for profile, f in zip(profiles, files):
-        seqs[profile] = readFasta(f)
+        seqs[profile] = read_fasta(f)
         for name, seq in seqs[profile].items():
             allnames.add(name)
-
-    # length matter
-    # as I will need to pad single seqs
-    lengths = {}
-    for profile, seq in seqs.items():
-        for k, s in seq.items():
-            lengths[profile] = len(s)
-            break
-
-    # add names from source alignment to
-    # the alignment, as this will make pplacer happy
-    sa = readFastaNames(sourcealignment)
-    sa = [">{}".format(s) for s in sa]
-    allnames |= set(sa)
+            # remember the lengths of this profile
+            lengths[profile] = len(seq)
 
     # add missing seqences as strings of spaces
-    for profile, seq in seqs.items():
+    for profile in seqs.keys():
         for name in allnames:
             if name not in seqs[profile].keys():
                 seqs[profile][name] = "".join(lengths[profile] * ["-"])
@@ -175,77 +284,6 @@ def horizontalConcat(output, files, profiles, sourcealignment):
     with open(output, "w") as f:
         for name, seq in mergedSeqs.items():
             seq = seq.replace(".", "-")
-            f.write("{}\n{}\n".format(name, seq))
+            f.write(">{}\n{}\n".format(name, seq))
 
     return output
-
-
-def concatenate(output, filenames, ungap=True):
-    with open(output, "w") as outfile:
-        for fname in filenames:
-            with open(fname) as infile:
-                outfile.write(infile.read())
-    return output
-
-
-def readTSV(fp):
-    res = []
-    with open(fp) as f:
-        cols = []
-        for row in f:
-            row = row.strip()
-            l = row.split()
-            if len(cols) == 0:
-                cols = l
-            else:
-                n = {}
-                for k, v in zip(cols, l):
-                    n[k] = v
-                res.append(n)
-    return res
-
-
-def readCSV(fp, sep=","):
-    res = []
-    with open(fp) as f:
-        cols = []
-        for row in f:
-            row = row.strip()
-            l = row.split(",")
-            if len(cols) == 0:
-                cols = l
-            else:
-                n = {}
-                for k, v in zip(cols, l):
-                    n[k] = v
-                res.append(n)
-    return res
-
-
-def clearFastaNames(fastaIn, fastaOut):
-    nms = []
-    with open(fastaOut, "w") as o:
-        if fastaIn.endswith(".gz"):
-            openMethod = gzip.open
-            gz = True
-            logging.debug("reding gzipped file")
-        else:
-            openMethod = open
-            gz = False
-        with openMethod(fastaIn) as f:
-            for line in f:
-                if gz:
-                    line = line.decode()
-                if line.startswith(">"):
-                    l = line.split()
-                    N = l[0].strip()
-                    n = N
-                    i = 0
-                    while n in nms:
-                        n = "{}.{}".format(N, i)
-                        i += 1
-                    o.write("{}\n".format(n))
-                    nms.append(n)
-                else:
-                    o.write(line)
-    return fastaOut

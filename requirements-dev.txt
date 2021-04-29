@@ -1,5 +1,0 @@
-pre-commit
-pyyaml
-configargparse
-ete3
-pyfaidx
