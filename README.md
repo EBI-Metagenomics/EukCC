@@ -5,20 +5,25 @@
 EukCC is a completeness and contamination estimator for metagenomic assembled
 and isolate genomes.
 
-This is version 2, which should provide a better experience than
+With version 2, EukCC should provide a better experience than
 version 1. We aim at creating a stable package with long term support.
+Version 2 is currently under development and using it could lead to unexpected issues. We aim to 
+release EukCC version 2 soon.
+
+**Note**: Version 2 is not compatible with previous versions, most commandline arguments changed.
+So version 2 is **not** a drop in replacement.
 
 ## Documentation
 Got over to eukcc.readthedocs.io/ to check out the documentation.
 
 ## Get the container
 
-Get EukCC quickly by fetching the container.
+Get EukCC quickly by fetching the container [Soon]
 ```
 docker pull ...
 singularity pull docker://
 ```
-Make sure to also fetch the database for version 2:
+If you installed version 2: make sure to also fetch the database for version 2:
 
 http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
 
