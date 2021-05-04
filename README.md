@@ -3,7 +3,7 @@
 ![Coverage.py coverage](badges/coverage.svg)
 
 EukCC is a completeness and contamination estimator for metagenomic assembled
-and isolate genomes.
+microbial eukarytoic genomes. 
 
 With version 2, EukCC should provide a better experience than
 version 1. We aim at creating a stable package with long term support.
@@ -14,7 +14,24 @@ release EukCC version 2 soon.
 So version 2 is **not** a drop in replacement.
 
 ## Documentation
-Got over to eukcc.readthedocs.io/ to check out the documentation.
+Head over to https://eukcc.readthedocs.io/ to check out the documentation.
+
+
+## Quickstart
+
+Here a super fast overview on how to get started using singularity. For more information
+please see the documentation.
+
+```
+mkdir eukccdb
+cd eukccdb
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.tar.gz
+tar -xzvf eukcc2_db_ver_1.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_1)
+singularity pull docker://openpaul/eukcc2
+
+ingularity exec eukcc2_latest.sif eukcc single -h
+```
 
 ## Get the container
 
