@@ -7,7 +7,16 @@ import hashlib
 import jsonpickle
 import csv
 import gzip
-from eukcc.exec import hmmsearch, hmmalign, epa_split, epa_ng, guppy, hmmpress, hmmfetch, metaeuk
+from eukcc.exec import (
+    hmmsearch,
+    hmmalign,
+    epa_split,
+    epa_ng,
+    guppy,
+    hmmpress,
+    hmmfetch,
+    metaeuk,
+)
 from eukcc.base import (
     which,
     read_hmmer,
@@ -290,7 +299,14 @@ class eukcc:
         cleanfaafile = "{}_cleaned.faa".format(prefix)
 
         logging.debug("Launching metaeuk to produce {}".format(faafile))
-        metaeuk("metaeuk", wd, [fasta, metaeukdb], [faafile, cleanfaafile], prefix=prefix, cores=ncores)
+        metaeuk(
+            "metaeuk",
+            wd,
+            [fasta, metaeukdb],
+            [faafile, cleanfaafile],
+            prefix=prefix,
+            cores=ncores,
+        )
 
         self.state["predicted_proteins"] = "metaeuk"
         # remove all tmp files
@@ -432,7 +448,8 @@ class eukcc:
         if self.state.get("predicted_proteins") == "metaeuk":
             _silent_contamination = compute_silent_contamination(self.state["fasta"], self.state["faa"], data)
             quality["silent_contamination"] = round(
-                100 - 100 * _silent_contamination["bp_w_hits"] / _silent_contamination["total_bp"], 2
+                100 - 100 * _silent_contamination["bp_w_hits"] / _silent_contamination["total_bp"],
+                2,
             )
             logging.info("Max silent contamination: {}".format(quality["silent_contamination"]))
 
@@ -494,7 +511,10 @@ class eukcc:
                 self.state["estimate_hmm_path"] = hmmfile
             else:
                 # we can remove hmms and pressed hmms
-                file.delete_but(wd, keep=[os.path.basename(x) for x in glob(os.path.join(wd, "found_markers_*"))])
+                file.delete_but(
+                    wd,
+                    keep=[os.path.basename(x) for x in glob(os.path.join(wd, "found_markers_*"))],
+                )
 
         return read_hmmer(os.path.join(wd, outfile), os.path.join(wd, cutoff_file))
 
@@ -512,7 +532,12 @@ class eukcc:
             for p in profiles:
                 fout.write("{}\n".format(p))
         outfile = "selected_hmms.hmm"
-        hmmfetch("hmmfetch", workdir, [self.state["dbinfo"]["files"]["hmm_db"], profile_file], outfile)
+        hmmfetch(
+            "hmmfetch",
+            workdir,
+            [self.state["dbinfo"]["files"]["hmm_db"], profile_file],
+            outfile,
+        )
         logging.debug("fetched hmms to file {}".format(outfile))
         return os.path.join(workdir, outfile)
 
@@ -690,7 +715,7 @@ class eukcc:
         def rec_check_path(d):
             for key, p in d.items():
                 if type(p) is str:
-                    if not os.path.exists(p):
+                    if not os.path.exists(p) and not os.path.exists("{}.h3f".format(p)):
                         raise FileNotFoundError("Database is missing files: {}".format(p))
                 elif type(p) is dict:
                     rec_check_path(p)
