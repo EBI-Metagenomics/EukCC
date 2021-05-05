@@ -1,8 +1,6 @@
 from ete3 import Tree
-from itertools import chain
 from collections import defaultdict, Counter
 import logging
-import operator
 from eukcc.base import load_SCMGs, percentage_sets, load_tax_info
 
 
@@ -80,7 +78,11 @@ class markerset:
 
     def __str__(self):
         return "set with score {} and {} profiles {}/{}/{}".format(
-            self.score, len(self.profiles), self.prevalence, len(self.covered), len(self.leafes)
+            self.score,
+            len(self.profiles),
+            self.prevalence,
+            len(self.covered),
+            len(self.leafes),
         )
 
 
@@ -94,7 +96,9 @@ def hard_set_computation(set_path, genomes, prevalence=98, atmost=500, set_size=
     biggest = 0
     while found is False and set_prevalence >= prevalence:
         logging.debug(
-            "Searching for Marker set at {} prevalence across {} genomes".format(set_prevalence, len(genomes))
+            "Searching for Marker set at {} prevalence across {} genomes".format(
+                set_prevalence, len(genomes)
+            )
         )
         sets = []
         for genome in genomes:
@@ -116,7 +120,9 @@ def hard_set_computation(set_path, genomes, prevalence=98, atmost=500, set_size=
 
     logging.debug("Largest set we found had {} SCMGs".format(biggest))
     if found:
-        logging.debug("Found set of size {} with prevalence {}".format(len(s), set_prevalence))
+        logging.debug(
+            "Found set of size {} with prevalence {}".format(len(s), set_prevalence)
+        )
         return s
     else:
         return None
@@ -137,7 +143,9 @@ def tax_LCA(tree, taxinfo, placements=None, majority_vote=0.6):
         node = t.get_tree_root()
         known_leafes = set(node.get_leaf_names()) - set(placements)
 
-    logging.debug("Determining the LCA in a tree with {} leafes".format(len(known_leafes)))
+    logging.debug(
+        "Determining the LCA in a tree with {} leafes".format(len(known_leafes))
+    )
 
     leafes = set()
     all_leafes = set(node.get_leaf_names())
@@ -205,7 +213,7 @@ class tree_sets:
         setp,
         set_species=5,
         set_size=50,
-        set_prevalence=100,
+        set_prevalence=98,
         set_atmost=500,
         dynamic_root=False,
         set_selection="lm",
@@ -235,7 +243,9 @@ class tree_sets:
         scmg = load_SCMGs(setp)
         self.known_leafes = set(load_tax_info(taxinfo).keys())
 
-        logging.debug("Starting to look for scmg set, selection based on {}".format(set_selection))
+        logging.debug(
+            "Starting to look for scmg set, selection based on {}".format(set_selection)
+        )
         if use_ncbi:
             logging.debug("Will use NCBI tree instead of eukcc tree")
             self.marker_set = self._find_best_ncbi_set(
@@ -291,8 +301,8 @@ class tree_sets:
         if len(lngs) > 0:
             # determine LCA of all
             common = set(lngs[0])
-            for l in lngs[1:]:
-                common = common & set(l)
+            for lng in lngs[1:]:
+                common = common & set(lng)
             shared = [x for x in lngs[0] if x in common]
             taxid = shared[-1]
             logging.debug("LCA taxid determined as {}".format(taxid))
@@ -338,7 +348,14 @@ class tree_sets:
 
                 # obtain a marker gene set
                 scmg_set = self._calc_set(
-                    self.t.get_tree_root(), places, scmg, set_species, min_set_size, mp, set_atmost, leafes=accs
+                    self.t.get_tree_root(),
+                    places,
+                    scmg,
+                    set_species,
+                    min_set_size,
+                    mp,
+                    set_atmost,
+                    leafes=accs,
                 )
 
                 if scmg_set is not None:
@@ -389,7 +406,14 @@ class tree_sets:
 
                 # obtain a marker gene set
                 scmg_set = self._calc_set(
-                    node, places, scmg, set_species, min_set_size, mp, set_atmost, training=training
+                    node,
+                    places,
+                    scmg,
+                    set_species,
+                    min_set_size,
+                    mp,
+                    set_atmost,
+                    training=training,
                 )
 
                 if scmg_set is not None:
@@ -416,12 +440,16 @@ class tree_sets:
         elif sort_using == "prevalence" or sort_using.startswith("p"):
             logging.debug("Using marker gene prevalence to choose best set.")
             sorted_sets = sorted(
-                all_sets, key=lambda x: (x.covered, x.prevalence, x.nspecies, x.nprofiles), reverse=True
+                all_sets,
+                key=lambda x: (x.covered, x.prevalence, x.nspecies, x.nprofiles),
+                reverse=True,
             )
         elif sort_using == "species" or sort_using.startswith("s"):
             logging.debug("Using marker gene species spread to choose best set.")
             sorted_sets = sorted(
-                all_sets, key=lambda x: (x.covered, x.nspecies, x.prevalence, x.nprofiles), reverse=True
+                all_sets,
+                key=lambda x: (x.covered, x.nspecies, x.prevalence, x.nprofiles),
+                reverse=True,
             )
         elif sort_using == "best_guess" or sort_using.startswith("b"):
             logging.debug("Using marker gene species spread to choose best set.")
@@ -458,13 +486,13 @@ class tree_sets:
             # leafes = set(node.get_leaf_names()) - set(places)
             leafes = self.known_leafes & set(node.get_leaf_names())
         sets = []
-        for l in leafes:
+        for leaf in leafes:
             try:
-                sets.append(scmg[l])
+                sets.append(scmg[leaf])
             except KeyError:
                 logging.warning(
                     "Database missing markes for '{}'. This should not be the case. Make sure the database is not corrupted".format(
-                        l
+                        leaf
                     )
                 )
         placements = set(node.get_leaf_names()) & set(places)
@@ -476,7 +504,9 @@ class tree_sets:
 
         if logging.DEBUG >= logging.root.level:
             logging.debug(
-                "Looking at set with size {} and {} leafes covering {}".format(len(s), len(leafes), n_placements)
+                "Looking at set with size {} and {} leafes covering {}".format(
+                    len(s), len(leafes), n_placements
+                )
             )
 
         if (len(s) >= set_size and n_placements > 0) or training is True:

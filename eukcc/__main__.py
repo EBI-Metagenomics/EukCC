@@ -4,7 +4,6 @@ import logging
 from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.fasta import determine_type
 import eukcc.version as version
-import eukcc.fasta as Fasta
 from eukcc.refine import eukcc_folder
 
 
@@ -29,7 +28,9 @@ def update():
 def run_eukcc(args):
     state = eukcc_state(workdir=None, options=vars(args))
     logging.info("EukCC version {}".format(version.__version__))
-    logging.warning("#####################################\nIf you publish using EukCC please make sure to also cite:")
+    logging.warning(
+        "#####################################\nIf you publish using EukCC please make sure to also cite:"
+    )
     for software, publication in publications.items():
         logging.warning("\n{}:\n{}\n".format(software, publication))
     logging.warning("####################################")
@@ -38,7 +39,9 @@ def run_eukcc(args):
     if state["db"] is None:
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
-            logging.debug("Defined db via env variable EUKCC2_DB as '{}'".format(state["db"]))
+            logging.debug(
+                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+            )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(202)
@@ -76,7 +79,9 @@ def run_eukcc(args):
     # pick marker set and placement in one step
     if E.pick_marker_set() is None:
         E.terminate(1)
-    E.state["scmg_data"] = E.hmmsearch_scmg(E.state["workdir"], E.state["faa"], E.state["marker_set"]["profiles"])
+    E.state["scmg_data"] = E.hmmsearch_scmg(
+        E.state["workdir"], E.state["faa"], E.state["marker_set"]["profiles"]
+    )
 
     logging.debug("Estimating quality")
     E.compute_quality(E.state["scmg_data"], E.state["marker_set"]["profiles"])
@@ -89,7 +94,10 @@ def run_eukcc(args):
         # search for missing markers
 
         E.state["scmgs_table"] = E.hmmsearch_scmg(
-            state["workdir"], state["faa"], state["marker_set"]["profiles"], cut_ga=False
+            state["workdir"],
+            state["faa"],
+            state["marker_set"]["profiles"],
+            cut_ga=False,
         )
 
         E.write_extra(E.state)
@@ -128,9 +136,16 @@ def main():
         default=False,
         help="Debug and thus ignore safety",
     )
-    parser.add_argument("-v", "--version", action="version", version="EukCC version {}".format(version.__version__))
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="EukCC version {}".format(version.__version__),
+    )
 
-    pars_folder.add_argument("binfolder", type=str, help="Run script on bins in this folder")
+    pars_folder.add_argument(
+        "binfolder", type=str, help="Run script on bins in this folder"
+    )
     pars_folder.add_argument(
         "--links",
         type=str,
@@ -154,13 +169,27 @@ def main():
         default="merged.",
     )
 
-    pars_folder.add_argument("--suffix", type=str, required=False, help="Suffix (default: .fa)", default=".fa")
     pars_folder.add_argument(
-        "--out", "-o", type=str, required=False, help="Path to output folder (Default: .)", default="."
+        "--suffix",
+        type=str,
+        required=False,
+        help="Suffix (default: .fa)",
+        default=".fa",
+    )
+    pars_folder.add_argument(
+        "--out",
+        "-o",
+        type=str,
+        required=False,
+        help="Path to output folder (Default: .)",
+        default=".",
     )
     pars_folder.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
     pars_folder.add_argument(
-        "--improve_ratio", type=float, help="Ratio of completeness to contamination change (Default: 5)", default=5
+        "--improve_ratio",
+        type=float,
+        help="Ratio of completeness to contamination change (Default: 5)",
+        default=5,
     )
     pars_folder.add_argument(
         "--improve_percent",
@@ -174,20 +203,52 @@ def main():
         help="How many small bins should be merged into a medium sized bin (Default: 1)",
         default=1,
     )
-    pars_folder.add_argument("--threads", "-t", type=int, help="Number of threads to use (Default: 1)", default=1)
     pars_folder.add_argument(
-        "--threads_epa", type=int, help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)", default=1
+        "--threads",
+        "-t",
+        type=int,
+        help="Number of threads to use (Default: 1)",
+        default=1,
+    )
+    pars_folder.add_argument(
+        "--threads_epa",
+        type=int,
+        help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
+        default=1,
+    )
+    pars_folder.add_argument(
+        "--marker_prevalence",
+        type=float,
+        required=False,
+        help="Percentage of species in which markers should be found (Default: 95)",
+        default=95,
     )
 
     # single fasta
-    pars_eukcc.add_argument("fasta", type=str, help="Estimate quality of this single bin (fasta file)")
     pars_eukcc.add_argument(
-        "--out", "-o", type=str, required=False, help="Path to output folder (Default: .)", default="."
+        "fasta", type=str, help="Estimate quality of this single bin (fasta file)"
+    )
+    pars_eukcc.add_argument(
+        "--out",
+        "-o",
+        type=str,
+        required=False,
+        help="Path to output folder (Default: .)",
+        default=".",
     )
     pars_eukcc.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
-    pars_eukcc.add_argument("--threads", "-t", type=int, help="Number of threads to use (Default: 1)", default=1)
     pars_eukcc.add_argument(
-        "--threads_epa", type=int, help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)", default=1
+        "--threads",
+        "-t",
+        type=int,
+        help="Number of threads to use (Default: 1)",
+        default=1,
+    )
+    pars_eukcc.add_argument(
+        "--threads_epa",
+        type=int,
+        help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
+        default=1,
     )
     pars_eukcc.add_argument(
         "--DNA",
@@ -205,10 +266,19 @@ def main():
         help="The fasta file contains amino acid sequences",
     )
     pars_eukcc.add_argument(
-        "--taxids", type=str, required=False, help="Taxids to use as set starting point", default=None, nargs="+"
+        "--taxids",
+        type=str,
+        required=False,
+        help="Taxids to use as set starting point",
+        default=None,
+        nargs="+",
     )
     pars_eukcc.add_argument(
-        "--set_size", type=int, required=False, help="Minimal number of marker genes to use (Default: 20)", default=20
+        "--set_size",
+        type=int,
+        required=False,
+        help="Minimal number of marker genes to use (Default: 20)",
+        default=20,
     )
     pars_eukcc.add_argument(
         "--use_placement",
