@@ -12,7 +12,9 @@ class run:
     class to handle and run external software
     """
 
-    def __init__(self, program, workdir, infiles, outfiles, cores=1, touch=False, **kwargs):
+    def __init__(
+        self, program, workdir, infiles, outfiles, cores=1, touch=False, **kwargs
+    ):
         # check software is in path:
         if which(program) is None:
             raise EnvironmentError("Could not find executable: {}".format(program))
@@ -28,7 +30,10 @@ class run:
 
         # check for all infiles
         for infile in infiles:
-            if infile is None or not file.exists(infile):
+            if infile is None or (
+                not os.path.exists(infile)
+                and not os.path.exists("{}.h3f".format(infile))
+            ):
                 raise OSError("File not found: {}".format(infile))
         # make sure all infiles are abspath
         infiles = [os.path.abspath(x) for x in infiles]
@@ -60,12 +65,20 @@ class run:
             for inf in infiles:
                 for p in outfiles:
                     ouf = os.path.join(workdir, p)
+                    if not os.path.exists(inf) and os.path.exists("{}.h3f".format(inf)):
+                        inf = "{}.h3f".format(inf)
                     _need_run = file.isnewer(inf, ouf)
                     if _need_run:
                         if _need_run > 1:
-                            logging.debug("Need to run because {} does not exists yet".format(ouf))
+                            logging.debug(
+                                "Need to run because {} does not exists yet".format(ouf)
+                            )
                         else:
-                            logging.debug("Need to run because {} is older than {}".format(ouf, inf))
+                            logging.debug(
+                                "Need to run because {} is older than {}".format(
+                                    ouf, inf
+                                )
+                            )
                         return True
             return False
 
@@ -94,7 +107,16 @@ class run:
 class hmmsearch(run):
     def run(self, program, workdir, infiles, outfiles, cores=1, kwargs=None):
         logfile = os.path.join(workdir, "hmmsearch.stdout")
-        lst = [program, "-o", "/dev/null", "--noali", "--cpu", str(cores), "--tblout", outfiles[0]]
+        lst = [
+            program,
+            "-o",
+            "/dev/null",
+            "--noali",
+            "--cpu",
+            str(cores),
+            "--tblout",
+            outfiles[0],
+        ]
         if "cut_ga" in kwargs.keys() and kwargs["cut_ga"] is False:
             lst.append("")
         else:
@@ -108,7 +130,14 @@ class hmmsearch(run):
         )
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
                 self.success = True
         except subprocess.CalledProcessError:
             logging.info("Hmmsearch failed, check logfile {}".format(logfile))
@@ -133,7 +162,14 @@ class hmmalign(run):
         ]
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
@@ -147,7 +183,14 @@ class hmmfetch(run):
         lst = [program, "-o", outfiles[0], "-f", infiles[0], infiles[1]]
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             self.success = True
         except subprocess.CalledProcessError:
             logging.info("Hmmfetch failed, check logfile {}".format(logfile))
@@ -161,7 +204,14 @@ class hmmpress(run):
         lst = [program, "-f", infiles[0]]
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             self.success = True
         except subprocess.CalledProcessError:
             logging.info("Hmmpress failed, check logfile {}".format(logfile))
@@ -178,7 +228,14 @@ class epa_split(run):
             file.remove(os.path.join(workdir, f))
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
@@ -206,7 +263,14 @@ class epa_ng(run):
         ]
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
@@ -219,7 +283,14 @@ class guppy(run):
         lst = [program, "tog", "-o", outfiles[0], infiles[0]]
         try:
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
         except subprocess.CalledProcessError:
             logging.info("guppy tog failed, check logfile {}".format(logfile))
             exit(1)
@@ -252,9 +323,18 @@ class metaeuk(run):
             if file.exists(os.path.join(workdir, outfiles[0])):
                 os.remove(os.path.join(workdir, outfiles[0]))
             with open(logfile, "a") as fout:
-                subprocess.run(" ".join(lst), cwd=workdir, check=True, shell=True, stdout=fout, stderr=fout)
+                subprocess.run(
+                    " ".join(lst),
+                    cwd=workdir,
+                    check=True,
+                    shell=True,
+                    stdout=fout,
+                    stderr=fout,
+                )
             # clean the output for epa-ng
-            clean_metaeuk_fasta(os.path.join(workdir, outfiles[0]), os.path.join(workdir, outfiles[1]))
+            clean_metaeuk_fasta(
+                os.path.join(workdir, outfiles[0]), os.path.join(workdir, outfiles[1])
+            )
         except subprocess.CalledProcessError:
             logging.info("metaeuk failed, check logfile {}".format(logfile))
             exit(1)
