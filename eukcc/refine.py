@@ -1,11 +1,10 @@
 import os
-import argparse
 import logging
 import glob
 import csv
 from collections import defaultdict
 from eukcc.eukcc import eukcc, eukcc_state
-from eukcc.fasta import determine_type, merge_fasta
+from eukcc.fasta import merge_fasta
 import eukcc.version as version
 from eukcc.fasta import Fasta
 from eukcc.bin import bin, merge_bins
@@ -16,7 +15,9 @@ from itertools import combinations
 def split_contig_faa(path, workdir, delim="_binsep_"):
     faa_dir = os.path.join(workdir, "faa")
     if os.path.exists(faa_dir):
-        logging.info("Faa folder exists, remove if you want to rerun this analsys, will reuse it for now")
+        logging.info(
+            "Faa folder exists, remove if you want to rerun this analsys, will reuse it for now"
+        )
         return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
     elif file.isdir(faa_dir):
         fls = {}
@@ -35,13 +36,17 @@ def split_contig_faa(path, workdir, delim="_binsep_"):
 
 
 def eukcc_folder(args):
-    state = eukcc_state(workdir=os.path.join(args.out, "refine_workdir"), options=vars(args))
+    state = eukcc_state(
+        workdir=os.path.join(args.out, "refine_workdir"), options=vars(args)
+    )
     file.isdir(state["workdir"])
 
     if state["db"] is None:
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
-            logging.debug("Defined db via env variable EUKCC2_DB as '{}'".format(state["db"]))
+            logging.debug(
+                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+            )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(202)
@@ -50,7 +55,9 @@ def eukcc_folder(args):
 
     # discover all bins
     logging.debug("Loading all bins")
-    state["input_bins"] = glob.glob(os.path.join(state["binfolder"], "*{}".format(state["suffix"])))
+    state["input_bins"] = glob.glob(
+        os.path.join(state["binfolder"], "*{}".format(state["suffix"]))
+    )
     logging.info("Found {} bins".format(len(state["input_bins"])))
     if len(state["input_bins"]) == 0:
         logging.error("Stopping as no bins in folder")
@@ -107,7 +114,11 @@ def refine(state):
     state["contigs"] = os.path.join(state["workdir"], "contigs.fasta")
     if not os.path.exists(state["contigs"]):
         logging.debug("Merging bins into temp contig file")
-        state["contigs"] = merge_fasta(state["input_bins"], state["contigs"], seperator="_binsplit_")
+        state["contigs"] = merge_fasta(
+            state["input_bins"], state["contigs"], seperator="_binsplit_"
+        )
+    else:
+        logging.debug("Using existing merged contigs")
 
     # initialize output tables
     result_table = os.path.join(state["out"], "eukcc.csv")
@@ -118,6 +129,7 @@ def refine(state):
 
     # predict proteins using metaeuk
     state["fasta"] = state["contigs"]
+    logging.debug("Initialize EukCC")
     E = eukcc(state)
     E.predict_protein()
     # split proteins into Bin files
@@ -131,7 +143,9 @@ def refine(state):
     bins = []
     for path in state["faas"]:
         logging.debug("Running EukCC estimator for bin: {}".format(path))
-        wd = os.path.join(state["workdir"], "refine", "bin_{}".format(os.path.basename(path)))
+        wd = os.path.join(
+            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+        )
         bins.append(bin(state, wd, path, protein=True))
 
     smallbins = []
@@ -177,7 +191,9 @@ def refine(state):
             # merge bins
             logging.debug(
                 "Refining bin {} {}/{}".format(
-                    bins[i].name, bins[i].state["quality"]["completeness"], bins[i].state["quality"]["contamination"]
+                    bins[i].name,
+                    bins[i].state["quality"]["completeness"],
+                    bins[i].state["quality"]["contamination"],
                 )
             )
             # check for linking reads
@@ -186,10 +202,22 @@ def refine(state):
                     logging.debug("Skipping merger with to few supporting reads")
                     continue
 
-            merged = merge_bins(bins[i], children, os.path.join(state["workdir"], "mergers"))
-            gain_cp = round(merged["quality"]["completeness"] - bins[i].state["quality"]["completeness"], 2)
-            gain_ct = round(merged["quality"]["contamination"] - bins[i].state["quality"]["contamination"], 2)
-            if gain_cp >= state["improve_percent"] and gain_cp > (state["improve_ratio"] * gain_ct):
+            merged = merge_bins(
+                bins[i], children, os.path.join(state["workdir"], "mergers")
+            )
+            gain_cp = round(
+                merged["quality"]["completeness"]
+                - bins[i].state["quality"]["completeness"],
+                2,
+            )
+            gain_ct = round(
+                merged["quality"]["contamination"]
+                - bins[i].state["quality"]["contamination"],
+                2,
+            )
+            if gain_cp >= state["improve_percent"] and gain_cp > (
+                state["improve_ratio"] * gain_ct
+            ):
                 logging.info("Gain: {}/{}".format(gain_cp, gain_ct))
                 merged["children_idx"] = s
                 merged["parent_idx"] = i
@@ -201,7 +229,9 @@ def refine(state):
     # For each new bin we rerun eukcc with a enw metaeuk run, so we get a final verdict
     ref_dir = os.path.join(state["out"], "merged_bins")
     if os.path.exists(ref_dir):
-        logging.warning("Folder merged_bins alerady exist. Will not overwrite. Please remove the folder.")
+        logging.warning(
+            "Folder merged_bins alerady exist. Will not overwrite. Please remove the folder."
+        )
         merged_fnas = [os.path.join(ref_dir, x) for x in os.listdir(ref_dir)]
     else:
         file.isdir(ref_dir)
@@ -247,9 +277,15 @@ def build_children(bins, subset, i):
         if bins[indx].state["clade"] is not None:
             bin_clade = bins[indx].state["clade"]
             parent_clade = bins[i].state["clade"]
-            if (parent_clade != "base" and bin_clade != "base") and bin_clade != parent_clade:
+            if (
+                parent_clade != "base" and bin_clade != "base"
+            ) and bin_clade != parent_clade:
                 # parent and child have diverging clades, not need to merge any of these
-                logging.debug("Parent and child clade diverge: {}/{}".format(parent_clade, bin_clade))
+                logging.debug(
+                    "Parent and child clade diverge: {}/{}".format(
+                        parent_clade, bin_clade
+                    )
+                )
                 skip = True
         children.append(bins[indx])
 
@@ -266,7 +302,9 @@ def build_children(bins, subset, i):
 def evaluate_multiples(fnas, result_table, state):
     # launch eukcc on all bins
     for path in fnas:
-        wd = os.path.join(state["workdir"], "refine", "bin_{}".format(os.path.basename(path)))
+        wd = os.path.join(
+            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+        )
         E = bin(state, wd, fasta=path, protein=False)
         write_table(E.state, result_table)
 
@@ -287,7 +325,11 @@ def remove_double_kids(refined, bins):
                 )
             )
             remove_child.add(child)
-    del_idx = [indx for indx, merged in enumerate(refined) if len(remove_child & set(merged["children_idx"])) > 0]
+    del_idx = [
+        indx
+        for indx, merged in enumerate(refined)
+        if len(remove_child & set(merged["children_idx"])) > 0
+    ]
     for indx in del_idx:
         del refined[indx]
         for indx in del_idx:

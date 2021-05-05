@@ -8,4 +8,5 @@ repos:
     rev: 3.9.1
     hooks:
     - id: flake8
+      args: ['--ignore=W503']
 
