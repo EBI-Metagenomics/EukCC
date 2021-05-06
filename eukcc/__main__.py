@@ -398,6 +398,10 @@ def main():
         format="%(asctime)s %(message)s",
         datefmt="%d-%m-%Y %H:%M:%S: ",
         level=logLevel,
+        handlers=[
+            logging.FileHandler(os.path.join(args.out, "eukcc.log")),
+            logging.StreamHandler(),
+        ],
     )
 
     if args.command is None:
