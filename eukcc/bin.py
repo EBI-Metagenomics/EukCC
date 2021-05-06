@@ -1,8 +1,7 @@
 from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.file import file
-from eukcc.fasta import validate_fasta, merge_fasta
+from eukcc.fasta import merge_fasta
 import os
-import logging
 
 
 class bin:
@@ -51,7 +50,10 @@ class bin:
             return None
 
         E.state["scmg_data"] = E.hmmsearch_scmg(
-            E.state["workdir"], E.state["faa"], E.state["marker_set"]["profiles"], keep_hmm=True
+            E.state["workdir"],
+            E.state["faa"],
+            E.state["marker_set"]["profiles"],
+            keep_hmm=True,
         )
         E.compute_quality(E.state["scmg_data"], E.state["marker_set"]["profiles"])
 
@@ -64,8 +66,6 @@ def merge_bins(parent, children, workdir):
     Function to merge a sinlge parent with n children of class bin
     Returns an object of eukcc_state
     """
-    logging.debug("Merging bins")
-
     # create an all_bins container
     all_bins = [parent]
     for c in children:

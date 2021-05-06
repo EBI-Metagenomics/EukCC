@@ -141,8 +141,12 @@ def refine(state):
 
     # for each bin create a EukCC run and try to place and estimate its completeness
     bins = []
-    for path in state["faas"]:
-        logging.debug("Running EukCC estimator for bin: {}".format(path))
+    for i, path in enumerate(state["faas"]):
+        logging.debug(
+            "Running EukCC on: {} ({}/{})".format(
+                os.path.basename(path), i, len(state["faas"])
+            )
+        )
         wd = os.path.join(
             state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
         )
@@ -167,8 +171,16 @@ def refine(state):
     n_large_bins = len(bins) - len(smallbins)
     logging.info("Found {} large bins to merge with".format(n_large_bins))
 
+    max_iters = len(bins)
+    already_at = 0
     refined = []
     for i, b in enumerate(bins):
+        already_at += 1
+        logging.debug(
+            "Refining bin {}/{} {}%".format(
+                already_at, max_iters, round(100 * already_at / max_iters, 1)
+            )
+        )
         if i in smallbins:
             continue
         if (
@@ -183,19 +195,12 @@ def refine(state):
         # then we use the set of the big bin to estimate the merger
         # we retain the merger if it fits the layed out parameters
         for s in s_cmb:
-
             # construct children container
             children, names, skip = build_children(bins, s, i)
             if skip:
                 continue
             # merge bins
-            logging.debug(
-                "Refining bin {} {}/{}".format(
-                    bins[i].name,
-                    bins[i].state["quality"]["completeness"],
-                    bins[i].state["quality"]["contamination"],
-                )
-            )
+            logging.debug("Testing combination {}".format(names))
             # check for linking reads
             if state["links"] is not None:
                 if check_links(names, link_table, state["min_links"]) is False:
@@ -218,11 +223,14 @@ def refine(state):
             if gain_cp >= state["improve_percent"] and gain_cp > (
                 state["improve_ratio"] * gain_ct
             ):
-                logging.info("Gain: {}/{}".format(gain_cp, gain_ct))
+                logging.debug(
+                    "Successfull merge: +{}% Compl. +{}% Cont.".format(gain_cp, gain_ct)
+                )
                 merged["children_idx"] = s
                 merged["parent_idx"] = i
                 refined.append(merged)
 
+    logging.info("Iterated all possible combinations")
     refined = remove_double_kids(refined, bins)
 
     # Here we just have to export the bins at this point. Thats easy and quick.
