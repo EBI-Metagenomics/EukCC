@@ -1,16 +1,10 @@
 import os
 import argparse
 import logging
-import glob
-import csv
 from collections import defaultdict, Counter
 from eukcc.eukcc import eukcc, eukcc_state
-from eukcc.fasta import determine_type, merge_fasta
 import eukcc.version as version
-from eukcc.fasta import Fasta
-from eukcc.bin import bin, merge_bins
 from eukcc.file import file
-from itertools import combinations
 import math
 from multiprocessing import Pool
 from functools import partial
@@ -77,7 +71,9 @@ def score_profile(lst, ignore=None, lenient=False):
     return (score, hidden_score)
 
 
-def greedy_marker_selection(all_profiles, ignore_profiles=None, ignore_genomes=None, max_iter=50, target_cov=20):
+def greedy_marker_selection(
+    all_profiles, ignore_profiles=None, ignore_genomes=None, max_iter=50, target_cov=20
+):
     if ignore_genomes is None:
         ignore_genomes = []
     if ignore_profiles is None:
@@ -105,20 +101,29 @@ def greedy_marker_selection(all_profiles, ignore_profiles=None, ignore_genomes=N
     score = defaultdict(int)
 
     for i in range(0, max_iter):
-        logging.debug("Found enough profiles for {} out of {}".format(len(covered_genomes), len(universe)))
+        logging.debug(
+            "Found enough profiles for {} out of {}".format(
+                len(covered_genomes), len(universe)
+            )
+        )
         if len(covered_genomes) >= len(universe):
             logging.info("Found enough profiles to cover everything")
             break
 
         # score all profiles and sort them
-        scores = [score_profile(all_profiles[profile], covered_genomes) for profile in profile_universe]
+        scores = [
+            score_profile(all_profiles[profile], covered_genomes)
+            for profile in profile_universe
+        ]
 
         scores_sort = sorted(scores, key=itemgetter(0, 1), reverse=True)
         max_idx = [idx for idx, scores in enumerate(scores) if scores == scores_sort[0]]
         idx = sample(max_idx, 1)[0]
 
         if scores_sort[0][0] < 0.05 * (len(universe) - len(covered_genomes)):
-            logging.info("No profile covers more than 5% of the remaining universe, so we stop here")
+            logging.info(
+                "No profile covers more than 5% of the remaining universe, so we stop here"
+            )
             break
 
         if scores_sort[0][1] < 5:
@@ -150,7 +155,9 @@ def greedy_marker_selection(all_profiles, ignore_profiles=None, ignore_genomes=N
         for profile in selected_profile:
             if all_profiles[profile].count(acc) > 1:
                 n += 1
-        logging.debug("Covered {} with {} profiles, {} of which are multitons".format(acc, cov, n))
+        logging.debug(
+            "Covered {} with {} profiles, {} of which are multitons".format(acc, cov, n)
+        )
         stats[acc] = {"covered": cov, "multitons": n}
     return (selected_profile, stats)
 
@@ -166,7 +173,11 @@ def define_tree_set(data):
     # first round
     n_target = 30
     choosen_profiles, stats = greedy_marker_selection(
-        all_profiles, ignore_profiles=None, ignore_genomes=None, max_iter=n_target * 3, target_cov=round(n_target * 0.7)
+        all_profiles,
+        ignore_profiles=None,
+        ignore_genomes=None,
+        max_iter=n_target * 3,
+        target_cov=round(n_target * 0.7),
     )
 
     ignore_genomes = set()
@@ -222,23 +233,55 @@ def find_intersection(data, missing=50):
 def main():
     # set arguments
     # arguments are passed to classes
-    parser = argparse.ArgumentParser(description="Evaluate completeness and contamination of a MAG.")
-    parser.add_argument("genomes", type=str, help="Find marker for these genomes", nargs="+")
-    parser.add_argument("--out", "-o", type=str, required=False, help="Path to output folder (Default: .)", default=".")
+    parser = argparse.ArgumentParser(
+        description="Evaluate completeness and contamination of a MAG."
+    )
+    parser.add_argument(
+        "genomes", type=str, help="Find marker for these genomes", nargs="+"
+    )
+    parser.add_argument(
+        "--out",
+        "-o",
+        type=str,
+        required=False,
+        help="Path to output folder (Default: .)",
+        default=".",
+    )
     parser.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
-    parser.add_argument("--threads", type=int, help="Number of threads to use (Default: 1)", default=1)
     parser.add_argument(
-        "--clade", default="base", type=str, help="Define clade as base, fungi, protozoa or plants (Defaut: base)"
+        "--threads", type=int, help="Number of threads to use (Default: 1)", default=1
     )
     parser.add_argument(
-        "--quiet", "-q", dest="quiet", action="store_true", default=False, help="Silcence most output",
+        "--clade",
+        default="base",
+        type=str,
+        help="Define clade as base, fungi, protozoa or plants (Defaut: base)",
     )
     parser.add_argument(
-        "--debug", "-d", action="store_true", default=False, help="Debug and thus ignore safety",
+        "--quiet",
+        "-q",
+        dest="quiet",
+        action="store_true",
+        default=False,
+        help="Silcence most output",
     )
-    parser.add_argument("-v", "--version", action="version", version="EukCC version {}".format(version.__version__))
+    parser.add_argument(
+        "--debug",
+        "-d",
+        action="store_true",
+        default=False,
+        help="Debug and thus ignore safety",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="EukCC version {}".format(version.__version__),
+    )
     args = parser.parse_args()
-    state = eukcc_state(workdir=os.path.join(args.out, "refine_workdir"), options=vars(args))
+    state = eukcc_state(
+        workdir=os.path.join(args.out, "refine_workdir"), options=vars(args)
+    )
     file.isdir(state["workdir"])
 
     # define logging
@@ -248,25 +291,35 @@ def main():
     elif state["debug"]:
         logLevel = logging.DEBUG
     logging.basicConfig(
-        format="%(asctime)s %(message)s", datefmt="%d-%m-%Y %H:%M:%S: ", level=logLevel,
+        format="%(asctime)s %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S: ",
+        level=logLevel,
     )
     # if db is not set, we check for env variable
     if state["db"] is None:
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
-            logging.debug("Defined db via env variable EUKCC2_DB as '{}'".format(state["db"]))
+            logging.debug(
+                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+            )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(202)
 
     logging.info("EukCC version {}".format(version.__version__))
 
-    logging.info("Looking for shared markers across {} genomes".format(len(state["genomes"])))
+    logging.info(
+        "Looking for shared markers across {} genomes".format(len(state["genomes"]))
+    )
     n_per_worker = 4  # using more threads for hmmer makes no sense, so we parallize accroos genomes
     if state["threads"] > (2 * n_per_worker):
         # multithreading pool
         n_processes = math.floor(state["threads"] / n_per_worker)
-        logging.info("Launching {} threads with {} threads each".format(n_processes, n_per_worker))
+        logging.info(
+            "Launching {} threads with {} threads each".format(
+                n_processes, n_per_worker
+            )
+        )
         pool = Pool(processes=n_processes)
         # change threads not
         opt = {k: v for k, v in state.opt.items()}
@@ -287,6 +340,6 @@ def main():
         for key, profiles in result.items():
             for profile in profiles:
                 fout.write("{}\t{}\n".format(key, profile))
-            for profile in tree_profiles:
-                fout.write("{}\t{}\n".format("tree", profile))
+        for profile in tree_profiles:
+            fout.write("{}\t{}\n".format("tree", profile))
     logging.info("wrote profiles to {}".format(outfile))
