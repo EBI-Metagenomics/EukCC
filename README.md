@@ -44,6 +44,13 @@ If you installed version 2: make sure to also fetch the database for version 2:
 
 http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
 
+
+## Don't use EukCC on already pubished data
+Or at least not without thinking about it:
+
+You should not use EukCC on already published genomes, if they have used during training of the marker 
+gene sets. If you want to make sure, you can see all used accessions in the database file `db_base/backbone/base_taxinfo.csv`.
+
 ## Cite
 
 If you use EukCC make sure to cite:
