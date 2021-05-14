@@ -162,7 +162,7 @@ def greedy_marker_selection(
     return (selected_profile, stats)
 
 
-def define_tree_set(data):
+def define_tree_set(data, n_target=30):
     all_profiles = defaultdict(list)
     universe = set()
     for i, d in enumerate(data):
@@ -171,7 +171,6 @@ def define_tree_set(data):
             all_profiles[row["query"]].append(i)
 
     # first round
-    n_target = 30
     choosen_profiles, stats = greedy_marker_selection(
         all_profiles,
         ignore_profiles=None,
@@ -204,6 +203,9 @@ def define_tree_set(data):
         ignore_genomes=ignore_genomes,
         max_iter=n_target,
         target_cov=round(n_target / 2),
+    )
+    logging.info(
+        "Defined {} profiles for tree construction".format(len(choosen_profiles))
     )
 
     return choosen_profiles
@@ -250,6 +252,12 @@ def main():
     parser.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
     parser.add_argument(
         "--threads", type=int, help="Number of threads to use (Default: 1)", default=1
+    )
+    parser.add_argument(
+        "--tree",
+        type=int,
+        help="Number of profiles to use at target for tree profiles (default: 30)",
+        default=30,
     )
     parser.add_argument(
         "--clade",
@@ -333,7 +341,7 @@ def main():
         for genome in state["genomes"]:
             data.append(search_genome(genome, state))
 
-    tree_profiles = define_tree_set(data)
+    tree_profiles = define_tree_set(data, n_target=args.tree)
     result = find_intersection(data, missing=3)
     outfile = os.path.join(state["out"], "profiles.txt")
     with open(outfile, "w") as fout:
