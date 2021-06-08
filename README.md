@@ -30,7 +30,7 @@ tar -xzvf eukcc2_db_ver_1.tar.gz
 export EUKCC2_DB=$(realpath eukcc2_db_ver_1)
 singularity pull docker://openpaul/eukcc2
 
-ingularity exec eukcc2_latest.sif eukcc single -h
+singularity exec eukcc2_latest.sif eukcc single -h
 ```
 
 ## Get the container
