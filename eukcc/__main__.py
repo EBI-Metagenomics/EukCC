@@ -387,6 +387,9 @@ def main():
         help="Keep workdir after the run.",
     )
     args = parser.parse_args()
+    if args.command is None:
+        parser.print_help()
+        exit(0)
 
     # define logging
     logLevel = logging.INFO
@@ -404,9 +407,7 @@ def main():
         ],
     )
 
-    if args.command is None:
-        parser.print_help()
-    elif args.command == "single":
+    if args.command == "single":
         run_eukcc(args)
     elif args.command == "folder":
         eukcc_folder(args)
