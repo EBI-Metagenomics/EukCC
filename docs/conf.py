@@ -1,4 +1,4 @@
-import sphinx_rtd_theme
+import sphinx_rtd_theme  # noqa: F401
 
 # -*- coding: utf-8 -*-
 #
@@ -21,8 +21,8 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = "eukcc"
-copyright = "2020, Paul Saary"
+project = "EukCC"
+copyright = "2021, Paul Saary"
 author = "Paul Saary"
 
 # The short X.Y version
@@ -81,7 +81,10 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
