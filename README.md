@@ -37,8 +37,8 @@ singularity exec eukcc2_latest.sif eukcc single -h
 
 Get EukCC quickly by fetching the container [Container repro will change soon]
 ```
-docker pull openpaul/eukcc2
-singularity pull docker://openpaul/eukcc2
+docker pull microbiomeinformatics/eukcc
+singularity pull docker://microbiomeinformatics/eukcc
 ```
 If you installed version 2: make sure to also fetch the database for version 2:
 

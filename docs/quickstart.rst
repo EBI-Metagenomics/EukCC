@@ -9,7 +9,7 @@ Docker container:
 
 .. code-block:: shell
 
-    docker pull 
+    docker pull  microbiomeinformatics/eukcc
 
 Other options are: 
 
@@ -17,11 +17,7 @@ Other options are:
 
 .. code-block:: shell
 
-    conda instal -c bioconda eukcc
-
-**Pypi** (https://pypi.org/project/eukcc/).
-
-.. code-block:: shell
+    conda instal -c conda-forge -c bioconda "eukcc>=2"
 
     pip install eukcc
 
