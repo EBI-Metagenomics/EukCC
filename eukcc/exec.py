@@ -142,6 +142,8 @@ class hmmsearch(run):
         except subprocess.CalledProcessError:
             logging.info("Hmmsearch failed, check logfile {}".format(logfile))
             self.success = False
+            # remove failed output if possible
+            file.remove(os.path.join(workdir, outfiles[0]))
             exit(1)
 
 
