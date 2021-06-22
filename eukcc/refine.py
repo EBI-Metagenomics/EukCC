@@ -76,6 +76,19 @@ def check_links(names, link_table, min_links=100):
     return True
 
 
+def connected_bins(name, link_table, min_links):
+    connected = set()
+    for name1, d in link_table.items():
+        for name2, links in d.items():
+            if name1 == name2:
+                continue
+            if name1 == name or name2 == name:
+                if links >= min_links:
+                    n = name2 if name1 == name else name1
+                    connected.add(n)
+    return connected
+
+
 def read_link_table(path):
     bin_table = defaultdict(lambda: defaultdict(int))
     with open(path) as fin:
@@ -118,7 +131,9 @@ def refine(state):
             state["input_bins"], state["contigs"], seperator="_binsplit_"
         )
     else:
-        logging.debug("Using existing merged contigs")
+        logging.debug(
+            "Using existing merged contigs, delete output folder if thats not what you want."
+        )
 
     # initialize output tables
     result_table = os.path.join(state["out"], "eukcc.csv")
@@ -165,73 +180,119 @@ def refine(state):
             write_table(b.state, result_table)
 
     # get all combinations of small bins
-    s_cmb = n_combi(smallbins, state["n_combine"])
-    logging.info("Created {} possible combinations of small bins".format(len(s_cmb)))
+    # s_cmb = n_combi(smallbins, state["n_combine"])
+    # logging.info("Created {} possible combinations of small bins".format(len(s_cmb)))
 
     n_large_bins = len(bins) - len(smallbins)
     logging.info("Found {} large bins to merge with".format(n_large_bins))
 
-    max_iters = len(bins)
-    already_at = 0
     refined = []
-    for i, b in enumerate(bins):
-        already_at += 1
-        logging.debug(
-            "Refining bin {}/{} {}%".format(
-                already_at, max_iters, round(100 * already_at / max_iters, 1)
+
+    def get_name(i):
+        return bins[i].name.split("_", 1)[1]
+
+    def combine_bins(idx, children, smallbins, stop=0):
+        all_comb = []
+
+        possible_kids = []
+        if state["links"] is not None:
+            possible_kids = []
+            connected_kids = connected_bins(
+                get_name(idx), link_table, state["min_links"]
+            )
+            for k in children:
+                connected_kids = connected_kids.union(
+                    connected_bins(get_name(k), link_table, state["min_links"])
+                )
+            # convert names back to indicies
+            for i, b in enumerate(bins):
+                if get_name(i) in connected_kids:
+                    possible_kids.append(i)
+        else:
+            possible_kids = smallbins
+
+        possible_kids = set(possible_kids) - set(children)
+
+        # add a single kid and evaluate again
+        if stop < 1:
+            s = list(set(children) | set([idx]))
+            s.sort()
+            return [tuple(s)]
+        else:
+            for kid in possible_kids:
+                k = children.copy()
+                k.append(kid)
+                all_comb.extend(combine_bins(idx, k, smallbins, stop=stop - 1))
+            return all_comb
+
+    # mergers = defaultdict(lambda: {'parent': None, "children": [], "gain": []})
+    parent_bins = [i for i, b in enumerate(bins) if i not in smallbins]
+    for parent_bin in parent_bins:
+        parent_name = bins[parent_bin].name.split("_", 1)[1]
+
+        # we find all combinations that are valid to merge with
+        combies = []
+        for i in range(state["n_combine"]):
+            ks = combine_bins(parent_bin, [], smallbins, stop=i)
+            combies.extend(ks)
+        combies = list(set(combies))
+        # sort combinations by length
+        combies = sorted(combies, key=len, reverse=False)
+
+        logging.info(
+            "For bin {} we found {} merging combinations".format(
+                parent_name, len(combies)
             )
         )
-        if i in smallbins:
-            continue
-        if (
-            bins[i].state["quality"]["completeness"] < 50
-            or bins[i].state["quality"]["contamination"] >= 15
-            or bins[i].state["marker_set"]["quality"] != "good"
-        ):
-            # skip non medium quality bins
-            continue
-        # big bins can be combined with a set of small bins
-        # each big bin we will merge the faa with the small bin faas
-        # then we use the set of the big bin to estimate the merger
-        # we retain the merger if it fits the layed out parameters
-        for s in s_cmb:
-            # construct children container
-            children, names, skip = build_children(bins, s, i)
-            if skip:
+        for kid_ids in combies:
+            # turn kid indexec into sorted list, so they are reproducible turn kid indexec into sorted list, so they are reproducible
+            kid_ids = list(kid_ids)
+            kid_ids.sort()
+            kid_ids = [i for i in kid_ids if i != parent_bin]
+            children = [bins[i] for i in kid_ids]
+            if len(children) == 0:
                 continue
-            # merge bins
-            logging.debug("Testing combination {}".format(names))
-            # check for linking reads
-            if state["links"] is not None:
-                if check_links(names, link_table, state["min_links"]) is False:
-                    logging.debug("Skipping merger with to few supporting reads")
-                    continue
-
-            merged = merge_bins(
-                bins[i], children, os.path.join(state["workdir"], "mergers")
+            logging.debug("Testing bin combination for bin {}".format(parent_name))
+            logging.debug(
+                "Adding in bins {}".format(",".join([get_name(i) for i in kid_ids]))
             )
+            # make all merges and see if they are great or not
+            merged = merge_bins(
+                bins[parent_bin], children, os.path.join(state["workdir"], "mergers")
+            )
+
+            # identify parent bin, if [A, B, C] then parent can be [A,B] or [A,C] or if none of them exists
+            # it should be [A]
+            compare_state = bins[parent_bin].state
+            if len(children) > 1:
+                for c in combinations(kid_ids, len(kid_ids) - 1):
+                    for potential_parent in refined:
+                        if set(c) == set(potential_parent["children_idx"]):
+                            compare_state = potential_parent
+                            break
+
             gain_cp = round(
                 merged["quality"]["completeness"]
-                - bins[i].state["quality"]["completeness"],
+                - compare_state["quality"]["completeness"],
                 2,
             )
             gain_ct = round(
                 merged["quality"]["contamination"]
-                - bins[i].state["quality"]["contamination"],
+                - compare_state["quality"]["contamination"],
                 2,
             )
             if gain_cp >= state["improve_percent"] and gain_cp > (
                 state["improve_ratio"] * gain_ct
             ):
-                logging.debug(
+                logging.warning(
                     "Successfull merge: +{}% Compl. +{}% Cont.".format(gain_cp, gain_ct)
                 )
-                merged["children_idx"] = s
-                merged["parent_idx"] = i
+                merged["children_idx"] = kid_ids
+                merged["parent_idx"] = parent_bin
                 refined.append(merged)
 
-    logging.info("Iterated all possible combinations")
-    refined = remove_double_kids(refined, bins)
+    # logging.info("Iterated all possible combinations")
+    # refined = remove_double_kids(refined, bins)
 
     # Here we just have to export the bins at this point. Thats easy and quick.
     # For each new bin we rerun eukcc with a enw metaeuk run, so we get a final verdict
@@ -282,19 +343,6 @@ def build_children(bins, subset, i):
     skip = False
     children = []
     for indx in subset:
-        if bins[indx].state["clade"] is not None:
-            bin_clade = bins[indx].state["clade"]
-            parent_clade = bins[i].state["clade"]
-            if (
-                parent_clade != "base" and bin_clade != "base"
-            ) and bin_clade != parent_clade:
-                # parent and child have diverging clades, not need to merge any of these
-                logging.debug(
-                    "Parent and child clade diverge: {}/{}".format(
-                        parent_clade, bin_clade
-                    )
-                )
-                skip = True
         children.append(bins[indx])
 
     # construct names
