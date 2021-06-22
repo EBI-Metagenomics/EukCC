@@ -5,6 +5,7 @@ from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.fasta import determine_type
 import eukcc.version as version
 from eukcc.refine import eukcc_folder
+from eukcc.file import file
 
 
 publications = {
@@ -397,6 +398,10 @@ def main():
         logLevel = logging.WARNING
     elif args.debug:
         logLevel = logging.DEBUG
+
+    # create output folder if not exists
+    file.isdir(args.out)
+
     logging.basicConfig(
         format="%(asctime)s %(message)s",
         datefmt="%d-%m-%Y %H:%M:%S: ",
