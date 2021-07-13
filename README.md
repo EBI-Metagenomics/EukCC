@@ -3,7 +3,7 @@
 ![Coverage.py coverage](badges/coverage.svg)
 
 EukCC is a completeness and contamination estimator for metagenomic assembled
-microbial eukarytoic genomes. 
+microbial eukaryotic genomes. 
 
 With version 2, EukCC should provide a better experience than
 version 1. We aim at creating a stable package with long term support.
