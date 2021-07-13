@@ -6,7 +6,6 @@ If EukCC is run in ``folder`` mode, it can try to merge
 two more more bins to create a refined/merged version
 of increased completeness.
 
-
 For this you can and should pass paired read information to EukCC. So
 only bins linked by at least 100 (default) reads are considered
 for merging. This greatly improves speed and accuracy.
@@ -58,3 +57,22 @@ Merged bins can be found in the output folder.
 
 .. warning::
     Meging more than two bins. So setting ``--n_combine`` to anything above 1 is experimental and not yet recommended. We had very good results with merging two bins.
+
+Example Dataset
+=======================================
+I created example data to test this based on the Lichen Study ERP123954. Bins were created using CONCOCT but any binner 
+with no prokaryotic bias works.
+
+.. code-block:: shell
+
+    wget ...
+    gunzip eukcc_example_folder_GT57.zip
+
+    # Use at least a couple threads to speed it up
+    eukcc folder --threads 6 \
+        --out output \
+        --links eukcc_example_folder_GT57/links.csv \
+        --n_combine 1 \
+        eukcc_example_folder_GT57/bins
+
+
