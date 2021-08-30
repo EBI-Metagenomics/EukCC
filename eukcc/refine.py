@@ -232,7 +232,7 @@ def refine(state):
 
         # we find all combinations that are valid to merge with
         combies = []
-        for i in range(state["n_combine"]):
+        for i in range(state["n_combine"] + 1):
             ks = combine_bins(parent_bin, [], smallbins, stop=i)
             combies.extend(ks)
         combies = list(set(combies))
@@ -251,6 +251,7 @@ def refine(state):
             kid_ids = [i for i in kid_ids if i != parent_bin]
             children = [bins[i] for i in kid_ids]
             if len(children) == 0:
+                logging.debug("Skipping empty set")
                 continue
             logging.debug("Testing bin combination for bin {}".format(parent_name))
             logging.debug(
