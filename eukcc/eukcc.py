@@ -162,9 +162,13 @@ class eukcc:
             raise ValueError("The provided fasta is corrupt or maybe gzipped?")
 
         if self.state["set_number_species"] < 3:
-            logging.warning("You included less than 3 species in the set creation, this might lead to unstable results")
+            logging.warning(
+                "You included less than 3 species in the set creation, this might lead to unstable results"
+            )
         if self.state["marker_prevalence"] < 95:
-            logging.warning("You selected a marker prevalence below 95%, this can lead to wrong results")
+            logging.warning(
+                "You selected a marker prevalence below 95%, this can lead to wrong results"
+            )
 
         if self.state["set_size"] > state["max_set_size"]:
             self.state["max_set_size"] = state["set_minimal_size"]
@@ -186,19 +190,34 @@ class eukcc:
     def placement(self):
         # place in reference tree using epa, if we
         # do not get taxids to orient us
-        if self.state["taxids"] is not None:
-            logging.info("Skipping placement: Going to use taxids as seed for set construction")
+        if self.state["comparison_genomes"] is not None:
+            logging.info("Comparing against genomes, no placement needed")
+            self.state["placement"] = dict()
+            self.state["placement"]["tog"] = self.state["dbinfo"]["files"][
+                "backbone_tree"
+            ]
+
+        elif self.state["taxids"] is not None:
+            logging.info(
+                "Skipping placement: Going to use taxids as seed for set construction"
+            )
             # infer placement from taxids
             self.state["placement"] = self.ncbi_place(self.state)
-            self.state["placement"]["tog"] = self.state["dbinfo"]["files"]["backbone_tree"]
+            self.state["placement"]["tog"] = self.state["dbinfo"]["files"][
+                "backbone_tree"
+            ]
         else:
-            logging.info("Searching for marker genes in {} database".format(self.state["clade"]))
+            logging.info(
+                "Searching for marker genes in {} database".format(self.state["clade"])
+            )
             self.state["marker_genes"] = self.search_markers()
             if len(self.state["marker_genes"]) == 0:
                 logging.info("No placement marker genes found.")
                 return None
             logging.info(
-                "Found {} marker genes, placing them in the tree using epa-ng".format(len(self.state["marker_genes"]))
+                "Found {} marker genes, placing them in the tree using epa-ng".format(
+                    len(self.state["marker_genes"])
+                )
             )
             pl = self.run_EPA()
             if pl is None:
@@ -209,8 +228,10 @@ class eukcc:
 
     def pick_marker_set(self):
         if self.state["use_placement"] is not None:
-            logging.debug("Replying on provided placement file")
-            old_state = eukcc_state(workdir=os.path.join(self.state["workdir"], "loading"))
+            logging.debug("Relying on provided placement file")
+            old_state = eukcc_state(
+                workdir=os.path.join(self.state["workdir"], "loading")
+            )
             # load the old info
             old_state.load_state(self.state["use_placement"])
             self.state["marker_set"] = old_state["marker_set"]
@@ -219,8 +240,29 @@ class eukcc:
         # figure placement
         if self.placement() is None:
             return None
+        if self.state["ignore_tree"] and self.state["comparison_genomes"] is not None:
+            logging.info("Will ignore tree and compare to provided genomes directly")
+            ms = hard_set_computation(
+                self.state["dbinfo"]["files"]["scmgs"],
+                genomes=self.state["comparison_genomes"],
+                prevalence=self.state["marker_prevalence"],
+                atmost=self.state["max_set_size"],
+                set_size=self.state["set_size"],
+                annotate=True,
+                state=self.state,
+            )
+            if ms is None:
+                logging.error(
+                    "No marker gene set could be found with these settings \U0001F641 \nChange your parameters and try again?"
+                )
+                return None
+            else:
+                self.state["marker_set"] = ms
+                return True
 
-        if self.state["ignore_tree"] and self.state["placement"]["genomes"] is not None:
+        elif (
+            self.state["ignore_tree"] and self.state["placement"]["genomes"] is not None
+        ):
             logging.info("Will ignore tree and compare to provided genomes directly")
             ms = hard_set_computation(
                 self.state["dbinfo"]["files"]["scmgs"],
@@ -236,6 +278,7 @@ class eukcc:
                 return None
             else:
                 self.state["marker_set"] = ms
+                return True
         else:
             logging.info("Automatically locating best SCMG set")
             tree = tree_sets(
@@ -265,7 +308,7 @@ class eukcc:
                     )
                 )
             self.state["marker_set"] = tree.marker_set.to_dict()
-            return True
+        return True
 
     def predict_protein(self):
         # fasta_faa = self._pygmes(workdir, fasta, ncores=ncores)
@@ -283,7 +326,9 @@ class eukcc:
             fasta_faa = self._metaeuk(
                 self.state["workdir"],
                 self.state["fasta"],
-                self.state["loaded_dbs"]["base"]["files"]["metaeukdb"],  # only the base db has the metaeuk db
+                self.state["loaded_dbs"]["base"]["files"][
+                    "metaeukdb"
+                ],  # only the base db has the metaeuk db
                 ncores=self.state["threads"],
             )
         self.state["faa"] = fasta_faa
@@ -293,7 +338,9 @@ class eukcc:
         Call metaeuk with the fasta while using a nice workdir
         """
         wd = os.path.join(workdir, "metaeuk")
-        prefix = "{}_metaeuk".format(os.path.basename(fasta).rsplit(".", 1)[0]).replace(".", "_")
+        prefix = "{}_metaeuk".format(os.path.basename(fasta).rsplit(".", 1)[0]).replace(
+            ".", "_"
+        )
         logging.debug("Metaeuk prefix set as {}".format(prefix))
         faafile = "{}.fas".format(prefix)
         cleanfaafile = "{}_cleaned.faa".format(prefix)
@@ -359,7 +406,9 @@ class eukcc:
         lng = tax_LCA(tree, info, places)
         clade = "base"
         if len(lng) < 3:
-            logging.warning("Could not determine a suffciently deep LCA, using base database")
+            logging.warning(
+                "Could not determine a suffciently deep LCA, using base database"
+            )
         else:
             if len(set(["33154", "4751"]) & set(lng)) > 0:
                 clade = "fungi"
@@ -368,7 +417,9 @@ class eukcc:
             elif len(set(["protist_common"]) & set(lng)) > 0:
                 clade = "protozoa"
         if clade != "base":
-            logging.info("Genome belongs to clade: {} (Best TaxID: {})".format(clade, lng[-1]))
+            logging.info(
+                "Genome belongs to clade: {} (Best TaxID: {})".format(clade, lng[-1])
+            )
         else:
             logging.warning(
                 "Could not narrow down the clade, using base database. Please provide clade if known via --clade {fungi,plant,protozoa}"
@@ -389,7 +440,11 @@ class eukcc:
         if os.path.isdir(workdir):
             shutil.rmtree(workdir)
         elif os.path.exists(workdir):
-            raise OSError("{} is not a folder but should be, please move or remove this file".format(workdir))
+            raise OSError(
+                "{} is not a folder but should be, please move or remove this file".format(
+                    workdir
+                )
+            )
 
     def ncbi_place(self, state):
         """
@@ -420,7 +475,9 @@ class eukcc:
         nodes = nodes & set(scmgs.keys())
 
         placements = [{"n": x} for x in nodes]
-        logging.info("Located {} species corresponding to the provided taxids".format(len(nodes)))
+        logging.info(
+            "Located {} species corresponding to the provided taxids".format(len(nodes))
+        )
         return {"placements": placements, "genomes": nodes}
 
     def compute_quality(self, data, profiles):
@@ -446,18 +503,27 @@ class eukcc:
         logging.info("Contamination: {}".format(contamination))
 
         if self.state.get("predicted_proteins") == "metaeuk":
-            _silent_contamination = compute_silent_contamination(self.state["fasta"], self.state["faa"], data)
+            _silent_contamination = compute_silent_contamination(
+                self.state["fasta"], self.state["faa"], data
+            )
             quality["silent_contamination"] = round(
-                100 - 100 * _silent_contamination["bp_w_hits"] / _silent_contamination["total_bp"],
+                100
+                - 100
+                * _silent_contamination["bp_w_hits"]
+                / _silent_contamination["total_bp"],
                 2,
             )
-            logging.info("Max silent contamination: {}".format(quality["silent_contamination"]))
+            logging.info(
+                "Max silent contamination: {}".format(quality["silent_contamination"])
+            )
 
         self.state["quality"] = quality
         self.state["quality"]["N50"] = Fasta.N50(self.state["fasta"])
         self.state["quality"]["N50_AA"] = Fasta.N50(self.state["faa"])
 
-    def hmmsearch_scmg(self, workdir, fasta_faa, profiles, keep_hmm=False, use_hmm=None, cut_ga=True):
+    def hmmsearch_scmg(
+        self, workdir, fasta_faa, profiles, keep_hmm=False, use_hmm=None, cut_ga=True
+    ):
         """
         Fetch and compress and search markers specified by profiles list.
         Will call hmmfetch, hmmpress and hmmsearch internally
@@ -486,7 +552,9 @@ class eukcc:
         cutoff_file = "found_markers_{}_GA.csv".format(key)
 
         # only run if outfile is older than fasta_faa
-        if file.isnewer(fasta_faa, os.path.join(wd, outfile)) or file.isnewer(fasta_faa, os.path.join(wd, cutoff_file)):
+        if file.isnewer(fasta_faa, os.path.join(wd, outfile)) or file.isnewer(
+            fasta_faa, os.path.join(wd, cutoff_file)
+        ):
             if use_hmm is None:
                 # fetch and press hmms from database
                 hmmfile = self.hmmfetch(wd, profiles)
@@ -513,7 +581,10 @@ class eukcc:
                 # we can remove hmms and pressed hmms
                 file.delete_but(
                     wd,
-                    keep=[os.path.basename(x) for x in glob(os.path.join(wd, "found_markers_*"))],
+                    keep=[
+                        os.path.basename(x)
+                        for x in glob(os.path.join(wd, "found_markers_*"))
+                    ],
                 )
 
         return read_hmmer(os.path.join(wd, outfile), os.path.join(wd, cutoff_file))
@@ -579,11 +650,20 @@ class eukcc:
 
         all_profiles = set(self.state["dbinfo"]["files"]["hmm_placement_place"].keys())
         for profile, ids in md.items():
-            if profile not in self.state["dbinfo"]["files"]["hmm_placement_place"].keys():
-                logging.error("Profile {} misses the hmm and alignment files".format(profile))
+            if (
+                profile
+                not in self.state["dbinfo"]["files"]["hmm_placement_place"].keys()
+            ):
+                logging.error(
+                    "Profile {} misses the hmm and alignment files".format(profile)
+                )
                 exit(200)
-            hmmfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile]["hmm"]
-            alnfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile]["aln"]
+            hmmfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile][
+                "hmm"
+            ]
+            alnfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile][
+                "aln"
+            ]
             prot_file = os.path.join(wd, "{}.faa".format(profile))
             prot_file = Fasta.reduce_fasta(fasta, prot_file, ids)
 
@@ -606,10 +686,14 @@ class eukcc:
             return None
 
         for profile in all_profiles:
-            prots[profile] = self.state["dbinfo"]["files"]["hmm_placement_place"][profile]["aln"]
+            prots[profile] = self.state["dbinfo"]["files"]["hmm_placement_place"][
+                profile
+            ]["aln"]
 
         logging.debug("Concatenating alignments")
-        return horizontal_concatenate(output, [v for k, v in prots.items()], list(prots.keys()))
+        return horizontal_concatenate(
+            output, [v for k, v in prots.items()], list(prots.keys())
+        )
 
     def run_EPA(self):
         wd = os.path.join(self.state["workdir"], "epa-ng", self.state["clade"])
@@ -667,8 +751,12 @@ class eukcc:
                 )
             )
             exit(203)
-        info["tog"] = self.guppy_tree(self.state["workdir"], os.path.join(wd, "epa_result.jplace"))
-        logging.debug("Placed {} markers in the reference tree".format(len(info["placements"])))
+        info["tog"] = self.guppy_tree(
+            self.state["workdir"], os.path.join(wd, "epa_result.jplace")
+        )
+        logging.debug(
+            "Placed {} markers in the reference tree".format(len(info["placements"]))
+        )
         return info
 
     def search_markers(self, use_all=False):
@@ -680,7 +768,9 @@ class eukcc:
 
         :return: list with names of marker genes
         """
-        wd = os.path.join(self.state["workdir"], "hmm", "placement", self.state["clade"])
+        wd = os.path.join(
+            self.state["workdir"], "hmm", "placement", self.state["clade"]
+        )
         if use_all:
             # for using the entrie db
             hmm_file = self.state["dbinfo"]["files"]["hmm_db"]
@@ -716,7 +806,9 @@ class eukcc:
             for key, p in d.items():
                 if type(p) is str:
                     if not os.path.exists(p) and not os.path.exists("{}.h3f".format(p)):
-                        raise FileNotFoundError("Database is missing files: {}".format(p))
+                        raise FileNotFoundError(
+                            "Database is missing files: {}".format(p)
+                        )
                 elif type(p) is dict:
                     rec_check_path(p)
             return d
@@ -765,7 +857,9 @@ class eukcc:
             suffix = n.rsplit(".", 1)[1]
             if profile not in info["files"]["hmm_placement_place"].keys():
                 info["files"]["hmm_placement_place"][profile] = {}
-            info["files"]["hmm_placement_place"][profile][suffix] = os.path.realpath(os.path.join(place_folder, f))
+            info["files"]["hmm_placement_place"][profile][suffix] = os.path.realpath(
+                os.path.join(place_folder, f)
+            )
 
         info["dblocation"] = os.path.abspath(db)
         return info
@@ -792,7 +886,9 @@ class eukcc:
 
         if len(missing) > 0:
             logging.error("Missing dependencies.")
-            raise EnvironmentError("Missing dependencies: {}".format(", ".join(missing)))
+            raise EnvironmentError(
+                "Missing dependencies: {}".format(", ".join(missing))
+            )
 
     def write_result(self, result, outfile="eukcc.tsv", sep="\t"):
         """
@@ -829,8 +925,12 @@ class eukcc:
         writes some extra tables for the output
         """
         if "scmgs_table" in state.keys():
-            with gzip.open(os.path.join(state["out"], "scmg_marker_table.csv.gz"), "wt") as fout:
-                c = csv.DictWriter(fout, delimiter="\t", fieldnames=state["scmgs_table"][0].keys())
+            with gzip.open(
+                os.path.join(state["out"], "scmg_marker_table.csv.gz"), "wt"
+            ) as fout:
+                c = csv.DictWriter(
+                    fout, delimiter="\t", fieldnames=state["scmgs_table"][0].keys()
+                )
                 c.writeheader()
                 for row in state["scmgs_table"]:
                     c.writerow(row)

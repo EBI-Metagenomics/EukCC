@@ -66,6 +66,9 @@ def run_eukcc(args):
         # copy fna to faa state entry
         E.state["faa"] = E.state["fasta"]
 
+    if E.state["comparison_genomes"] is not None:
+        E.state["simple"] = True
+
     if not E.state["simple"] and E.state["clade"] == "base":
         logging.info("Doing a first pass placement in the base database")
         if E.placement() is None:
@@ -271,6 +274,15 @@ def main():
         type=str,
         required=False,
         help="Taxids to use as set starting point",
+        default=None,
+        nargs="+",
+    )
+    pars_eukcc.add_argument(
+        "--genomes",
+        type=str,
+        required=False,
+        help="Genome files to base a SCMG set upon",
+        dest="comparison_genomes",
         default=None,
         nargs="+",
     )

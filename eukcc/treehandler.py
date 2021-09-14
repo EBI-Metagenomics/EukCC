@@ -2,6 +2,7 @@ from ete3 import Tree
 from collections import defaultdict, Counter
 import logging
 from eukcc.base import load_SCMGs, percentage_sets, load_tax_info
+from eukcc.helper import singletons_from_genome
 
 
 class markerset:
@@ -86,20 +87,29 @@ class markerset:
         )
 
 
-def hard_set_computation(set_path, genomes, prevalence=98, atmost=500, set_size=20):
+def hard_set_computation(
+    set_path,
+    genomes,
+    prevalence=98,
+    atmost=500,
+    set_size=20,
+    annotate=False,
+    state=None,
+):
     """
     Function to compute set based on a list of genomes passed to it
     """
+
     scmg = load_SCMGs(set_path)
-    found = False
-    set_prevalence = 100
-    biggest = 0
-    while found is False and set_prevalence >= prevalence:
-        logging.debug(
-            "Searching for Marker set at {} prevalence across {} genomes".format(
-                set_prevalence, len(genomes)
-            )
-        )
+    if annotate:
+        if state is None:
+            logging.error("Needs to be run with a state object")
+        logging.debug("Annotating genomes using PANTHER hmms")
+        sets = []
+        for genome in genomes:
+            sets.append(singletons_from_genome(genome, state))
+    else:
+        logging.debug("Loading sets from DB")
         sets = []
         for genome in genomes:
             try:
@@ -110,6 +120,15 @@ def hard_set_computation(set_path, genomes, prevalence=98, atmost=500, set_size=
                         genome
                     )
                 )
+    found = False
+    set_prevalence = 100
+    biggest = 0
+    while found is False and set_prevalence >= prevalence:
+        logging.debug(
+            "Searching for Marker set at {} prevalence across {} genomes".format(
+                set_prevalence, len(genomes)
+            )
+        )
         s = percentage_sets(sets, set_prevalence, atmost)
         if len(s) > biggest:
             biggest = len(s)
@@ -123,7 +142,9 @@ def hard_set_computation(set_path, genomes, prevalence=98, atmost=500, set_size=
         logging.debug(
             "Found set of size {} with prevalence {}".format(len(s), set_prevalence)
         )
-        return s
+        ms = markerset(genomes, genomes, s, set_prevalence)
+        ms.all_places = genomes
+        return ms.to_dict()
     else:
         return None
 
