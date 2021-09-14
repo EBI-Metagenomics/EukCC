@@ -6,6 +6,7 @@ from eukcc.fasta import determine_type
 import eukcc.version as version
 from eukcc.refine import eukcc_folder
 from eukcc.file import file
+from eukcc.set_define import define_set_w_genomes
 
 
 publications = {
@@ -123,6 +124,7 @@ def main():
     subparsers = parser.add_subparsers(title="Subcommands", dest="command")
     pars_eukcc = subparsers.add_parser("single")
     pars_folder = subparsers.add_parser("folder")
+    pars_set = subparsers.add_parser("define_set")
     subparsers.add_parser("ncbi_update")
 
     parser.add_argument(
@@ -399,6 +401,51 @@ def main():
         default=True,
         help="Keep workdir after the run.",
     )
+    pars_set.add_argument(
+        "genomes",
+        type=str,
+        help="Genome files to base a SCMG set upon",
+        nargs="+",
+    )
+    pars_set.add_argument(
+        "--name", "-n", type=str, default="set", help="Name of the set (default: set)"
+    )
+    pars_set.add_argument(
+        "--out",
+        "-o",
+        type=str,
+        default=".",
+        help="Folder to store the output (default: .)",
+    )
+    pars_set.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
+    pars_set.add_argument(
+        "--threads",
+        "-t",
+        type=int,
+        help="Number of threads to use (Default: 1)",
+        default=1,
+    )
+    pars_set.add_argument(
+        "--max_set_size",
+        type=int,
+        required=False,
+        help="Maximal number of marker genes used, set to 0 to include all possible marker genes (Default: 500)",
+        default=500,
+    )
+    pars_set.add_argument(
+        "--set_size",
+        type=int,
+        required=False,
+        help="Minimal number of marker genes to use (Default: 20)",
+        default=20,
+    )
+    pars_set.add_argument(
+        "--marker_prevalence",
+        type=float,
+        required=False,
+        help="Percentage of species in which markers should be found (Default: 95)",
+        default=95,
+    )
     args = parser.parse_args()
     if args.command is None:
         parser.print_help()
@@ -430,5 +477,7 @@ def main():
         eukcc_folder(args)
     elif args.command == "ncbi_update":
         update()
+    elif args.command == "define_set":
+        define_set_w_genomes(args)
     else:
         parser.print_help()
