@@ -9,6 +9,8 @@ import csv
 
 
 def is_in(read, contig_map, within=1000):
+    if read.reference_name not in contig_map.keys():
+        return False
     if read.reference_start <= within or read.reference_end <= within:
         return True
     elif read.reference_start > (
