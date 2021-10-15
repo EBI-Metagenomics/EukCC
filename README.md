@@ -25,10 +25,10 @@ please see the documentation.
 ```
 mkdir eukccdb
 cd eukccdb
-wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.tar.gz
-tar -xzvf eukcc2_db_ver_1.tar.gz
-export EUKCC2_DB=$(realpath eukcc2_db_ver_1)
-singularity pull docker://openpaul/eukcc2
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
+tar -xzvf eukcc2_db_ver_1.1.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_1.1)
+singularity pull docker://microbiomeinformatics/eukcc
 
 singularity exec eukcc2_latest.sif eukcc single -h
 ```

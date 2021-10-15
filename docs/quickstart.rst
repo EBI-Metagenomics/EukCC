@@ -38,15 +38,15 @@ Fetching the database is as simple as:
 
     mkdir eukccdb
     cd eukccdb
-    wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.tar.gz
-    tar -xzvf eukcc2_db_ver_1.tar.gz
+    wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
+    tar -xzvf eukcc2_db_ver_1.1.tar.gz
 
 If you want to forget about the database location you can add an ENV variable to your
 `.bash.rc`:
 
 .. code-block:: shell
 
-    export EUKCC2_DB=/path/to/.../eukcc2_db_ver_1
+    export EUKCC2_DB=/path/to/.../eukcc2_db_ver_1.1
 
 
 Running EukCC
