@@ -235,6 +235,11 @@ class eukcc:
             # load the old info
             old_state.load_state(self.state["use_placement"])
             self.state["marker_set"] = old_state["marker_set"]
+            logging.info(
+                "Loaded precomputed set with {} profiles".format(
+                    len(self.state["marker_set"]["profiles"])
+                )
+            )
             return self.state
 
         # figure placement
