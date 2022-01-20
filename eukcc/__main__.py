@@ -70,7 +70,11 @@ def run_eukcc(args):
     if E.state["comparison_genomes"] is not None:
         E.state["simple"] = True
 
-    if not E.state["simple"] and E.state["clade"] == "base":
+    if (
+        not E.state["simple"]
+        and E.state["clade"] == "base"
+        and E.state["use_placement"] is None
+    ):
         logging.info("Doing a first pass placement in the base database")
         if E.placement() is None:
             E.terminate(1)
