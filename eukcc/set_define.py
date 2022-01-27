@@ -20,11 +20,14 @@ def define_set_w_genomes(args):
         logging.warning("Max set size cant be smaller than min set size")
         exit(222)
 
+    if state["seqtype"] is None:
+        logging.debug("Setting seqencetype to DNA, use --AA to pass proteomes")
+        state["seqtype"] = "DNA"
     state["comparison_genomes"] = state["genomes"]
     state["ignore_tree"] = True
     state["fasta"] = state["genomes"][0]
     # use base as workdir folder
-    state["workdir"] = os.path.join(os.path.dirname(state["out"]), "workdir")
+    state["workdir"] = os.path.join(state["out"], "workdir")
     # launch new EukCC instance
     E = eukcc(state)
     if E.pick_marker_set() is None:

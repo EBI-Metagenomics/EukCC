@@ -450,6 +450,21 @@ def main():
         help="Percentage of species in which markers should be found (Default: 95)",
         default=95,
     )
+    pars_set.add_argument(
+        "--AA",
+        dest="seqtype",
+        action="store_const",
+        const="AA",
+        help="All provided files are proteins, no gene prediction will be performed. Omit if input is mixed or genomic",
+    )
+    pars_set.add_argument(
+        "--DNA",
+        dest="seqtype",
+        action="store_const",
+        const="DNA",
+        default=None,
+        help="The fasta file contains DNA sequenes",
+    )
     args = parser.parse_args()
     if args.command is None:
         parser.print_help()

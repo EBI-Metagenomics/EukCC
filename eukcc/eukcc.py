@@ -154,7 +154,8 @@ class eukcc:
         )
 
         # validate AA type
-        self.state["seqtype"] = state["seqtype"].upper()
+        if isinstance(self.state["seqtype"], str):
+            self.state["seqtype"] = state["seqtype"].upper()
         if self.state["seqtype"] not in ["AA", "DNA"]:
             raise ValueError("seqtype should be either DNA or AA")
 
@@ -246,7 +247,9 @@ class eukcc:
         if self.placement() is None:
             return None
         if self.state["ignore_tree"] and self.state["comparison_genomes"] is not None:
-            logging.info("Will ignore tree and compare to provided genomes directly")
+            logging.info(
+                "Will create custom marker set based on input genomes/proteomes"
+            )
             ms = hard_set_computation(
                 self.state["dbinfo"]["files"]["scmgs"],
                 genomes=self.state["comparison_genomes"],
