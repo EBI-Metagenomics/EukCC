@@ -157,6 +157,7 @@ def main():
 
     cm = contig_map(bindir)
     bm, contigs_per_bin = bin_map(bindir)
+    logging.debug("Found {} contigs".format(len(cm)))
 
     link_table = defaultdict(lambda: defaultdict(int))
     bin_table = defaultdict(lambda: defaultdict(int))
@@ -172,10 +173,13 @@ def main():
             if read.reference_name != mate.reference_name:
                 link_table[mate.reference_name][read.reference_name] += 1
 
+    logging.debug("Created link table with {} entries".format(len(link_table)))
     # generate bin table
     for contig_1, dic in link_table.items():
         for contig_2, links in dic.items():
             bin_table[bm[contig_1]][bm[contig_2]] += 1
+
+    logging.debug("Created bin table with {} entries".format(len(bin_table)))
     out_data = []
     logging.debug("Constructing output dict")
     if args.contigs:
@@ -196,13 +200,17 @@ def main():
         for bin_1, dic in bin_table.items():
             for bin_2, links in dic.items():
                 out_data.append({"bin_1": bin_1, "bin_2": bin_2, "links": links})
+    logging.debug("Out data has {} rows".format(len(out_data)))
     # results
     logging.info("Writing output")
     with open(args.out, "w") as fout:
-        cout = csv.DictWriter(fout, fieldnames=list(out_data[0].keys()))
-        cout.writeheader()
-        for row in out_data:
-            cout.writerow(row)
+        if len(out_data) > 0:
+            cout = csv.DictWriter(fout, fieldnames=list(out_data[0].keys()))
+            cout.writeheader()
+            for row in out_data:
+                cout.writerow(row)
+        else:
+            logging.warning("No rows to write")
 
 
 if __name__ == "__main__":
