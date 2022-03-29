@@ -10,4 +10,4 @@ RUN conda config --set ssl_verify no; conda install -y -c bioconda -c conda-forg
 RUN git clone https://github.com/Finn-Lab/EukCC/; cd EukCC; \
         pip install .
 
-CMD eukcc
+ENTRYPOINT ["eukcc"]
