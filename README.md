@@ -7,8 +7,6 @@ microbial eukaryotic genomes.
 
 With version 2, EukCC should provide a better experience than
 version 1. We aim at creating a stable package with long term support.
-Version 2 is currently under development and using it could lead to unexpected issues. We aim to 
-release EukCC version 2 soon.
 
 **Note**: Version 2 is not compatible with previous versions, most commandline arguments changed.
 So version 2 is **not** a drop in replacement.
@@ -23,21 +21,26 @@ Here a super fast overview on how to get started using singularity. For more inf
 please see the documentation.
 
 ```
+# create a folder were to keep the database
 mkdir eukccdb
 cd eukccdb
 wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
 tar -xzvf eukcc2_db_ver_1.1.tar.gz
 export EUKCC2_DB=$(realpath eukcc2_db_ver_1.1)
+
+# fetch and launch container
 singularity pull docker://quay.io/microbiome-informatics/eukcc
 
-singularity exec eukcc2_latest.sif eukcc single -h
+singularity exec eukcc_latest.sif eukcc single -h
 ```
+
+Alternatively you can install EukCC using pip, but we recommend using the container.
 
 ## Get the container
 
 Get EukCC quickly by fetching the container. 
 
-The container is hosted and automatically build from master here: 
+The container is hosted and automatically build from the master branch here: 
 https://quay.io/repository/microbiome-informatics/eukcc
 ```
 docker pull quay.io/microbiome-informatics/eukcc
