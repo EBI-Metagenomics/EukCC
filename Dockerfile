@@ -7,7 +7,6 @@ RUN conda config --set ssl_verify no; conda install -y -c bioconda -c conda-forg
             minimap2 bwa  pysam biopython \
             samtools=1.12; conda clean --all ; \
             pip install jsonpickle numpy ete3;
-RUN git clone https://github.com/Finn-Lab/EukCC/; cd EukCC; \
-        pip install .
+RUN pip install git+https://github.com/Finn-Lab/EukCC/
 
 ENTRYPOINT ["eukcc"]
