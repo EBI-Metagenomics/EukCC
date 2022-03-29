@@ -28,17 +28,20 @@ cd eukccdb
 wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
 tar -xzvf eukcc2_db_ver_1.1.tar.gz
 export EUKCC2_DB=$(realpath eukcc2_db_ver_1.1)
-singularity pull docker://microbiomeinformatics/eukcc
+singularity pull docker://quay.io/microbiome-informatics/eukcc
 
 singularity exec eukcc2_latest.sif eukcc single -h
 ```
 
 ## Get the container
 
-Get EukCC quickly by fetching the container [Container repro will change soon]
+Get EukCC quickly by fetching the container. 
+
+The container is hosted and automatically build from master here: 
+https://quay.io/repository/microbiome-informatics/eukcc
 ```
-docker pull microbiomeinformatics/eukcc
-singularity pull docker://microbiomeinformatics/eukcc
+docker pull quay.io/microbiome-informatics/eukcc
+singularity pull docker://quay.io/microbiome-informatics/eukcc
 ```
 If you installed version 2: make sure to also fetch the database for version 2:
 
