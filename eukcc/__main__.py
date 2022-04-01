@@ -18,11 +18,11 @@ publications = {
 }
 
 
-def update():
+def update(dbfile=None):
     from ete3 import NCBITaxa
 
     logging.info("Going to fetch NCBI info using ete3")
-    ncbi = NCBITaxa()
+    ncbi = NCBITaxa(dbfile=dbfile)
 
     ncbi.update_taxonomy_database()
 
