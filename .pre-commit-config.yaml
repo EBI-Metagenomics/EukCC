@@ -8,5 +8,5 @@ repos:
     rev: 3.9.1
     hooks:
     - id: flake8
-      args: ['--ignore=W503,E501']
+      args: ['--ignore=W503,E501,E741']
 

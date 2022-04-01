@@ -42,7 +42,7 @@ def compute_silent_contamination(fna, faa, hits):
     return stats
 
 
-def load_tax_info(path, sep=","):
+def load_tax_info(path, sep=",", dbfile=None):
     """
     Load taxonomic information from two column csv
     With first column giving the taxid and second column
@@ -52,7 +52,8 @@ def load_tax_info(path, sep=","):
     :param path: path to csv file
     :return: dictionary of accession: ncbi_lineage
     """
-    ncbi = NCBITaxa()
+    logging.warning("Loading NCBI database {}".format(dbfile))
+    ncbi = NCBITaxa(dbfile=dbfile)
     d = {}
     with open(path) as fin:
         reader = csv.reader(fin, delimiter=sep)
@@ -94,7 +95,9 @@ def percentage_sets(sets, percent=50, atmost=500):
     # reduce set to at most n elements
     # sorting and seting of the seed, will enforce reproducibility
     if len(keep) > atmost and atmost > 0:
-        seed(125465)  # seed required to obtain the same SCMGs when reducing size, leading to reproducible results
+        seed(
+            125465
+        )  # seed required to obtain the same SCMGs when reducing size, leading to reproducible results
         x = list(keep)
         x.sort()
         keep = set(sample(x, atmost))

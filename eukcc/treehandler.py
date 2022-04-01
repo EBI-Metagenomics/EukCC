@@ -149,14 +149,14 @@ def hard_set_computation(
         return None
 
 
-def tax_LCA(tree, taxinfo, placements=None, majority_vote=0.6):
+def tax_LCA(tree, taxinfo, placements=None, majority_vote=0.6, etedb=None):
     """
     given a guppy tree we will try to figure out
     the placements
     """
     logging.debug("Finding LCA")
     t = Tree(tree)
-    info = load_tax_info(taxinfo)
+    info = load_tax_info(taxinfo, dbfile=etedb)
 
     if placements is None:
         known_leafes = set(info.keys())
@@ -241,6 +241,7 @@ class tree_sets:
         use_ncbi=False,
         training=False,
         taxinfo=None,
+        etedb=None,
     ):
         self.t = Tree(tree_v)
 
@@ -262,7 +263,7 @@ class tree_sets:
 
         # load in all marker genes
         scmg = load_SCMGs(setp)
-        self.known_leafes = set(load_tax_info(taxinfo).keys())
+        self.known_leafes = set(load_tax_info(taxinfo, dbfile=etedb).keys())
 
         logging.debug(
             "Starting to look for scmg set, selection based on {}".format(set_selection)
@@ -277,6 +278,7 @@ class tree_sets:
                 set_atmost=set_atmost,
                 set_species=set_species,
                 min_prevalence=set_prevalence,
+                etedb=etedb,
             )
         else:
             # expose final prevalence
@@ -347,12 +349,13 @@ class tree_sets:
         set_atmost=500,
         sort_using="prevalence",
         training=False,
+        etedb=None,
     ):
 
         # first determine LCA
         logging.debug("Using taxid to select marker gene sets")
         # loading taxid
-        info = load_tax_info(taxinfo)
+        info = load_tax_info(taxinfo, dbfile=etedb)
         # get lac_lineage
         LCA_lng = self.node_taxid(self.LCA(places), info, return_lng=True)
 

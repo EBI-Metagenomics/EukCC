@@ -301,6 +301,7 @@ class eukcc:
                 use_ncbi=self.state["use_ncbi"],
                 taxinfo=self.state["dbinfo"]["files"]["taxinfo"],
                 set_selection=self.state["set_selection"],
+                etedb=self.state["dbinfo"]["files"]["etedb"],
             )
             if tree.marker_set is None:
                 logging.error(
@@ -411,7 +412,7 @@ class eukcc:
         tree = pl["tog"]
         places = [x["n"][0] for x in pl["placements"]]
         info = self.state["dbinfo"]["files"]["taxinfo"]
-        lng = tax_LCA(tree, info, places)
+        lng = tax_LCA(tree, info, places, etedb=self.state["dbinfo"]["files"]["etedb"])
         clade = "base"
         if len(lng) < 3:
             logging.warning(
@@ -472,7 +473,10 @@ class eukcc:
                 taxa.append(t)
         # convert taxa in a set of strings
         taxa = set([str(t) for t in taxa])
-        info = load_tax_info(state["dbinfo"]["files"]["taxinfo"])
+        info = load_tax_info(
+            state["dbinfo"]["files"]["taxinfo"],
+            dbfile=self.state["dbinfo"]["files"]["etedb"],
+        )
         # find all nodes that intersect with the taxids
         nodes = set()
         for node, lng in info.items():
@@ -823,6 +827,13 @@ class eukcc:
 
         # for each file, make sure we can find it
         rec_check_path(info["files"])
+        # add None loction for optional files
+        nones = ["etedb"]
+        for v in nones:
+            if v not in info["files"].keys():
+                logging.debug("Addding None for {}".format(v))
+                info["files"][v] = None
+
         self.state["loaded_dbs"][clade] = info
 
         return info
