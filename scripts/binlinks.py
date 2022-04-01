@@ -22,6 +22,13 @@ def is_in(read, contig_map, within=1000):
 
 
 def keep_read(read, contig_map, within=1000, min_ANI=98, min_cov=0):
+    if not hasattr(read, "query_alignment_length"):
+        logging.debug("Read has not aligment length")
+        from pprint import pprint
+
+        print(read)
+        pprint(vars(read))
+
     ani = (
         (read.query_alignment_length - read.get_tag("NM"))
         / float(read.query_alignment_length)
