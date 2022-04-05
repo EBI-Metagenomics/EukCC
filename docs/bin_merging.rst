@@ -12,7 +12,8 @@ for merging. This greatly improves speed and accuracy.
 
 Preparing your linked reads
 =============================
-If you have paired-end read data you should create a sorted alignment.
+If you have paired-end read data you should create a sorted alignment. 
+If you have multiple read files, you can create multiple BAM files.
 
 For this you will need the contigs that were used to create this bins.
 Alternatively merge all bins into a pseudo-assembly file.
@@ -20,7 +21,8 @@ Alternatively merge all bins into a pseudo-assembly file.
 .. code-block:: shell
 
     cat binfolder/*.fa > pseudo_contigs.fasta
-    bwa-mem -t 8 pseudo_contigs.fasta reads_1.fastq.gz reads_2.fastq.gz  | 
+    bwa index pseudo_contigs.fasta
+    bwa mem -t 8 pseudo_contigs.fasta reads_1.fastq.gz reads_2.fastq.gz  | 
         samtools view -q 20 -Sb - | 
         samtools sort -@ 8 -O bam - -o alignment.bam
     samtools index alignment.bam
@@ -32,6 +34,8 @@ You can then create a bin_linking table by using the EukCC provided script:
     binlinks.py  --ANI 99 --within 1500 \
         --out linktable.csv binfolder alignment.bam
 
+
+If you have multiple bam files, pass all of them to the script (e.g. `*.bam`).
 
 You will obtain a three column file (bin_1,bin_2,links).
 
