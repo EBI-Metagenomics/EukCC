@@ -86,6 +86,23 @@ def read_pair_generator(bam):
             del read_dict[qname]
 
 
+def read_bam_file(bamf, link_table, cm, within, ANI):
+    samfile = pysam.AlignmentFile(bamf, "rb")
+
+    # generate link table
+    logging.info("Parsing Bam file. This can take a few moments")
+    for read, mate in read_pair_generator(samfile):
+        if keep_read(read, cm, within, min_ANI=ANI) and keep_read(
+            mate, cm, within, min_ANI=ANI
+        ):
+            # fill in the table
+            link_table[read.reference_name][mate.reference_name] += 1
+            if read.reference_name != mate.reference_name:
+                link_table[mate.reference_name][read.reference_name] += 1
+
+    return link_table
+
+
 def main():
     # set arguments
     # arguments are passed to classes
@@ -96,7 +113,8 @@ def main():
     parser.add_argument(
         "bam",
         type=str,
-        help="Bam with allr eads aligned against all contigs making up the bins",
+        help="Bam file(s) with reads aligned against all contigs making up the bins",
+        nargs="+",
     )
     parser.add_argument(
         "--out",
@@ -153,7 +171,6 @@ def main():
     )
 
     bindir = args.bindir
-    samfile = pysam.AlignmentFile(args.bam, "rb")
 
     cm = contig_map(bindir)
     bm, contigs_per_bin = bin_map(bindir)
@@ -162,24 +179,19 @@ def main():
     link_table = defaultdict(lambda: defaultdict(int))
     bin_table = defaultdict(lambda: defaultdict(int))
 
-    # generate link table
-    logging.info("Parsing Bam file. This can take a few moments")
-    for read, mate in read_pair_generator(samfile):
-        if keep_read(read, cm, args.within, min_ANI=args.ANI) and keep_read(
-            mate, cm, args.within, min_ANI=args.ANI
-        ):
-            # fill in the table
-            link_table[read.reference_name][mate.reference_name] += 1
-            if read.reference_name != mate.reference_name:
-                link_table[mate.reference_name][read.reference_name] += 1
+    # iterate all bam files
+    for bamf in args.bam:
+        link_table = read_bam_file(bamf, link_table, cm, args.within, args.ANI)
 
     logging.debug("Created link table with {} entries".format(len(link_table)))
+
     # generate bin table
     for contig_1, dic in link_table.items():
         for contig_2, links in dic.items():
-            bin_table[bm[contig_1]][bm[contig_2]] += 1
+            bin_table[bm[contig_1]][bm[contig_2]] += links
 
     logging.debug("Created bin table with {} entries".format(len(bin_table)))
+
     out_data = []
     logging.debug("Constructing output dict")
     if args.contigs:
@@ -200,6 +212,7 @@ def main():
         for bin_1, dic in bin_table.items():
             for bin_2, links in dic.items():
                 out_data.append({"bin_1": bin_1, "bin_2": bin_2, "links": links})
+
     logging.debug("Out data has {} rows".format(len(out_data)))
     # results
     logging.info("Writing output")
