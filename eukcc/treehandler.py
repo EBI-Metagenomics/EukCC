@@ -29,6 +29,7 @@ class markerset:
             "placements": len(self.all_places),
             "nspecies": self.nspecies,
             "quality": self.quality,
+            "covered_pl": self.covered,
         }
 
     @property

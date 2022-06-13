@@ -94,6 +94,7 @@ def run_eukcc(args):
 
     logging.debug("Estimating quality")
     E.compute_quality(E.state["scmg_data"], E.state["marker_set"]["profiles"])
+    E.add_taxid()
 
     # aggregate all the interesting data, such as estimated quality
     # the expected and found SCMGs and the workdir

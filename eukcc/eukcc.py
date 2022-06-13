@@ -404,6 +404,25 @@ class eukcc:
             fout.write(d.encode())
         return args
 
+    def add_taxid(self):
+        pl = self.state["placement"]
+        tree = pl["tog"]
+        if "marker_set" in self.state.keys():
+            places = self.state["marker_set"]["covered_pl"]
+        elif "placements" in pl.keys():
+            places = [x["n"][0] for x in pl["placements"]]
+        else:
+            logging.error("No placements to use for taxid inference")
+            return
+
+        info = self.state["dbinfo"]["files"]["taxinfo"]
+        lng = tax_LCA(tree, info, places)
+
+        logging.debug("Lineage infered as {}".format(lng))
+        self.state["lng"] = lng
+
+        return
+
     def determine_subdb(self):
         """
         assuming a placement was done, we try to figure out what tax clade we deal with
@@ -924,15 +943,21 @@ class eukcc:
             self.state = result
             result = [self.state]
         # file.isdir(os.path.dirname(outfile))
-        fields = ["fasta", "completeness", "contamination"]
+        fields = ["fasta", "completeness", "contamination", "ncbi_lng"]
         with open(outfile, "w") as fout:
             writer = csv.DictWriter(fout, fields, delimiter=sep, extrasaction="ignore")
             writer.writeheader()
             for res in result:
+                if "lng" in res.keys():
+                    lng = "-".join(res["lng"])
+                else:
+                    lng = "NA"
+
                 row = {
                     "fasta": res["fasta"],
                     "completeness": res["quality"]["completeness"],
                     "contamination": res["quality"]["contamination"],
+                    "ncbi_lng": lng,
                 }
                 writer.writerow(row)
 
