@@ -56,6 +56,7 @@ class bin:
             keep_hmm=True,
         )
         E.compute_quality(E.state["scmg_data"], E.state["marker_set"]["profiles"])
+        E.add_taxid()
 
     def __str__(self):
         return "Bin: {}".format(self.name)

@@ -101,11 +101,17 @@ def read_link_table(path):
 def write_table(state, path, sep="\t", header=False):
     if header:
         with open(path, "w") as fout:
-            fout.write(sep.join(["bin", "completeness", "contamination"]))
+            fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng"]))
             fout.write("\n")
     else:
         if state["marker_set"]["quality"] != "good":
             return
+
+        if "lng" in state.keys():
+            lng = "-".join(state["lng"])
+        else:
+            lng = "NA"
+
         with open(path, "a") as fout:
             bn = os.path.basename(state["fasta"])
             # trim metaeuk prefix
@@ -113,7 +119,7 @@ def write_table(state, path, sep="\t", header=False):
                 bn = bn.split("_", 1)[1]
             compl = str(state["quality"]["completeness"])
             cont = str(state["quality"]["contamination"])
-            s = sep.join([bn, compl, cont])
+            s = sep.join([bn, compl, cont, lng])
             fout.write(s)
             fout.write("\n")
 
