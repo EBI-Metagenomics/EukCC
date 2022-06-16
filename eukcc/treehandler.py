@@ -150,7 +150,14 @@ def hard_set_computation(
         return None
 
 
-def tax_LCA(tree, taxinfo, placements=None, majority_vote=0.6, etedb=None):
+def tax_LCA(
+    tree,
+    taxinfo,
+    placements=None,
+    majority_vote=0.6,
+    etedb=None,
+    add_protist_common=True,
+):
     """
     given a guppy tree we will try to figure out
     the placements
@@ -214,9 +221,9 @@ def tax_LCA(tree, taxinfo, placements=None, majority_vote=0.6, etedb=None):
                     break
             return lng
 
-        pl_lngs.append(maj_lng(lngs))
+        pl_lngs.append(maj_lng(lngs, add_protists=add_protist_common))
 
-    return maj_lng(pl_lngs)
+    return maj_lng(pl_lngs, add_protists=add_protist_common)
 
 
 class tree_sets:

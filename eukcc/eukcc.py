@@ -416,7 +416,13 @@ class eukcc:
             return
 
         info = self.state["dbinfo"]["files"]["taxinfo"]
-        lng = tax_LCA(tree, info, places)
+        lng = tax_LCA(
+            tree,
+            info,
+            places,
+            add_protist_common=False,
+            etedb=self.state["dbinfo"]["files"]["etedb"],
+        )
 
         logging.debug("Lineage infered as {}".format(lng))
         self.state["lng"] = lng
