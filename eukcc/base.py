@@ -52,7 +52,7 @@ def load_tax_info(path, sep=",", dbfile=None):
     :param path: path to csv file
     :return: dictionary of accession: ncbi_lineage
     """
-    logging.warning("Loading NCBI database {}".format(dbfile))
+    logging.debug("Loading NCBI database {}".format(dbfile))
     ncbi = NCBITaxa(dbfile=dbfile)
     d = {}
     with open(path) as fin:
