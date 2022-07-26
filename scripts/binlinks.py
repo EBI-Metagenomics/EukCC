@@ -217,9 +217,21 @@ def main():
     # results
     logging.info("Writing output")
     with open(args.out, "w") as fout:
+        if args.contigs:
+            fieldnames = [
+                "bin_1",
+                "bin_2",
+                "contig_1",
+                "contig_2",
+                "links",
+                "bin_1_contigs",
+                "bin_2_contigs",
+            ]
+        else:
+            fieldnames = ["bin_1", "bin_2", "links"]
+        cout = csv.DictWriter(fout, fieldnames=fieldnames, extrasaction="ignore")
+        cout.writeheader()
         if len(out_data) > 0:
-            cout = csv.DictWriter(fout, fieldnames=list(out_data[0].keys()))
-            cout.writeheader()
             for row in out_data:
                 cout.writerow(row)
         else:
