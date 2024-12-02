@@ -326,7 +326,7 @@ class eukcc:
             logging.debug("Predicting proteins using GeneMark-ES")
             fasta_faa = self._pygmes(
                 self.state["workdir"],
-                self.tate["fasta"],
+                self.state["fasta"],
                 diamond=self.state["dbinfo"]["files"]["diamond"],
                 ncores=self.state["threads"],
             )

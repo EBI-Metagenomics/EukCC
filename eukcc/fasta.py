@@ -181,7 +181,8 @@ def clean_metaeuk_fasta(fasta, outfasta):
     with open(outfasta, "w") as fout:
         # in case of an empty fasta, we also return an emopty fasta
         if os.stat(fasta).st_size == 0:
-            return outfasta
+            logging.info("Metaeuk produced empty fasta. Exit.")
+            exit(1)
         for seq in Fasta(fasta):
             # clean name using contig as the name
             seq.name = seq.name.split("|")[1]

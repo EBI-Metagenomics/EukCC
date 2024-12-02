@@ -24,9 +24,9 @@ please see the documentation.
 # create a folder were to keep the database
 mkdir eukccdb
 cd eukccdb
-wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
-tar -xzvf eukcc2_db_ver_1.1.tar.gz
-export EUKCC2_DB=$(realpath eukcc2_db_ver_1.1)
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
+tar -xzvf eukcc2_db_ver_1.2.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_1.2)
 
 # fetch and launch container
 singularity pull docker://quay.io/microbiome-informatics/eukcc
