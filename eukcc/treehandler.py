@@ -34,7 +34,7 @@ class markerset:
 
     @property
     def score(self):
-        # initial model, with very little training data for comaprison
+        # initial model, with very little training data for comparison
         # pred_error = 26.465607 + -0.252184 * self.prevalence + 0.004341 * len(self.leafes) + 0.008279 * len(self.profiles) + -12.807798 * (len(self.covered)/len(self.all_places))
         # pred_error = 36.131638 + -0.263107 * self.prevalence + -0.011279 * len(self.leafes) + -0.001418 * len(self.profiles) + -13.084319 * (len(self.covered)/len(self.all_places))
         pred_error = (
@@ -52,7 +52,7 @@ class markerset:
     @property
     def best_guess(self):
         """
-        Handcrafted priorty list to get a  good marker gene set
+        Handcrafted priority list to get a  good marker gene set
         """
         if len(self.all_places) < 10:
             cover_score = 10 * len(self.covered)

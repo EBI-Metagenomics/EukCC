@@ -51,6 +51,24 @@ If you installed version 2: make sure to also fetch the database for version 2:
 http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
 
 
+## Outputs explanation
+
+- `eukcc.log` - log of execution
+
+### eukcc single
+
+- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage
+
+### eukcc folder
+
+- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
+- `merged_bins.csv` - table of merged refined bins
+- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins
+- `no_placement_marker_genes.txt` - line separated list of bins with not defined set of marker genes
+- `merged_bins` - folder with merged bins sequences 
+- `refine_workdir` - working directory with intermediate steps results
+
+
 ## Don't use EukCC on already pubished data
 Or at least not without thinking about it:
 
