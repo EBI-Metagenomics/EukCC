@@ -103,6 +103,7 @@ include the debug log (run eukcc using `--debug` flag).
 - 201: No Marker gene set could be defined
 - 202: No database provided
 - 203: Corrupted file
+- 204: Predicted zero proteins 
 - 222: Invalid settings
 
 
