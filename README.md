@@ -63,8 +63,8 @@ http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
 
 - `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
 - `merged_bins.csv` - table of merged refined bins
-- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins
-- `no_placement_marker_genes.txt` - line separated list of bins with not defined set of marker genes
+- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
+- `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
 - `merged_bins` - folder with merged bins sequences 
 - `refine_workdir` - working directory with intermediate steps results
 

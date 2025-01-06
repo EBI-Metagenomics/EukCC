@@ -120,7 +120,7 @@ def write_table(state, path, sep="\t", header=False):
             fout.write(s)
             fout.write("\n")
 
-def write_no_marker_genes_output(state, outfile='no_placement_marker_genes.txt', header=False):
+def write_no_marker_genes_output(state, outfile='missing_marker_genes.txt', header=False):
     if header:
         with open(outfile, "w") as fout:
             fout.write("bin\n")
@@ -156,7 +156,7 @@ def refine(state):
     bad_quality_result_table = os.path.join(state["out"], "bad_quality.csv")
     write_table(None, bad_quality_result_table, header=True)
     # table for bins with not defined marker genes set
-    result_no_marker_set_bins = os.path.join(state["out"], "no_placement_marker_genes.txt")
+    result_no_marker_set_bins = os.path.join(state["out"], "missing_marker_genes.txt")
     write_no_marker_genes_output(None, result_no_marker_set_bins, header=True)
 
     merged_table = os.path.join(state["out"], "merged_bins.csv")
