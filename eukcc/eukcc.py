@@ -49,7 +49,7 @@ class eukcc_state:
     This is a class to maintain the state of eukcc
     This allows us to write intermediate results to disk
     And thus resume again
-    Usually you dont have to worry about this
+    Usually you don't have to worry about this
     """
 
     def __init__(self, workdir="", options=None):
@@ -213,7 +213,7 @@ class eukcc:
             )
             self.state["marker_genes"] = self.search_markers()
             if len(self.state["marker_genes"]) == 0:
-                logging.info("No placement marker genes found.")
+                logging.info(f'No placement marker genes found for {os.path.basename(self.state["faa"])}.')
                 return None
             logging.info(
                 "Found {} marker genes, placing them in the tree using epa-ng".format(
@@ -323,15 +323,15 @@ class eukcc:
         # fasta_faa = self._pygmes(workdir, fasta, ncores=ncores)
         logging.debug("Fasta is of DNA type, proteins will be predicted")
         if self.state["use_gmes"] is True:
-            logging.debug("Predicting proteins using GeneMark-ES")
+            logging.info("Predicting proteins using GeneMark-ES")
             fasta_faa = self._pygmes(
                 self.state["workdir"],
-                self.tate["fasta"],
+                self.state["fasta"],
                 diamond=self.state["dbinfo"]["files"]["diamond"],
                 ncores=self.state["threads"],
             )
         else:
-            logging.debug("Predicting proteins using MetaEuk")
+            logging.info("Predicting proteins using MetaEuk")
             fasta_faa = self._metaeuk(
                 self.state["workdir"],
                 self.state["fasta"],

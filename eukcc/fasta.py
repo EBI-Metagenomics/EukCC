@@ -173,15 +173,16 @@ def validate_fasta(path, seqtype="AA"):
 
 def clean_metaeuk_fasta(fasta, outfasta):
     """
-    given a fasta file, this will cleanup names, so we dont have any spaces or
+    given a fasta file, this will cleanup names, so we don't have any spaces or
     characters that confuse epa-ng such as  |[]
     """
 
     nms = defaultdict(int)
     with open(outfasta, "w") as fout:
-        # in case of an empty fasta, we also return an emopty fasta
+        # in case of an empty fasta, we also return an empty fasta
         if os.stat(fasta).st_size == 0:
-            return outfasta
+            logging.info("Metaeuk produced empty fasta.")
+            exit(204)
         for seq in Fasta(fasta):
             # clean name using contig as the name
             seq.name = seq.name.split("|")[1]

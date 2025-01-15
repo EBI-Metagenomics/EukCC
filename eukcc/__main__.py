@@ -100,6 +100,7 @@ def run_eukcc(args):
     # the expected and found SCMGs and the workdir
     E.state.save_state()
     E.write_result(E.state, os.path.join(state["out"], "eukcc.csv"))
+
     if state["extra"]:
         # search for missing markers
 

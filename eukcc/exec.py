@@ -301,7 +301,7 @@ class guppy(run):
 class metaeuk(run):
     """
     class to run and predict proteins using metaeuk
-    Will run  easy-predict
+    Will run easy-predict
     """
 
     def run(self, program, workdir, infiles, outfiles, cores=1, kwargs=None):

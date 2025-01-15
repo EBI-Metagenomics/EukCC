@@ -16,7 +16,7 @@ def split_contig_faa(path, workdir, delim="_binsep_"):
     faa_dir = os.path.join(workdir, "faa")
     if os.path.exists(faa_dir):
         logging.info(
-            "Faa folder exists, remove if you want to rerun this analsys, will reuse it for now"
+            "Faa folder exists, remove if you want to rerun this analysis, will reuse it for now"
         )
         return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
     elif file.isdir(faa_dir):
@@ -104,9 +104,6 @@ def write_table(state, path, sep="\t", header=False):
             fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng"]))
             fout.write("\n")
     else:
-        if state["marker_set"]["quality"] != "good":
-            return
-
         if "lng" in state.keys():
             lng = "-".join(state["lng"])
         else:
@@ -123,12 +120,23 @@ def write_table(state, path, sep="\t", header=False):
             fout.write(s)
             fout.write("\n")
 
+def write_no_marker_genes_output(state, outfile='missing_marker_genes.txt', header=False):
+    if header:
+        with open(outfile, "w") as fout:
+            fout.write("bin\n")
+    else:
+        with open(outfile, 'a') as file_out:
+            bn = os.path.basename(state["fasta"])
+            # trim metaeuk prefix
+            if bn.startswith("metaeuk_"):
+                bn = bn.split("_", 1)[1]
+            file_out.write(bn + '\n')
 
 def refine(state):
     """
     main refinement pipeline
     It takes a state argument and does the rest. It is basically a per bin EukCC run
-    with added mergin features
+    with added merging features
     """
     state["contigs"] = os.path.join(state["workdir"], "contigs.fasta")
     if not os.path.exists(state["contigs"]):
@@ -138,12 +146,18 @@ def refine(state):
         )
     else:
         logging.debug(
-            "Using existing merged contigs, delete output folder if thats not what you want."
+            "Using existing merged contigs, delete output folder if that is not what you want."
         )
 
     # initialize output tables
     result_table = os.path.join(state["out"], "eukcc.csv")
     write_table(None, result_table, header=True)
+    # table for bad quality bins
+    bad_quality_result_table = os.path.join(state["out"], "bad_quality.csv")
+    write_table(None, bad_quality_result_table, header=True)
+    # table for bins with not defined marker genes set
+    result_no_marker_set_bins = os.path.join(state["out"], "missing_marker_genes.txt")
+    write_no_marker_genes_output(None, result_no_marker_set_bins, header=True)
 
     merged_table = os.path.join(state["out"], "merged_bins.csv")
     note_merges(None, None, merged_table, header=True)
@@ -175,16 +189,23 @@ def refine(state):
 
     smallbins = []
     for i, b in enumerate(bins):
+        logging.info(f'bin {b.state["fasta"]}')
         if b.state["quality"] is None:
             smallbins.append(i)
-            continue
-        elif b.state["quality"]["completeness"] < 50:
-            smallbins.append(i)
-            write_table(b.state, result_table)
+            logging.debug(f'Bin quality is None')
+            if len(b.state["marker_genes"]) == 0:
+                write_no_marker_genes_output(b.state, result_no_marker_set_bins)
             continue
         else:
-            write_table(b.state, result_table)
-
+            if b.state["marker_set"]["quality"] != "good":
+                logging.debug("Quality is not good")
+                output_file = bad_quality_result_table
+            else:
+                output_file = result_table
+            write_table(b.state, output_file)
+            if b.state["quality"]["completeness"] < 50:
+                smallbins.append(i)
+                continue
     # get all combinations of small bins
     # s_cmb = n_combi(smallbins, state["n_combine"])
     # logging.info("Created {} possible combinations of small bins".format(len(s_cmb)))

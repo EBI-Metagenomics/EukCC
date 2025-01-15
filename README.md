@@ -24,9 +24,9 @@ please see the documentation.
 # create a folder were to keep the database
 mkdir eukccdb
 cd eukccdb
-wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.1.tar.gz
-tar -xzvf eukcc2_db_ver_1.1.tar.gz
-export EUKCC2_DB=$(realpath eukcc2_db_ver_1.1)
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
+tar -xzvf eukcc2_db_ver_1.2.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_1.2)
 
 # fetch and launch container
 singularity pull docker://quay.io/microbiome-informatics/eukcc
@@ -49,6 +49,24 @@ singularity pull docker://quay.io/microbiome-informatics/eukcc
 If you installed version 2: make sure to also fetch the database for version 2:
 
 http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
+
+
+## Outputs explanation
+
+- `eukcc.log` - log of execution
+
+### eukcc single
+
+- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage
+
+### eukcc folder
+
+- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
+- `merged_bins.csv` - table of merged refined bins
+- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
+- `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
+- `merged_bins` - folder with merged bins sequences 
+- `refine_workdir` - working directory with intermediate steps results
 
 
 ## Don't use EukCC on already pubished data
@@ -85,6 +103,7 @@ include the debug log (run eukcc using `--debug` flag).
 - 201: No Marker gene set could be defined
 - 202: No database provided
 - 203: Corrupted file
+- 204: Predicted zero proteins 
 - 222: Invalid settings
 
 
