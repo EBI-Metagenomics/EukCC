@@ -3,23 +3,14 @@
 ![Coverage.py coverage](badges/coverage.svg)
 
 EukCC is a completeness and contamination estimator for metagenomic assembled
-microbial eukaryotic genomes. 
-
-With version 2, EukCC should provide a better experience than
-version 1. We aim at creating a stable package with long term support.
-
-**Note**: Version 2 is not compatible with previous versions, most commandline arguments changed.
-So version 2 is **not** a drop in replacement.
+microbial eukaryotic genomes.
 
 ## Documentation
 Head over to https://eukcc.readthedocs.io/ to check out the documentation.
 
+## Run
 
-## Quickstart
-
-Here a super fast overview on how to get started using singularity. For more information
-please see the documentation.
-
+### Download EukCC2 database from [FTP](http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/)
 ```
 # create a folder were to keep the database
 mkdir eukccdb
@@ -27,16 +18,9 @@ cd eukccdb
 wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
 tar -xzvf eukcc2_db_ver_1.2.tar.gz
 export EUKCC2_DB=$(realpath eukcc2_db_ver_1.2)
-
-# fetch and launch container
-singularity pull docker://quay.io/microbiome-informatics/eukcc
-
-singularity exec eukcc_latest.sif eukcc single -h
 ```
 
-Alternatively you can install EukCC using pip, but we recommend using the container.
-
-## Get the container
+### Quickstart using container
 
 Get EukCC quickly by fetching the container. 
 
@@ -46,9 +30,19 @@ https://quay.io/repository/microbiome-informatics/eukcc
 docker pull quay.io/microbiome-informatics/eukcc
 singularity pull docker://quay.io/microbiome-informatics/eukcc
 ```
-If you installed version 2: make sure to also fetch the database for version 2:
 
-http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/
+### Bioconda / pip
+
+Alternatively you can install EukCC using conda or pip. 
+
+In addition, you need to install mandatory requirements:
+- metaeuk=4.a0f584d
+- pplacer
+- epa-ng=0.3.8
+- hmmer=3.3
+- minimap2
+- bwa
+- samtools
 
 
 ## Outputs explanation
@@ -89,6 +83,11 @@ EukCC also uses metaEUK, hmmer, pplacer, ete3 and epa-ng.
 
 
 ## Changed compared to EukCC 1
+**Note**: 
+With version 2, EukCC should provide a better experience than
+version 1. Version 2 is not compatible with previous versions, most commandline arguments changed.
+So version 2 is **not** a drop in replacement.
+
 - Users can set the prevalence threshold  for marker sets. In EukCC 1 
   this was fixed to 98% single copy prevalence.  Now users could change that to be more strict.
   We find that often 100% single copy prevalence can be found. 

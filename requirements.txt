@@ -1,4 +1,7 @@
-ete3
-six
-numpy
-jsonpickle
+metaeuk==4.a0f584d
+pplacer
+epa-ng==0.3.8
+hmmer==3.3
+minimap2
+bwa
+samtools==1.12
