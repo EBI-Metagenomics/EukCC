@@ -31,7 +31,12 @@ class test_tree(unittest.TestCase):
             "((GCA_010646915.1,metaeuk_OY253673.1_210),((metaeuk_OY253668.1_317,GCA_002794665.1),"
             "GCA_000690575.1))))),metaeuk_OY253675.1_91);"
         )
-        lng = tax_LCA(tree, TESTDATA_TAX_LCA, placements=["metaeuk_OY253681.1_29"], add_protist_common=False)
+        lng = tax_LCA(
+            tree,
+            TESTDATA_TAX_LCA,
+            placements=["metaeuk_OY253681.1_29", "metaeuk_OY253676.1_95"],
+            add_protist_common=False,
+        )
 
-        # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta, Pseudoscourfieldiophyceae, Chlorophyta incertae sedis, Pycnococcaceae
-        self.assertEqual(lng, ["1", "131567", "2759", "33090", "3041", "3417985", "3417986", "41878"])
+        # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta
+        self.assertEqual(lng, ["1", "131567", "2759", "33090", "3041"])
