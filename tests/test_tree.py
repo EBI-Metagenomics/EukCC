@@ -33,5 +33,5 @@ class test_tree(unittest.TestCase):
         )
         lng = tax_LCA(tree, TESTDATA_TAX_LCA, placements=["metaeuk_OY253681.1_29"], add_protist_common=False)
 
-        # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta, Chlorophyta incertae sedis, Pycnococcaceae
-        self.assertEqual(lng, ["1", "131567", "2759", "33090", "3041", "34155", "41878"])
+        # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta, Pseudoscourfieldiophyceae, Chlorophyta incertae sedis, Pycnococcaceae
+        self.assertEqual(lng, ["1", "131567", "2759", "33090", "3041", "3417985", "3417986", "41878"])
