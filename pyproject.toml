@@ -1,6 +1,6 @@
 [project]
 name = "eukcc"
-version = "2.1.3"
+dynamic = ["version"]
 readme = "README.md"
 license = {text = "GPLv3"}
 authors = [
@@ -25,6 +25,10 @@ dependencies = [
     "six"
 ]
 
+[project.urls]
+Homepage = "https://github.com/EBI-Metagenomics/EukCC"
+Documentation = "https://eukcc.readthedocs.io/"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
@@ -34,6 +38,9 @@ packages = [
     "eukcc",
     "scripts",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "eukcc.version.__version__"}
 
 [project.scripts]
 # eukcc

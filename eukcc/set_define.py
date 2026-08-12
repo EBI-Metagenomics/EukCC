@@ -31,5 +31,5 @@ def define_set_w_genomes(args):
     # launch new EukCC instance
     E = eukcc(state)
     if E.pick_marker_set() is None:
-        E.terminate(1)
+        E.terminate(201)
     E.state.save_state(filename=state["name"])

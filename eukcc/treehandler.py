@@ -166,20 +166,19 @@ def tax_LCA(
     t = Tree(tree)
     info = load_tax_info(taxinfo, dbfile=etedb)
 
-    if placements is None:
-        known_leafes = set(info.keys())
-    else:
-        node = t.get_tree_root()
-        known_leafes = set(node.get_leaf_names()) - set(placements)
+    all_leafes = set(t.get_tree_root().get_leaf_names())
+    known_leafes = all_leafes & set(info.keys())
+    query_leafes = all_leafes - known_leafes
+    if placements is not None:
+        query_leafes = query_leafes & set(placements)
 
     logging.debug(
         "Determining the LCA in a tree with {} leafes".format(len(known_leafes))
     )
 
     leafes = set()
-    all_leafes = set(node.get_leaf_names())
     pl_lngs = []
-    for place in all_leafes - known_leafes:
+    for place in query_leafes:
         # jump to node
         node = t.search_nodes(name=place)[0]
         while True:

@@ -942,6 +942,7 @@ class eukcc:
         """
         if result is None:
             logging.debug("Empty result given, so we write NAs for all values")
+            result = [self.state]
 
         if type(result) == dict:
             result = [result]
@@ -959,10 +960,12 @@ class eukcc:
                 else:
                     lng = "NA"
 
+                # quality is missing if we could not estimate this genome
+                quality = (res["quality"] if "quality" in res.keys() else None) or {}
                 row = {
                     "fasta": res["fasta"],
-                    "completeness": res["quality"]["completeness"],
-                    "contamination": res["quality"]["contamination"],
+                    "completeness": quality.get("completeness", "NA"),
+                    "contamination": quality.get("contamination", "NA"),
                     "ncbi_lng": lng,
                 }
                 writer.writerow(row)
