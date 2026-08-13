@@ -166,6 +166,18 @@ def tax_LCA(
     t = Tree(tree)
     info = load_tax_info(taxinfo, dbfile=etedb)
 
+    # Split tree leaves into known references and queries:
+    #
+    #   Tree leaves:    ref_A   ref_B   query_1   query_2   query_3
+    #                     │       │        │         │         │
+    #                     └─ known ─┘      └──── queries ─────┘
+    #   Taxonomy info:  ref_A   ref_B
+    #   Placements:                     query_1   query_2   query_3
+    #
+    # A known leaf is a tree leaf with taxonomy information.
+    # Query leaves are everything else; if placements are provided,
+    # only queries present in the placement set are considered.
+
     all_leafes = set(t.get_tree_root().get_leaf_names())
     known_leafes = all_leafes & set(info.keys())
     query_leafes = all_leafes - known_leafes

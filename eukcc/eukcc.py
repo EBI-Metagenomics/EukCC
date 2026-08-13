@@ -961,7 +961,7 @@ class eukcc:
                     lng = "NA"
 
                 # quality is missing if we could not estimate this genome
-                quality = (res["quality"] if "quality" in res.keys() else None) or {}
+                quality = res.get("quality") or {}
                 row = {
                     "fasta": res["fasta"],
                     "completeness": quality.get("completeness", "NA"),
