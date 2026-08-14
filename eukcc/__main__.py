@@ -27,6 +27,14 @@ def update(dbfile=None):
     ncbi.update_taxonomy_database()
 
 
+def no_estimate(E, state):
+    """
+    It was not possible to estimate this genome. Write the result file with NAs and stop.
+    """
+    E.write_result(E.state, os.path.join(state["out"], "eukcc.tsv"))
+    E.terminate(201)
+
+
 def run_eukcc(args):
     state = eukcc_state(workdir=None, options=vars(args))
     logging.info("EukCC version {}".format(version.__version__))
@@ -77,7 +85,7 @@ def run_eukcc(args):
     ):
         logging.info("Doing a first pass placement in the base database")
         if E.placement() is None:
-            E.terminate(1)
+            no_estimate(E, state)
         # decide which db to use
         clade = E.determine_subdb()
         if clade != "base":
@@ -87,7 +95,7 @@ def run_eukcc(args):
 
     # pick marker set and placement in one step
     if E.pick_marker_set() is None:
-        E.terminate(1)
+        no_estimate(E, state)
     E.state["scmg_data"] = E.hmmsearch_scmg(
         E.state["workdir"], E.state["faa"], E.state["marker_set"]["profiles"]
     )
@@ -99,7 +107,7 @@ def run_eukcc(args):
     # aggregate all the interesting data, such as estimated quality
     # the expected and found SCMGs and the workdir
     E.state.save_state()
-    E.write_result(E.state, os.path.join(state["out"], "eukcc.csv"))
+    E.write_result(E.state, os.path.join(state["out"], "eukcc.tsv"))
 
     if state["extra"]:
         # search for missing markers

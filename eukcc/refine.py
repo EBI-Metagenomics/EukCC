@@ -150,7 +150,7 @@ def refine(state):
         )
 
     # initialize output tables
-    result_table = os.path.join(state["out"], "eukcc.csv")
+    result_table = os.path.join(state["out"], "eukcc.tsv")
     write_table(None, result_table, header=True)
     # table for bad quality bins
     bad_quality_result_table = os.path.join(state["out"], "bad_quality.csv")

@@ -15,7 +15,7 @@ setuptools.setup(
     description="Check eukaryotic genomes or MAGs for completeness and contamination",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Finn-Lab/EukCC/",
+    url="https://github.com/EBI-Metagenomics/EukCC",
     py_modules=[],
     entry_points={
         "console_scripts": [

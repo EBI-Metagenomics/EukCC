@@ -18,7 +18,7 @@ Please cite
    
 Saary, Paul, Alex L. Mitchell, and Robert D. Finn. "Estimating the quality of eukaryotic genomes recovered from metagenomic analysis with EukCC." Genome biology 21.1 (2020): 1-21.
 
-The project is hosted on GitHub: https://github.com/Finn-Lab/EukCC/
+The project is hosted on GitHub: https://github.com/EBI-Metagenomics/EukCC
 
 
 

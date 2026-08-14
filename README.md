@@ -51,11 +51,11 @@ In addition, you need to install mandatory requirements:
 
 ### eukcc single
 
-- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage
+- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage
 
 ### eukcc folder
 
-- `eukcc.csv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
+- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
 - `merged_bins.csv` - table of merged refined bins
 - `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
 - `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
