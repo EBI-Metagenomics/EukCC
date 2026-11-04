@@ -49,7 +49,7 @@ def eukcc_folder(args):
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            exit(1)
 
     logging.info("EukCC version {}".format(version.__version__))
 
@@ -61,7 +61,7 @@ def eukcc_folder(args):
     logging.info("Found {} bins".format(len(state["input_bins"])))
     if len(state["input_bins"]) == 0:
         logging.error("Stopping as no bins in folder")
-        exit(222)
+        exit(1)
     refine(state)
 
 

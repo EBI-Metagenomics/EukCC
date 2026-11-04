@@ -701,7 +701,7 @@ class eukcc:
                 logging.error(
                     "Profile {} misses the hmm and alignment files".format(profile)
                 )
-                exit(200)
+                exit(1)
             hmmfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile][
                 "hmm"
             ]
@@ -794,7 +794,7 @@ class eukcc:
                     jfile
                 )
             )
-            exit(203)
+            exit(1)
         info["tog"] = self.guppy_tree(
             self.state["workdir"], os.path.join(wd, "epa_result.jplace")
         )
@@ -1002,7 +1002,7 @@ class eukcc:
         """
         if not os.path.exists(path):
             logging.error("Could not find file {}".format(path))
-            exit(200)
+            exit(1)
 
         with gzip.open(path) as fin:
             data = json.loads(fin.read().decode("utf-8"))

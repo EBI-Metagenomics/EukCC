@@ -71,3 +71,11 @@ class test_base(unittest.TestCase):
             self.assertEqual(seq_1.name, seq_2.name)
             self.assertEqual(seq_1.seq, seq_2.seq)
         os.remove(".test_tmp_metaeuk_file")
+
+    def test_metaeuk_cleaner_empty(self):
+        # zero predicted proteins is a valid outcome, not an exit
+        open(".test_tmp_empty_metaeuk", "w").close()
+        out = clean_metaeuk_fasta(".test_tmp_empty_metaeuk", ".test_tmp_empty_clean")
+        self.assertEqual(os.stat(out).st_size, 0)
+        os.remove(".test_tmp_empty_metaeuk")
+        os.remove(".test_tmp_empty_clean")

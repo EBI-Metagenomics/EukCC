@@ -312,7 +312,7 @@ def main():
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            exit(1)
 
     logging.info("EukCC version {}".format(version.__version__))
 

@@ -14,11 +14,11 @@ def define_set_w_genomes(args):
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            exit(1)
 
     if state["max_set_size"] < state["set_size"]:
-        logging.warning("Max set size cant be smaller than min set size")
-        exit(222)
+        logging.error("Max set size cant be smaller than min set size")
+        exit(1)
 
     if state["seqtype"] is None:
         logging.debug("Setting seqencetype to DNA, use --AA to pass proteomes")
@@ -31,5 +31,6 @@ def define_set_w_genomes(args):
     # launch new EukCC instance
     E = eukcc(state)
     if E.pick_marker_set() is None:
-        E.terminate(201)
+        logging.warning("No marker gene set could be defined")
+        E.terminate()
     E.state.save_state(filename=state["name"])

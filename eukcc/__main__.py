@@ -31,8 +31,9 @@ def no_estimate(E, state):
     """
     It was not possible to estimate this genome. Write the result file with NAs and stop.
     """
+    logging.warning("Could not estimate quality, writing NA results")
     E.write_result(E.state, os.path.join(state["out"], "eukcc.tsv"))
-    E.terminate(201)
+    E.terminate()
 
 
 def run_eukcc(args):
@@ -54,11 +55,11 @@ def run_eukcc(args):
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            exit(1)
 
     if state["max_set_size"] < state["set_size"]:
-        logging.warning("Max set size cant be smaller than min set size")
-        exit(222)
+        logging.error("Max set size cant be smaller than min set size")
+        exit(1)
 
     # validate fasta input
     if state["seqtype"] is None:
@@ -74,6 +75,10 @@ def run_eukcc(args):
     else:
         # copy fna to faa state entry
         E.state["faa"] = E.state["fasta"]
+
+    if os.stat(E.state["faa"]).st_size == 0:
+        logging.warning("No proteins to search for marker genes")
+        no_estimate(E, state)
 
     if E.state["comparison_genomes"] is not None:
         E.state["simple"] = True
