@@ -171,6 +171,19 @@ def validate_fasta(path, seqtype="AA"):
     return True
 
 
+def valid_fastas(paths):
+    """
+    keep only the paths that are valid fasta files, warn about the others
+    """
+    valid = []
+    for path in paths:
+        if os.path.isfile(path) and validate_fasta(path):
+            valid.append(path)
+        else:
+            logging.warning("Skipping {}, not a valid fasta file".format(path))
+    return valid
+
+
 def clean_metaeuk_fasta(fasta, outfasta):
     """
     given a fasta file, this will cleanup names, so we don't have any spaces or

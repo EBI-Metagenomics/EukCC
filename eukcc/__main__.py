@@ -169,7 +169,7 @@ def main():
     )
 
     pars_folder.add_argument(
-        "binfolder", type=str, help="Run script on bins in this folder"
+        "binfolder", type=str, help="Run script on bins in this folder (.fa, .fna and .fasta files are used)"
     )
     pars_folder.add_argument(
         "--links",
@@ -194,13 +194,6 @@ def main():
         default="merged.",
     )
 
-    pars_folder.add_argument(
-        "--suffix",
-        type=str,
-        required=False,
-        help="Suffix (default: .fa)",
-        default=".fa",
-    )
     pars_folder.add_argument(
         "--out",
         "-o",

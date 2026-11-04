@@ -4,7 +4,7 @@ import glob
 import csv
 from collections import defaultdict
 from eukcc.eukcc import eukcc, eukcc_state
-from eukcc.fasta import merge_fasta
+from eukcc.fasta import merge_fasta, valid_fastas
 import eukcc.version as version
 from eukcc.fasta import Fasta
 from eukcc.bin import bin, merge_bins
@@ -55,8 +55,10 @@ def eukcc_folder(args):
 
     # discover all bins
     logging.debug("Loading all bins")
-    state["input_bins"] = glob.glob(
-        os.path.join(state["binfolder"], "*{}".format(state["suffix"]))
+    state["input_bins"] = valid_fastas(
+        _path
+        for _path in glob.glob(os.path.join(state["binfolder"], "*"))
+        if _path.lower().endswith((".fa", ".fna", ".fasta"))
     )
     logging.info("Found {} bins".format(len(state["input_bins"])))
     if len(state["input_bins"]) == 0:
@@ -334,7 +336,7 @@ def refine(state):
         file.isdir(ref_dir)
         merged_fnas = []
         for merged_i, merged in enumerate(refined):
-            new_name = "{}{}{}".format(state["prefix"], merged_i, state["suffix"])
+            new_name = "{}{}{}".format(state["prefix"], merged_i, ".fa")
             merged_fna = os.path.join(ref_dir, new_name)
             # combined index list
             idxs = [merged["parent_idx"]]

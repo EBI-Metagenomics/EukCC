@@ -1,6 +1,6 @@
 import unittest
 import os
-from eukcc.fasta import Fasta, reduce_fasta, validate_fasta, N50, clean_metaeuk_fasta
+from eukcc.fasta import Fasta, reduce_fasta, validate_fasta, N50, clean_metaeuk_fasta, valid_fastas
 
 TESTDATA_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/test.fa")
 TRICKY_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/valid_but_tricky_fasta.fa")
@@ -79,3 +79,8 @@ class test_base(unittest.TestCase):
         self.assertEqual(os.stat(out).st_size, 0)
         os.remove(".test_tmp_empty_metaeuk")
         os.remove(".test_tmp_empty_clean")
+
+    def test_valid_fastas(self):
+        open(".test_tmp_not_fasta", "w").write("not a fasta\n")
+        self.assertEqual(valid_fastas([MULTILINE_FILE, ".test_tmp_not_fasta"]), [MULTILINE_FILE])
+        os.remove(".test_tmp_not_fasta")

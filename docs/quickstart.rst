@@ -84,8 +84,8 @@ EukCC on a folder of bins
 
     eukcc folder --out outfolder --threads 8 bins
 
-EukCC will assume that the folder contains files with the suffix ``.fa``. If 
-that is not the case please adjust the parameter.
+EukCC will use every file with the extension ``.fa``, ``.fna`` or ``.fasta``
+in the folder as a bin. Files that are not valid FASTA are skipped with a warning.
 
 In folder mode EukCC will also try to refine bins automatically. 
 To learn more about that please see 
