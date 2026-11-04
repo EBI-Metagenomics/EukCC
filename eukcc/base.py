@@ -61,6 +61,43 @@ def load_tax_info(path, sep=",", dbfile=None):
             d[row[1]] = [str(x) for x in ncbi.get_lineage(row[0])]
     return d
 
+GTDB_RANKS = {
+    "domain": "d",
+    "superkingdom": "d",
+    "phylum": "p",
+    "class": "c",
+    "order": "o",
+    "family": "f",
+    "genus": "g",
+    "species": "s",
+}
+
+
+def gtdb_lineage(lineage, dbfile=None):
+    """
+    Convert a lineage of NCBI taxids into the GTDB format
+    d__<domain>;p__<phylum>;c__<class>;o__<order>;f__<family>;g__<genus>;s__<species>
+    Ranks missing from the lineage are left empty.
+
+    :param lineage: list of taxids, non numeric ids such as protist_common are ignored
+    :param dbfile: path to the ete3 NCBI database
+    :return: lineage string, or NA if no taxid has a GTDB rank
+    """
+    tax_ids = [tax_id for tax_id in lineage if str(tax_id).isdigit()]
+    ncbi = NCBITaxa(dbfile=dbfile)
+    names = ncbi.get_taxid_translator(tax_ids)
+    ranks = ncbi.get_rank(tax_ids)
+    names_by_prefix = {}
+    for tax_id in tax_ids:
+        prefix = GTDB_RANKS.get(ranks.get(int(tax_id)))
+        if prefix is not None:
+            names_by_prefix[prefix] = names[int(tax_id)]
+    if len(names_by_prefix) == 0:
+        return "NA"
+    return ";".join(
+        "{}__{}".format(prefix, names_by_prefix.get(prefix, "")) for prefix in "dpcofgs"
+    )
+
 
 def Counter(x):
     """

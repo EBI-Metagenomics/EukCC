@@ -24,6 +24,7 @@ from eukcc.base import (
     load_tax_info,
     load_SCMGs,
     compute_silent_contamination,
+    gtdb_lineage,
     hmmer_cutoffs,
 )
 import eukcc.fasta as Fasta
@@ -425,6 +426,9 @@ class eukcc:
 
         logging.debug("Lineage infered as {}".format(lng))
         self.state["lng"] = lng
+        self.state["lng_names"] = gtdb_lineage(
+            lng, dbfile=self.state["dbinfo"]["files"]["etedb"]
+        )
 
         return
 
@@ -957,7 +961,7 @@ class eukcc:
             self.state = result
             result = [self.state]
         # file.isdir(os.path.dirname(outfile))
-        fields = ["fasta", "completeness", "contamination", "ncbi_lng"]
+        fields = ["fasta", "completeness", "contamination", "ncbi_lng", "ncbi_lng_names"]
         with open(outfile, "w") as fout:
             writer = csv.DictWriter(fout, fields, delimiter=sep, extrasaction="ignore")
             writer.writeheader()
@@ -966,6 +970,7 @@ class eukcc:
                     lng = "-".join(res["lng"])
                 else:
                     lng = "NA"
+                lng_names = res.get("lng_names") or "NA"
 
                 # quality is missing if we could not estimate this genome
                 quality = res.get("quality") or {}
@@ -974,6 +979,7 @@ class eukcc:
                     "completeness": quality.get("completeness", "NA"),
                     "contamination": quality.get("contamination", "NA"),
                     "ncbi_lng": lng,
+                    "ncbi_lng_names": lng_names,
                 }
                 writer.writerow(row)
 

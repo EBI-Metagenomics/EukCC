@@ -103,13 +103,14 @@ def read_link_table(path):
 def write_table(state, path, sep="\t", header=False):
     if header:
         with open(path, "w") as fout:
-            fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng"]))
+            fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng", "ncbi_lng_names"]))
             fout.write("\n")
     else:
         if "lng" in state.keys():
             lng = "-".join(state["lng"])
         else:
             lng = "NA"
+        lng_names = state.get("lng_names") or "NA"
 
         with open(path, "a") as fout:
             bn = os.path.basename(state["fasta"])
@@ -118,7 +119,7 @@ def write_table(state, path, sep="\t", header=False):
                 bn = bn.split("_", 1)[1]
             compl = str(state["quality"]["completeness"])
             cont = str(state["quality"]["contamination"])
-            s = sep.join([bn, compl, cont, lng])
+            s = sep.join([bn, compl, cont, lng, lng_names])
             fout.write(s)
             fout.write("\n")
 
