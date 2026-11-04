@@ -150,13 +150,52 @@ def hard_set_computation(
         return None
 
 
+# fraction of placement votes a sub-database needs to be chosen
+SUBDB_VOTE = 0.6
+
+
+def subdb_vote(tree, placements, leaf_subdb, vote=SUBDB_VOTE):
+    """
+    Each placement votes for the sub-database most common among its closest
+    reference leaves (walking up from the placement, as in tax_LCA).
+
+    :param tree: newick string or path of the placement tree
+    :param placements: query leaf names
+    :param leaf_subdb: dict of reference leaf name: sub-database
+    :param vote: fraction of votes the winner needs
+    :return: (sub-database or None without a majority, fraction of votes)
+    """
+    t = Tree(tree)
+    votes = []
+    for place in placements:
+        nodes = t.search_nodes(name=place)
+        if len(nodes) == 0:
+            continue
+        node = nodes[0]
+        while True:
+            hits = [leaf_subdb[n] for n in node.get_leaf_names() if n in leaf_subdb]
+            if len(hits) > 0 or node.up is None:
+                break
+            node = node.up
+        if len(hits) > 0:
+            votes.append(Counter(hits).most_common(1)[0][0])
+
+    if len(votes) == 0:
+        return None, 0
+    subdb, n = Counter(votes).most_common(1)[0]
+    frac = n / len(votes)
+    if frac < vote:
+        return None, frac
+    return subdb, frac
+
+
 def tax_LCA(
     tree,
     taxinfo,
     placements=None,
     majority_vote=0.6,
     etedb=None,
-    add_protist_common=True,
+    add_protist_common=False,
 ):
     """
     given a guppy tree we will try to figure out

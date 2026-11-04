@@ -29,7 +29,7 @@ from eukcc.base import (
 import eukcc.fasta as Fasta
 from eukcc.fasta import check_alignment
 from eukcc.file import file
-from eukcc.treehandler import tree_sets, hard_set_computation, tax_LCA
+from eukcc.treehandler import tree_sets, hard_set_computation, tax_LCA, subdb_vote
 from glob import glob
 
 
@@ -420,7 +420,6 @@ class eukcc:
             tree,
             info,
             places,
-            add_protist_common=False,
             etedb=self.state["dbinfo"]["files"]["etedb"],
         )
 
@@ -431,35 +430,43 @@ class eukcc:
 
     def determine_subdb(self):
         """
-        assuming a placement was done, we try to figure out what tax clade we deal with
+        assuming a placement was done, each placement votes for the sub-database
+        its closest reference leaves in the base tree belong to
         """
         pl = self.state["placement"]
-        tree = pl["tog"]
         places = [x["n"][0] for x in pl["placements"]]
-        info = self.state["dbinfo"]["files"]["taxinfo"]
-        lng = tax_LCA(tree, info, places, etedb=self.state["dbinfo"]["files"]["etedb"])
-        clade = "base"
-        if len(lng) < 3:
-            logging.warning(
-                "Could not determine a suffciently deep LCA, using base database"
-            )
-        else:
-            if len(set(["33154", "4751"]) & set(lng)) > 0:
-                clade = "fungi"
-            elif len(set(["33090"]) & set(lng)) > 0:
-                clade = "plant"
-            elif len(set(["protist_common"]) & set(lng)) > 0:
-                clade = "protozoa"
-        if clade != "base":
-            logging.info(
-                "Genome belongs to clade: {} (Best TaxID: {})".format(clade, lng[-1])
-            )
-        else:
-            logging.warning(
-                "Could not narrow down the clade, using base database. Please provide clade if known via --clade {fungi,plant,protozoa}"
-            )
 
-        return clade
+        # map each reference leaf to the sub-database listing it in its taxinfo
+        db = self.state["db"]
+        subdbs = []
+        leaf_subdb = {}
+        for d in sorted(os.listdir(db)):
+            if not d.startswith("db_") or d == "db_base":
+                continue
+            if not os.path.isdir(os.path.join(db, d)):
+                continue
+            sub = d[len("db_") :]
+            subdbs.append(sub)
+            info = self._load_db_info(db, d)
+            with open(info["files"]["taxinfo"]) as fin:
+                for row in csv.reader(fin):
+                    leaf_subdb[row[1]] = sub
+
+        clade, frac = subdb_vote(pl["tog"], places, leaf_subdb)
+        if clade is not None:
+            logging.info(
+                "Genome belongs to clade: {} ({:.0%} of placement votes)".format(
+                    clade, frac
+                )
+            )
+            return clade
+
+        logging.warning(
+            "Could not narrow down the clade ({:.0%} of placement votes for the most voted), using base database. Please provide clade if known via --clade {{{}}}".format(
+                frac, ",".join(subdbs)
+            )
+        )
+        return "base"
 
     def remove_workdir(self, workdir):
         """

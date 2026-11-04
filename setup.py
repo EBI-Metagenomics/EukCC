@@ -26,7 +26,7 @@ setuptools.setup(
     scripts=["scripts/binlinks.py", "scripts/filter_euk_bins.py"],
     install_requires=["ete3", "jsonpickle", "numpy"],
     packages=setuptools.find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.8,<3.12",
     license="GPLv3",
     license_files=("LICENSE"),
     classifiers=[
