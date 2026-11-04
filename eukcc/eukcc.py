@@ -161,7 +161,7 @@ class eukcc:
             raise ValueError("seqtype should be either DNA or AA")
 
         if Fasta.validate_fasta(self.state["fasta"]) is False:
-            raise ValueError("The provided fasta is corrupt or maybe gzipped?")
+            raise ValueError("The provided fasta is corrupt")
 
         if self.state["set_number_species"] < 3:
             logging.warning(

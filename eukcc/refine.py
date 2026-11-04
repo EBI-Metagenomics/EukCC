@@ -58,7 +58,7 @@ def eukcc_folder(args):
     state["input_bins"] = valid_fastas(
         _path
         for _path in glob.glob(os.path.join(state["binfolder"], "*"))
-        if _path.lower().endswith((".fa", ".fna", ".fasta"))
+        if _path.lower().endswith((".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz"))
     )
     logging.info("Found {} bins".format(len(state["input_bins"])))
     if len(state["input_bins"]) == 0:

@@ -1,6 +1,14 @@
 import os
 import logging
 from collections import defaultdict
+from fileinput import hook_compressed
+
+
+def open_fasta(path):
+    """
+    open a plain or gzip compressed (.gz) fasta file as text
+    """
+    return hook_compressed(path, "r", encoding="utf-8")
 
 
 def check_alignment(path, target, target_upper=10):
@@ -93,7 +101,7 @@ def Fasta(path):
     if validate_fasta(path) is False:
         raise ValueError("The provided fasta file is malformed: {}".format(path))
 
-    with open(path) as fin:
+    with open_fasta(path) as fin:
         for line in fin:
             if line.startswith(">"):
                 if entry is not False:
@@ -138,16 +146,16 @@ def validate_fasta(path, seqtype="AA"):
     if os.stat(path).st_size == 0:
         return False
 
-    # check if we can open it
+    # check if we can open it, corrupted compressed files raise OSError
     try:
-        with open(path) as fin:
+        with open_fasta(path) as fin:
             for line in fin:
                 break
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, OSError):
         return False
 
     # check if the file contains valid sequences
-    with open(path) as fin:
+    with open_fasta(path) as fin:
         tp = "start"
         for line in fin:
             if line.strip() == "":
@@ -168,6 +176,9 @@ def validate_fasta(path, seqtype="AA"):
             if not line.strip().startswith(">"):
                 tp = "seq"
 
+    # no sequence at all, e.g. a compressed empty file
+    if tp == "start":
+        return False
     return True
 
 

@@ -169,7 +169,7 @@ def main():
     )
 
     pars_folder.add_argument(
-        "binfolder", type=str, help="Run script on bins in this folder (.fa, .fna and .fasta files are used)"
+        "binfolder", type=str, help="Run script on bins in this folder (.fa, .fna and .fasta files are used, optionally gzip compressed)"
     )
     pars_folder.add_argument(
         "--links",

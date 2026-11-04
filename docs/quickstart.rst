@@ -70,8 +70,8 @@ If not please use the ``--db`` flag to pass the database to EukCC.
 
 
 EukCC will then run on 8 threads. You can pass nucleotide fastas
-or proteomes to EukCC. It will automatically try to detect if it
-has to predict proteins or not. 
+or proteomes to EukCC, plain or gzip compressed (``.gz``). It will
+automatically try to detect if it has to predict proteins or not. 
 
 By default it will never use more than a single threads for placing 
 the genomes in the reference tree, to save memory. 
@@ -85,7 +85,7 @@ EukCC on a folder of bins
     eukcc folder --out outfolder --threads 8 bins
 
 EukCC will use every file with the extension ``.fa``, ``.fna`` or ``.fasta``
-in the folder as a bin. Files that are not valid FASTA are skipped with a warning.
+in the folder as a bin, also gzip compressed (``.fa.gz``, ...). Files that are not valid FASTA are skipped with a warning.
 
 In folder mode EukCC will also try to refine bins automatically. 
 To learn more about that please see 
