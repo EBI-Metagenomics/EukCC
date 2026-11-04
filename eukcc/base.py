@@ -79,7 +79,7 @@ def gtdb_lineage(lineage, dbfile=None):
     d__<domain>;p__<phylum>;c__<class>;o__<order>;f__<family>;g__<genus>;s__<species>
     Ranks missing from the lineage are left empty.
 
-    :param lineage: list of taxids, non numeric ids such as protist_common are ignored
+    :param lineage: list of taxids, non numeric ids are ignored
     :param dbfile: path to the ete3 NCBI database
     :return: lineage string, or NA if no taxid has a GTDB rank
     """

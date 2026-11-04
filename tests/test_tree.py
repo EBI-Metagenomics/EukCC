@@ -35,7 +35,6 @@ class test_tree(unittest.TestCase):
             tree,
             TESTDATA_TAX_LCA,
             placements=["metaeuk_OY253681.1_29", "metaeuk_OY253676.1_95"],
-            add_protist_common=False,
         )
 
         # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta

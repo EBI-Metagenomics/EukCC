@@ -150,11 +150,12 @@ def hard_set_computation(
         return None
 
 
-# fraction of placement votes a sub-database needs to be chosen
-SUBDB_VOTE = 0.6
+# minimum fraction of votes the most voted option needs to be accepted:
+# the taxid at each lineage rank in tax_LCA, and the sub-database in subdb_vote.
+MAJ_VOTE = 0.6
 
 
-def subdb_vote(tree, placements, leaf_subdb, vote=SUBDB_VOTE):
+def subdb_vote(tree, placements, leaf_subdb, vote=MAJ_VOTE):
     """
     Each placement votes for the sub-database most common among its closest
     reference leaves (walking up from the placement, as in tax_LCA).
@@ -193,9 +194,8 @@ def tax_LCA(
     tree,
     taxinfo,
     placements=None,
-    majority_vote=0.6,
+    majority_vote=MAJ_VOTE,
     etedb=None,
-    add_protist_common=False,
 ):
     """
     given a guppy tree we will try to figure out
@@ -241,17 +241,13 @@ def tax_LCA(
                 node = node.up
         lngs = [info[acc].copy() for acc in leafes]
 
-        def maj_lng(L, f=0.6, add_protists=True):
-            non_protists = ["33154", "33090"]
+        def maj_lng(L):
             lngs = L.copy()
             # get the tax ids at each position
             positions = defaultdict(list)
             index = set()
             for lng in lngs:
                 for i, tax in enumerate(lng):
-                    if i == 3 and tax not in non_protists and add_protists:
-                        # insert protists shared taxid
-                        positions[i].append("protist_common")
                     positions[i].append(tax)
                     index.add(i)
             idx = 0
@@ -271,9 +267,9 @@ def tax_LCA(
                     break
             return lng
 
-        pl_lngs.append(maj_lng(lngs, add_protists=add_protist_common))
+        pl_lngs.append(maj_lng(lngs))
 
-    return maj_lng(pl_lngs, add_protists=add_protist_common)
+    return maj_lng(pl_lngs)
 
 
 class tree_sets:
