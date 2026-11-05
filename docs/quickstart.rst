@@ -32,21 +32,51 @@ You will need to fetch the database for EukCC once.
 
     The database from version 1 is not compatible. So after upadting to EukCC make sure to upadte the database.
 
+Databases available at http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/:
+
+.. list-table::
+    :header-rows: 1
+
+    * - File
+      - Last update
+      - Size
+      - EukCC version
+    * - ``eukcc2_db_ver_2026-11.tar.gz``
+      - 2026-11-01
+      -
+      - >= 2
+    * - ``eukcc2_db_ver_1.2.tar.gz``
+      - 2022-04-01
+      - 6.0G
+      - >= 2
+    * - ``eukcc2_db_ver_1.1.tar.gz``
+      - 2021-10-15
+      - 5.9G
+      - >= 2
+    * - ``eukcc2_db_ver_1.tar.gz``
+      - 2021-04-07
+      - 5.9G
+      - >= 2
+    * - ``eukcc_db_v1.1.tar.gz``
+      - 2020-01-27
+      - 659M
+      - 1
+
 Fetching the database is as simple as:
 
 .. code-block:: shell
 
     mkdir eukccdb
     cd eukccdb
-    wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
-    tar -xzvf eukcc2_db_ver_1.2.tar.gz
+    wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz
+    tar -xzvf eukcc2_db_ver_2026-11.tar.gz
 
 If you want to forget about the database location you can add an ENV variable to your
 `.bash.rc`:
 
 .. code-block:: shell
 
-    export EUKCC2_DB=/path/to/.../eukcc2_db_ver_1.2
+    export EUKCC2_DB=/path/to/.../eukcc2_db_ver_2026-11
 
 
 Running EukCC
