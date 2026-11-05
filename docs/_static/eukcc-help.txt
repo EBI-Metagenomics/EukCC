@@ -1,0 +1,149 @@
+$ eukcc -h
+usage: eukcc [-h] [--quiet] [--debug] [-v]
+             {single,folder,define_set,ncbi_update} ...
+
+Framework to evaluate completeness and contamination of a eukaryotic MAG or
+isolate genome. Only valid for microbial eukaryotes.
+
+options:
+  -h, --help            show this help message and exit
+  --quiet, -q           Silence most output
+  --debug, -d           Debug and thus ignore safety
+  -v, --version         show program's version number and exit
+
+Subcommands:
+  {single,folder,define_set,ncbi_update}
+
+$ eukcc single -h
+usage: eukcc single [-h] [--out OUT] [--db DB] [--threads THREADS]
+                    [--threads_epa THREADS_EPA] [--DNA] [--AA]
+                    [--taxids TAXIDS [TAXIDS ...]]
+                    [--genomes COMPARISON_GENOMES [COMPARISON_GENOMES ...]]
+                    [--set_size SET_SIZE] [--use_placement USE_PLACEMENT]
+                    [--set_number_species SET_NUMBER_SPECIES]
+                    [--marker_prevalence MARKER_PREVALENCE]
+                    [--max_set_size MAX_SET_SIZE] [--select_best_guess]
+                    [--select_species] [--use_ncbi_tree] [--ignore_tree]
+                    [--simple] [--clade CLADE] [--rerun] [--no_dynamic_root]
+                    [--extra] [--keep]
+                    fasta
+
+positional arguments:
+  fasta                 Estimate quality of this single bin (fasta file)
+
+options:
+  -h, --help            show this help message and exit
+  --out OUT, -o OUT     Path to output folder (Default: .)
+  --db DB               Path to EukCC DB
+  --threads THREADS, -t THREADS
+                        Number of threads to use (Default: 1)
+  --threads_epa THREADS_EPA
+                        Number of threads to use for epa-ng, recommended: 1
+                        (Default: 1)
+  --DNA                 The fasta file contains DNA sequences
+  --AA                  The fasta file contains amino acid sequences
+  --taxids TAXIDS [TAXIDS ...]
+                        Taxids to use as set starting point
+  --genomes COMPARISON_GENOMES [COMPARISON_GENOMES ...]
+                        Genome files to base a SCMG set upon
+  --set_size SET_SIZE   Minimal number of marker genes to use (Default: 20)
+  --use_placement USE_PLACEMENT
+                        Path to previous result file, to use exact same marker
+                        gene set
+  --set_number_species SET_NUMBER_SPECIES
+                        Minimal number of species to define a set. Reduce this
+                        if no sets can be found (Default: 3)
+  --marker_prevalence MARKER_PREVALENCE
+                        Percentage of species in which markers should be found
+                        (Default: 95)
+  --max_set_size MAX_SET_SIZE
+                        Maximal number of marker genes used, set to 0 to
+                        include all possible marker genes (Default: 500)
+  --select_best_guess   Use best guess to select marker gene set (Default)
+  --select_species      Use species count to select best marker gene set
+                        (Default: best guess)
+  --use_ncbi_tree       Instead of using the EukCC phylogenetic tree, rely on
+                        NCBI taxids (default: False)
+  --ignore_tree         Advanced option, mainly for debugging. Can ignore the
+                        tree if genomes are known via taxids for example
+  --simple              Use global DB instead of clade specific dbs (faster,
+                        not suitable for protozoa)
+  --clade CLADE         Define clade as base, fungi, protozoa or plant
+  --rerun, -r           Rerun and remove any previously computed data in the
+                        target folder
+  --no_dynamic_root     Do not re-root tree dynamically, to get best set
+                        detection (default: True)
+  --extra               Produce extra output files.
+  --keep                Keep workdir after the run.
+
+$ eukcc folder -h
+usage: eukcc folder [-h] [--links LINKS] [--min_links MIN_LINKS]
+                    [--prefix PREFIX] [--out OUT] [--db DB]
+                    [--improve_ratio IMPROVE_RATIO]
+                    [--improve_percent IMPROVE_PERCENT]
+                    [--n_combine N_COMBINE] [--threads THREADS]
+                    [--threads_epa THREADS_EPA]
+                    [--marker_prevalence MARKER_PREVALENCE]
+                    binfolder
+
+positional arguments:
+  binfolder             Run script on bins in this folder (.fa, .fna and
+                        .fasta files are used, optionally gzip compressed)
+
+options:
+  -h, --help            show this help message and exit
+  --links LINKS         Path to a link table generated with binlinks.py. If
+                        supplied, paired reads will be used to refine bins
+                        (Recommended)
+  --min_links MIN_LINKS
+                        Number of paired reads matching between bins for
+                        merging to happen (default: 100)
+  --prefix PREFIX       Prefix to add for merged bins (default: merged.)
+  --out OUT, -o OUT     Path to output folder (Default: .)
+  --db DB               Path to EukCC DB
+  --improve_ratio IMPROVE_RATIO
+                        Ratio of completeness to contamination change
+                        (Default: 5)
+  --improve_percent IMPROVE_PERCENT
+                        A merger must increase completeness at least by n
+                        percent (Default: 10)
+  --n_combine N_COMBINE
+                        How many small bins should be merged into a medium
+                        sized bin (Default: 1)
+  --threads THREADS, -t THREADS
+                        Number of threads to use (Default: 1)
+  --threads_epa THREADS_EPA
+                        Number of threads to use for epa-ng, recommended: 1
+                        (Default: 1)
+  --marker_prevalence MARKER_PREVALENCE
+                        Percentage of species in which markers should be found
+                        (Default: 95)
+
+$ eukcc define_set -h
+usage: eukcc define_set [-h] [--name NAME] [--out OUT] [--db DB]
+                        [--threads THREADS] [--max_set_size MAX_SET_SIZE]
+                        [--set_size SET_SIZE]
+                        [--marker_prevalence MARKER_PREVALENCE] [--AA] [--DNA]
+                        genomes [genomes ...]
+
+positional arguments:
+  genomes               Genome files to base a SCMG set upon
+
+options:
+  -h, --help            show this help message and exit
+  --name NAME, -n NAME  Name of the set (default: set)
+  --out OUT, -o OUT     Folder to store the output (default: .)
+  --db DB               Path to EukCC DB
+  --threads THREADS, -t THREADS
+                        Number of threads to use (Default: 1)
+  --max_set_size MAX_SET_SIZE
+                        Maximal number of marker genes used, set to 0 to
+                        include all possible marker genes (Default: 500)
+  --set_size SET_SIZE   Minimal number of marker genes to use (Default: 20)
+  --marker_prevalence MARKER_PREVALENCE
+                        Percentage of species in which markers should be found
+                        (Default: 95)
+  --AA                  All provided files are proteins, no gene prediction
+                        will be performed. Omit if input is mixed or genomic
+  --DNA                 The fasta file contains DNA sequences
+

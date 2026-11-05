@@ -15,27 +15,28 @@ Head over to https://eukcc.readthedocs.io/ to check out the documentation.
 # create a folder were to keep the database
 mkdir eukccdb
 cd eukccdb
-wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
-tar -xzvf eukcc2_db_ver_1.2.tar.gz
-export EUKCC2_DB=$(realpath eukcc2_db_ver_1.2)
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz
+tar -xzvf eukcc2_db_ver_2026-11.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_2026-11)
 ```
 
 ### Quickstart using container
 
-Get EukCC quickly by fetching the container. 
+Get EukCC quickly by fetching the BioContainers image:
+https://quay.io/repository/biocontainers/eukcc
 
-The container is hosted and automatically build from the master branch here: 
-https://quay.io/repository/microbiome-informatics/eukcc
+These images have no `latest` tag, so pick a version tag from the repository:
+
 ```
-docker pull quay.io/microbiome-informatics/eukcc
-singularity pull docker://quay.io/microbiome-informatics/eukcc
+docker pull quay.io/biocontainers/eukcc:<tag>
+singularity pull docker://quay.io/biocontainers/eukcc:<tag>
 ```
 
 ### Bioconda / pip
 
-Alternatively you can install EukCC using conda or pip. 
+Alternatively you can install EukCC using conda or pip.
 
-In addition, you need to install mandatory requirements:
+With pip, you also need to install these mandatory requirements:
 - metaeuk=4.a0f584d
 - pplacer
 - epa-ng=0.3.8
@@ -56,8 +57,8 @@ In addition, you need to install mandatory requirements:
 ### eukcc folder
 
 - `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **good** quality bins
-- `merged_bins.csv` - table of merged refined bins
-- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
+- `merged_bins.csv` - table of merged refined bins (tab separated)
+- `bad_quality.csv` - tab separated table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
 - `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
 - `merged_bins` - folder with merged bins sequences 
 - `refine_workdir` - working directory with intermediate steps results
@@ -66,8 +67,9 @@ In addition, you need to install mandatory requirements:
 ## Don't use EukCC on already pubished data
 Or at least not without thinking about it:
 
-You should not use EukCC on already published genomes, if they have used during training of the marker 
-gene sets. If you want to make sure, you can see all used accessions in the database file `db_base/backbone/base_taxinfo.csv`.
+You should not use EukCC on already published genomes, if they were used during training of the marker
+gene sets. If you want to make sure, the accessions used are listed in the `taxinfo` file of each
+sub-database of the EukCC database (`files.taxinfo` in `db_<clade>/db_info.json`).
 
 ## Cite
 

@@ -152,7 +152,7 @@ def main():
         dest="quiet",
         action="store_true",
         default=False,
-        help="Silcence most output",
+        help="Silence most output",
     )
     parser.add_argument(
         "--debug",
@@ -175,7 +175,7 @@ def main():
         "--links",
         type=str,
         required=False,
-        help="Path to a link table generated with bamlinks.py. If suuplied paired reads will be used to refine bins (Recommended)",
+        help="Path to a link table generated with binlinks.py. If supplied, paired reads will be used to refine bins (Recommended)",
         default=None,
     )
 
@@ -274,7 +274,7 @@ def main():
         action="store_const",
         const="DNA",
         default=None,
-        help="The fasta file contains DNA sequenes",
+        help="The fasta file contains DNA sequences",
     )
     pars_eukcc.add_argument(
         "--AA",
@@ -359,17 +359,10 @@ def main():
         help="Instead of using the EukCC phylogenetic tree, rely on NCBI taxids (default: False)",
     )
     pars_eukcc.add_argument(
-        "--gmes",
-        dest="use_gmes",
-        action="store_true",
-        default=False,
-        help="Use GeneMark-ES instead of metaeuk (much slower) (default: False)",
-    )
-    pars_eukcc.add_argument(
         "--ignore_tree",
         action="store_true",
         default=False,
-        help="Advanced option, mainly for debugging. Can ignore the tree if genomes are knwon via taxids for example",
+        help="Advanced option, mainly for debugging. Can ignore the tree if genomes are known via taxids for example",
     )
     pars_eukcc.add_argument(
         "--simple",
@@ -382,7 +375,7 @@ def main():
         "--clade",
         default="base",
         type=str,
-        help="Define clade as base, fungi, protozoa or plants",
+        help="Define clade as base, fungi, protozoa or plant",
     )
     pars_eukcc.add_argument(
         "--rerun",
@@ -471,7 +464,7 @@ def main():
         action="store_const",
         const="DNA",
         default=None,
-        help="The fasta file contains DNA sequenes",
+        help="The fasta file contains DNA sequences",
     )
     args = parser.parse_args()
     if args.command is None:

@@ -1,82 +1,87 @@
 EukCC options explained
 ============================
 
-EukCC in genome (default) mode
+EukCC on a genome (default)
 --------------------------------
-When launching EukCC without special 
-parameters, it will assume that a 
-genomic fasta file was passed as input.
-Thus GeneMark-ES will be used 
-to predict proteins. 
+By default ``eukcc single`` assumes a nucleotide fasta file (genome or MAG)
+and predicts its proteins with MetaEuk, using the MetaEuk database that
+comes with the EukCC database.
 
 .. code-block:: shell
 
-    eukcc --db eukccdb -o . genome.fna
+    eukcc single --db eukccdb --out outfolder genome.fna
 
 
-EukCC in protein mode
+EukCC on proteins
 ---------------------------
-If proteins for a genome or MAG were already predicted
-using a nother pipeline, EukCC can be used to 
-estimate the completeness and contamination.
-
-For this EukCC requires at least the proteins as Fasta
-file. Internally EukCC ignores repeated proteins that
-occure very close to each other on a genomic level. This
-is due to common gene prediction errors and subsequent 
-duplicated hits with profile hmms. Thus it is possible
-to pass the genomic coordinates for each protein as a bed
-file to EukCC. Such a file can easily be prepared from 
-gtf or gff files. If no bed file is provided, this step 
-will be skipped.
-
-The bed file needs to be a simple five column bed file containing the contig, start and end of the gene, 
-the strand and finally the name of the gene. Exons and introns are ignored as only start and end of the coding regions matter. 
-
-Befor submitting predicted proteins make sure to remove any stop codons (*), as they cause issues with pplacer (https://github.com/Finn-Lab/EukCC/issues/14).
-
+If the proteins of a genome or MAG were already predicted with another
+pipeline, pass the protein fasta file instead. EukCC detects the sequence
+type on its own; use ``--AA`` (or ``--DNA``) to set it explicitly.
 
 .. code-block:: shell
 
-    eukcc --db eukccdb -o . \
-          --protein genome.faa \
-          --bed coordinates.bed
-        
+    eukcc single --db eukccdb --out outfolder --AA proteins.faa
+
+Proteins passed this way are used as they are. Before submitting them,
+remove any stop codons (``*``) and avoid spaces and the characters
+``|``, ``[`` and ``]`` in the sequence names, as they cause issues with
+the placement in the reference tree. EukCC only cleans the names of the
+proteins it predicts with MetaEuk.
 
 
-EukCC using pygmes
+Choosing the database clade
 ---------------------------
-GeneMark-ES uses a self training step to generate a model
-for the provided genome. Somtimes highly fragmented or
-incomplete genomes can fail to provided enough training data
-for GeneMark-ES model creation to succeed. 
-
-In these cases EukCC can rely on pygmes to select a suitable 
-model from previous analysed genomes. This allows to estimate 
-genome completeness also for very incomplete genomes.
-
-For pygmes to select a suitable model the user needs to provide
-a diamond data base with taxonomic information.
-Such a database can be downloaded here:
+Besides the base database, the EukCC database has clade specific
+databases (``fungi``, ``protozoa`` and ``plant``). By default EukCC places
+the genome in the base tree and picks the clade from the placement. If the
+clade of the genome is known, it can be set with ``--clade``:
 
 .. code-block:: shell
 
-    wget -O uniref50_pygmes.dmnd http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/uniref50_20200213_tax.dmnd
+    eukcc single --db eukccdb --out outfolder --clade fungi genome.fna
 
-EukCC can then be launched with:
+With ``--simple`` EukCC only uses the base database, which is faster but
+not specific.
 
+
+Marker gene sets
+---------------------------
+The marker gene set is chosen from the placement of the genome. These
+options change which markers are accepted:
+
+- ``--marker_prevalence``: percentage of species in which a marker must be
+  found as single copy (default: 95).
+- ``--set_size`` and ``--max_set_size``: minimal (default: 20) and maximal
+  (default: 500, 0 for no limit) number of markers in a set.
+
+To use exactly the same marker gene set for another genome, pass the
+``savestate.json.gz`` written by a previous ``eukcc single`` run:
 
 .. code-block:: shell
 
-    eukcc --db eukccdb -o . \
-        --pygmes \
-        --diamond uniref50_pygmes.dmnd \
+    eukcc single --db eukccdb --out outfolder \
+        --use_placement previous_run/savestate.json.gz \
         genome.fna
 
-    
+A marker gene set can also be defined from a group of genomes with
+``eukcc define_set``. It writes ``<name>.json.gz`` to the output folder,
+which can then be passed to ``--use_placement``:
+
+.. code-block:: shell
+
+    eukcc define_set --db eukccdb --out sets --name myset genome_1.fna genome_2.fna
+
+
+Other options
+---------------------------
+- ``--keep``: keep the working directory after the run.
+- ``--extra``: also write ``scmg_marker_table.csv.gz``, with the hits for
+  every marker of the set, searched without the gathering cutoffs.
+- ``eukcc ncbi_update``: update the NCBI taxonomy database used by ete3.
+
+
 EukCC -h
 ------------------------
 
-
-.. include:: ../_static/eukcc-help.txt
-
+.. literalinclude:: ../_static/eukcc-help.txt
+    :language: text

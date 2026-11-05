@@ -263,7 +263,7 @@ def main():
         "--clade",
         default="base",
         type=str,
-        help="Define clade as base, fungi, protozoa or plants (Defaut: base)",
+        help="Define clade as base, fungi, protozoa or plant (Default: base)",
     )
     parser.add_argument(
         "--quiet",
@@ -271,7 +271,7 @@ def main():
         dest="quiet",
         action="store_true",
         default=False,
-        help="Silcence most output",
+        help="Silence most output",
     )
     parser.add_argument(
         "--debug",

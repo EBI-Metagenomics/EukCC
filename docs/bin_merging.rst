@@ -3,11 +3,11 @@ Bin merging
 =====================
 
 If EukCC is run in ``folder`` mode, it can try to merge
-two more more bins to create a refined/merged version
+two or more bins to create a refined/merged version
 of increased completeness.
 
-For this you can and should pass paired read information to EukCC. So
-only bins linked by at least 100 (default) reads are considered
+For this you can and should pass paired read information to EukCC, so
+only bins linked by at least 100 reads (``--min_links``) are considered
 for merging. This greatly improves speed and accuracy.
 
 Preparing your linked reads
@@ -15,7 +15,7 @@ Preparing your linked reads
 If you have paired-end read data you should create a sorted alignment. 
 If you have multiple read files, you can create multiple BAM files.
 
-For this you will need the contigs that were used to create this bins.
+For this you will need the contigs that were used to create these bins.
 Alternatively merge all bins into a pseudo-assembly file.
 
 .. code-block:: shell
@@ -52,10 +52,14 @@ You can then launch EukCC on the same binfolder like so:
         --links linktable.csv \
         binfolder
 
-EukCC will fist run on all bins individually. It will then identify medium quality bins that are at least 50% compelete but not yet more than
-100-``improve_percent``. 
-It will then identify bins that are linked by at least 100 paired end reads to these medium quality bins. If after 
-merging the quality score goes up this bin will be merged. 
+EukCC will first run on all bins individually. Bins with at least 50%
+completeness are then combined with smaller bins (less than 50%) that are
+linked to them by at least ``--min_links`` paired end reads (default: 100).
+Without a link table, every small bin is tried.
+
+A merge is kept if completeness goes up by at least ``--improve_percent``
+(default: 10) and by more than ``--improve_ratio`` (default: 5) times the
+increase in contamination.
 
 Merged bins can be found in the output folder.
 

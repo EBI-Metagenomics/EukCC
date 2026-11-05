@@ -3,7 +3,7 @@ EukCC
 =================================
 
 
-EukCC is a command line too written in python3 to estimate completeness and contamination
+EukCC is a command line tool written in python3 to estimate completeness and contamination
 of novel eukaryotic MAGs.
 
 .. note::
@@ -27,4 +27,5 @@ The project is hosted on GitHub: https://github.com/EBI-Metagenomics/EukCC
     :caption: Contents:
 
     Quickstart<quickstart.rst>
+    Options<usage/options.rst>
     Bin Merging<bin_merging.rst>

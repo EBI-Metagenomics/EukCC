@@ -321,27 +321,16 @@ class eukcc:
         return True
 
     def predict_protein(self):
-        # fasta_faa = self._pygmes(workdir, fasta, ncores=ncores)
         logging.debug("Fasta is of DNA type, proteins will be predicted")
-        if self.state["use_gmes"] is True:
-            logging.info("Predicting proteins using GeneMark-ES")
-            fasta_faa = self._pygmes(
-                self.state["workdir"],
-                self.state["fasta"],
-                diamond=self.state["dbinfo"]["files"]["diamond"],
-                ncores=self.state["threads"],
-            )
-        else:
-            logging.info("Predicting proteins using MetaEuk")
-            fasta_faa = self._metaeuk(
-                self.state["workdir"],
-                self.state["fasta"],
-                self.state["loaded_dbs"]["base"]["files"][
-                    "metaeukdb"
-                ],  # only the base db has the metaeuk db
-                ncores=self.state["threads"],
-            )
-        self.state["faa"] = fasta_faa
+        logging.info("Predicting proteins using MetaEuk")
+        self.state["faa"] = self._metaeuk(
+            self.state["workdir"],
+            self.state["fasta"],
+            self.state["loaded_dbs"]["base"]["files"][
+                "metaeukdb"
+            ],  # only the base db has the metaeuk db
+            ncores=self.state["threads"],
+        )
 
     def _metaeuk(self, workdir, fasta, metaeukdb, ncores=1):
         """
@@ -370,20 +359,6 @@ class eukcc:
         file.delete_but(wd, keep=[faafile, cleanfaafile])
 
         return os.path.join(wd, cleanfaafile)
-
-    def _pygmes(self, workdir, fasta, diamond, ncores=1):
-        """
-        launch pygmes
-        """
-        from pygmes import pygmes
-
-        wd = os.path.join(workdir, "pygmes")
-        fasta_faa = os.path.join(wd, "predicted_proteins.faa")
-        if file.isnewer(fasta, fasta_faa):
-            pygmes(fasta, wd, db=diamond, clean=True, ncores=ncores)
-        # delete all tmp files by default
-        file.delete_but(wd, "predicted_proteins.faa")
-        return fasta_faa
 
     def structure_result(self, **args):
         args["found_SCMGs"] = [x["query"] for x in args["found_SCMGs_raw"]]

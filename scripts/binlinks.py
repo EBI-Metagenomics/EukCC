@@ -147,7 +147,7 @@ def main():
         dest="quiet",
         action="store_true",
         default=False,
-        help="Silcence most output",
+        help="Silence most output",
     )
     parser.add_argument(
         "--debug",
