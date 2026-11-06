@@ -5,8 +5,6 @@ Usage: eukcc [OPTIONS] [COMMAND] [ARGS]...
   isolate genome. Only valid for microbial eukaryotes.
 
 Options:
-  -q, --quiet    Silence most output
-  -d, --debug    Debug and thus ignore safety
   -v, --version  Show the version and exit.
   -h, --help     Show this message and exit.
 
@@ -66,6 +64,8 @@ Options:
                                 set detection (default: True)
   --extra                       Produce extra output files.
   --keep                        Keep workdir after the run.
+  -q, --quiet                   Silence most output
+  -d, --debug                   Debug and thus ignore safety
   -h, --help                    Show this message and exit.
 
 $ eukcc folder -h
@@ -95,6 +95,8 @@ Options:
                              percent (Default: 10)
   --n_combine INTEGER        How many small bins should be merged into a
                              medium sized bin (Default: 1)
+  -q, --quiet                Silence most output
+  -d, --debug                Debug and thus ignore safety
   -h, --help                 Show this message and exit.
 
 $ eukcc define_set -h
@@ -118,5 +120,7 @@ Options:
   --AA                       All provided files are proteins, no gene
                              prediction will be performed. Omit if input is
                              mixed or genomic
+  -q, --quiet                Silence most output
+  -d, --debug                Debug and thus ignore safety
   -h, --help                 Show this message and exit.
 

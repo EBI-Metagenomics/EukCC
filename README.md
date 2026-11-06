@@ -110,7 +110,7 @@ So version 2 is **not** a drop in replacement.
 ## Issues and bugs
 
 Please report any bugs and issues here on GitHub. Make sure to
-include the debug log (run eukcc using `--debug` flag).
+include the debug log (run eukcc using the `--debug` flag, e.g. `eukcc single --debug ...`).
 
 ### used exit codes
 - 0: Success.

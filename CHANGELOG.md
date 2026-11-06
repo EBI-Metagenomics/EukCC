@@ -21,6 +21,8 @@
 - `bad_quality.csv` and `merged_bins.csv` are renamed to `bad_quality.tsv` and `merged_bins.tsv`.
   They were already tab separated.
 - Python 3.10 or 3.11 is required.
+- `--debug` and `--quiet` are options of each subcommand and go after it
+  (`eukcc single --debug ...`) (#40).
 - `eukcc` uses `click`. `eukcc single --taxids` and `--genomes` take one value each and
   are repeated for several values (`--genomes a.fa --genomes b.fa`). All other options and
   defaults are the same.

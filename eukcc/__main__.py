@@ -46,16 +46,13 @@ def setup_logging(quiet, debug, out=None):
     invoke_without_command=True,
     help="Framework to evaluate completeness and contamination of a eukaryotic MAG or isolate genome. Only valid for microbial eukaryotes.",
 )
-@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
-@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
 @click.version_option(__version__, "-v", "--version", message="EukCC version %(version)s")
 @click.pass_context
-def main(ctx, quiet, debug):
+def main(ctx):
     # without a subcommand, show the help and exit with 0
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         ctx.exit(0)
-    ctx.obj = {"quiet": quiet, "debug": debug}
 
 
 # ----------------------------------------------------------------------------
@@ -281,14 +278,15 @@ def run_eukcc(args):
 )
 @click.option("--extra", is_flag=True, default=False, help="Produce extra output files.")
 @click.option("--keep", is_flag=True, default=False, help="Keep workdir after the run.")
-@click.pass_obj
-def single(obj, **kwargs):
-    setup_logging(obj["quiet"], obj["debug"], kwargs["out"])
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def single(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
     kwargs["taxids"] = list(kwargs["taxids"]) or None
     kwargs["comparison_genomes"] = list(kwargs["comparison_genomes"]) or None
     kwargs["dynamic_root"] = not kwargs.pop("no_dynamic_root")
     kwargs["clean"] = not kwargs.pop("keep")
-    run_eukcc(SimpleNamespace(**obj, **kwargs))
+    run_eukcc(SimpleNamespace(**kwargs))
 
 
 # ----------------------------------------------------------------------------
@@ -347,10 +345,11 @@ def single(obj, **kwargs):
     default=1,
     help="How many small bins should be merged into a medium sized bin (Default: 1)",
 )
-@click.pass_obj
-def folder(obj, **kwargs):
-    setup_logging(obj["quiet"], obj["debug"], kwargs["out"])
-    eukcc_folder(SimpleNamespace(**obj, **kwargs))
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def folder(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
+    eukcc_folder(SimpleNamespace(**kwargs))
 
 
 # ----------------------------------------------------------------------------
@@ -388,11 +387,12 @@ def folder(obj, **kwargs):
     flag_value="AA",
     help="All provided files are proteins, no gene prediction will be performed. Omit if input is mixed or genomic",
 )
-@click.pass_obj
-def define_set(obj, **kwargs):
-    setup_logging(obj["quiet"], obj["debug"], kwargs["out"])
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def define_set(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
     kwargs["genomes"] = list(kwargs["genomes"])
-    define_set_w_genomes(SimpleNamespace(**obj, **kwargs))
+    define_set_w_genomes(SimpleNamespace(**kwargs))
 
 
 # ----------------------------------------------------------------------------
@@ -400,11 +400,12 @@ def define_set(obj, **kwargs):
 # ----------------------------------------------------------------------------
 
 @main.command("ncbi_update", context_settings=CONTEXT_SETTINGS, help="Update the NCBI taxonomy database used by ete3.")
-@click.pass_obj
-def ncbi_update(obj):
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def ncbi_update(quiet, debug):
     from ete3 import NCBITaxa
 
-    setup_logging(obj["quiet"], obj["debug"])
+    setup_logging(quiet, debug)
     logging.info("Going to fetch NCBI info using ete3")
     NCBITaxa().update_taxonomy_database()
 
@@ -422,9 +423,10 @@ def ncbi_update(obj):
     show_default=True,
     help="URL of the database tarball",
 )
-@click.pass_obj
-def download_db(obj, out, url):
-    setup_logging(obj["quiet"], obj["debug"], out)
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def download_db(out, url, quiet, debug):
+    setup_logging(quiet, debug, out)
     tarball = os.path.join(out, os.path.basename(url) or "eukcc_db.tar.gz")
 
     logging.info(f"Downloading {url}")

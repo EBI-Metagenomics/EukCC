@@ -33,7 +33,7 @@ class test_cli(unittest.TestCase):
         with self.runner.isolated_filesystem(), mock.patch.object(cli, "run_eukcc") as run:
             result = self.runner.invoke(
                 cli.main,
-                ["-d", "single", "bin.fa", "-o", "out", "--AA", "--genomes", "a.fa", "--genomes", "b.fa",
+                ["single", "bin.fa", "-d", "-o", "out", "--AA", "--genomes", "a.fa", "--genomes", "b.fa",
                  "--select_species", "--no_dynamic_root", "--keep", "--marker_prevalence", "97.5"],
             )
         self.assertEqual(result.exit_code, 0, result.output)
@@ -59,3 +59,21 @@ class test_cli(unittest.TestCase):
         self.assertTrue(args["dynamic_root"])
         self.assertTrue(args["clean"])
         self.assertEqual(args["out"], ".")
+
+    def test_log_options(self):
+        for args, quiet, debug in [
+            (["single", "bin.fa", "--debug"], False, True),
+            (["single", "bin.fa", "-q"], True, False),
+        ]:
+            with self.runner.isolated_filesystem(), mock.patch.object(cli, "run_eukcc") as run:
+                result = self.runner.invoke(cli.main, args)
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertEqual(vars(run.call_args.args[0])["quiet"], quiet, args)
+            self.assertEqual(vars(run.call_args.args[0])["debug"], debug, args)
+
+        for command, function in [("folder", "eukcc_folder"), ("define_set", "define_set_w_genomes")]:
+            with self.runner.isolated_filesystem(), mock.patch.object(cli, function) as run:
+                result = self.runner.invoke(cli.main, [command, "input", "--debug"])
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertTrue(vars(run.call_args.args[0])["debug"], command)
+
