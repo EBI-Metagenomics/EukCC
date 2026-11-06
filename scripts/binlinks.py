@@ -147,7 +147,7 @@ def main():
         dest="quiet",
         action="store_true",
         default=False,
-        help="Silcence most output",
+        help="Silence most output",
     )
     parser.add_argument(
         "--debug",
@@ -174,7 +174,7 @@ def main():
 
     cm = contig_map(bindir)
     bm, contigs_per_bin = bin_map(bindir)
-    logging.debug("Found {} contigs".format(len(cm)))
+    logging.debug(f"Found {len(cm)} contigs")
 
     link_table = defaultdict(lambda: defaultdict(int))
     bin_table = defaultdict(lambda: defaultdict(int))
@@ -183,14 +183,14 @@ def main():
     for bamf in args.bam:
         link_table = read_bam_file(bamf, link_table, cm, args.within, args.ANI)
 
-    logging.debug("Created link table with {} entries".format(len(link_table)))
+    logging.debug(f"Created link table with {len(link_table)} entries")
 
     # generate bin table
     for contig_1, dic in link_table.items():
         for contig_2, links in dic.items():
             bin_table[bm[contig_1]][bm[contig_2]] += links
 
-    logging.debug("Created bin table with {} entries".format(len(bin_table)))
+    logging.debug(f"Created bin table with {len(bin_table)} entries")
 
     out_data = []
     logging.debug("Constructing output dict")
@@ -213,7 +213,7 @@ def main():
             for bin_2, links in dic.items():
                 out_data.append({"bin_1": bin_1, "bin_2": bin_2, "links": links})
 
-    logging.debug("Out data has {} rows".format(len(out_data)))
+    logging.debug(f"Out data has {len(out_data)} rows")
     # results
     logging.info("Writing output")
     with open(args.out, "w") as fout:

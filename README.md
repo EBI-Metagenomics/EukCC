@@ -11,31 +11,41 @@ Head over to https://eukcc.readthedocs.io/ to check out the documentation.
 ## Run
 
 ### Download EukCC2 database from [FTP](http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/)
+
+With EukCC installed, `eukcc download_db` downloads and extracts the current database
+(use `--url` for another version from the FTP):
+```
+eukcc download_db --out eukccdb
+export EUKCC2_DB=$(realpath eukccdb/eukcc2_db_ver_2026-11)
+```
+
+Or by hand:
 ```
 # create a folder were to keep the database
 mkdir eukccdb
 cd eukccdb
-wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_1.2.tar.gz
-tar -xzvf eukcc2_db_ver_1.2.tar.gz
-export EUKCC2_DB=$(realpath eukcc2_db_ver_1.2)
+wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz
+tar -xzvf eukcc2_db_ver_2026-11.tar.gz
+export EUKCC2_DB=$(realpath eukcc2_db_ver_2026-11)
 ```
 
 ### Quickstart using container
 
-Get EukCC quickly by fetching the container. 
+Get EukCC quickly by fetching the BioContainers image:
+https://quay.io/repository/biocontainers/eukcc
 
-The container is hosted and automatically build from the master branch here: 
-https://quay.io/repository/microbiome-informatics/eukcc
+These images have no `latest` tag, so pick a version tag from the repository:
+
 ```
-docker pull quay.io/microbiome-informatics/eukcc
-singularity pull docker://quay.io/microbiome-informatics/eukcc
+docker pull quay.io/biocontainers/eukcc:<tag>
+singularity pull docker://quay.io/biocontainers/eukcc:<tag>
 ```
 
 ### Bioconda / pip
 
-Alternatively you can install EukCC using conda or pip. 
+Alternatively you can install EukCC using conda or pip.
 
-In addition, you need to install mandatory requirements:
+With pip, you also need to install these mandatory requirements:
 - metaeuk=4.a0f584d
 - pplacer
 - epa-ng=0.3.8
@@ -51,14 +61,14 @@ In addition, you need to install mandatory requirements:
 
 ### eukcc single
 
-- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage
+- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names)
 
 ### eukcc folder
 
-- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage for **good** quality bins
-- `merged_bins.csv` - table of merged refined bins
-- `bad_quality.csv`- table with estimated completeness, contamination and taxonomy lineage for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
-- `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
+- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **good** quality bins. Bins that could not be estimated (zero predicted proteins or no marker gene set) are listed with `NA`
+- `merged_bins.tsv` - table of merged refined bins
+- `bad_quality.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
+- `missing_marker_genes.txt` - line separated list of bins that could not be estimated (zero predicted proteins or no marker gene set)
 - `merged_bins` - folder with merged bins sequences 
 - `refine_workdir` - working directory with intermediate steps results
 
@@ -66,8 +76,9 @@ In addition, you need to install mandatory requirements:
 ## Don't use EukCC on already pubished data
 Or at least not without thinking about it:
 
-You should not use EukCC on already published genomes, if they have used during training of the marker 
-gene sets. If you want to make sure, you can see all used accessions in the database file `db_base/backbone/base_taxinfo.csv`.
+You should not use EukCC on already published genomes, if they were used during training of the marker
+gene sets. If you want to make sure, the accessions used are listed in the `taxinfo` file of each
+sub-database of the EukCC database (`files.taxinfo` in `db_<clade>/db_info.json`).
 
 ## Cite
 
@@ -82,6 +93,10 @@ Genome biology 21.1 (2020): 1-21.
 EukCC also uses metaEUK, hmmer, pplacer, ete3 and epa-ng. 
 
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the changes in each version.
+
 ## Changed compared to EukCC 1
 **Note**: 
 With version 2, EukCC should provide a better experience than
@@ -95,14 +110,8 @@ So version 2 is **not** a drop in replacement.
 ## Issues and bugs
 
 Please report any bugs and issues here on GitHub. Make sure to
-include the debug log (run eukcc using `--debug` flag).
+include the debug log (run eukcc using the `--debug` flag, e.g. `eukcc single --debug ...`).
 
 ### used exit codes
-- 200: File not found
-- 201: No Marker gene set could be defined
-- 202: No database provided
-- 203: Corrupted file
-- 204: Predicted zero proteins 
-- 222: Invalid settings
-
-
+- 0: Success.
+- 1: Error, the reason is reported in the log

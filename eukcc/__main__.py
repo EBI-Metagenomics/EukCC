@@ -1,13 +1,63 @@
 import os
-import argparse
+import shutil
+import tarfile
+import urllib.request
 import logging
-from eukcc.eukcc import eukcc, eukcc_state
+from types import SimpleNamespace
+import click
+from eukcc import __version__
+from eukcc.constants import FASTA_EXTENSIONS
+from eukcc.eukcc import eukcc, eukcc_state, check_set_size
 from eukcc.fasta import determine_type
-import eukcc.version as version
-from eukcc.refine import eukcc_folder
 from eukcc.file import file
+from eukcc.refine import eukcc_folder
 from eukcc.set_define import define_set_w_genomes
 
+
+CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+
+
+def setup_logging(quiet, debug, out=None):
+    """
+    Log to the terminal and, if an output folder is given, to <out>/eukcc.log
+    """
+    logLevel = logging.INFO
+    if quiet:
+        logLevel = logging.WARNING
+    elif debug:
+        logLevel = logging.DEBUG
+
+    handlers = [logging.StreamHandler()]
+    if out is not None:
+        # create output folder if not exists
+        file.isdir(out)
+        handlers.insert(0, logging.FileHandler(os.path.join(out, "eukcc.log")))
+
+    logging.basicConfig(
+        format="%(asctime)s %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S: ",
+        level=logLevel,
+        handlers=handlers,
+    )
+
+
+@click.group(
+    context_settings=CONTEXT_SETTINGS,
+    invoke_without_command=True,
+    help="Framework to evaluate completeness and contamination of a eukaryotic MAG or isolate genome. Only valid for microbial eukaryotes.",
+)
+@click.version_option(__version__, "-v", "--version", message="EukCC version %(version)s")
+@click.pass_context
+def main(ctx):
+    # without a subcommand, show the help and exit with 0
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit(0)
+
+
+# ----------------------------------------------------------------------------
+# eukcc single
+# ----------------------------------------------------------------------------
 
 publications = {
     "eukcc": 'Saary, Paul, Alex L. Mitchell, and Robert D. Finn. "Estimating the quality of eukaryotic genomes recovered from metagenomic analysis with EukCC." Genome biology 21.1 (2020): 1-21.',
@@ -18,31 +68,23 @@ publications = {
 }
 
 
-def update(dbfile=None):
-    from ete3 import NCBITaxa
-
-    logging.info("Going to fetch NCBI info using ete3")
-    ncbi = NCBITaxa(dbfile=dbfile)
-
-    ncbi.update_taxonomy_database()
-
-
 def no_estimate(E, state):
     """
     It was not possible to estimate this genome. Write the result file with NAs and stop.
     """
+    logging.warning("Could not estimate quality, writing NA results")
     E.write_result(E.state, os.path.join(state["out"], "eukcc.tsv"))
-    E.terminate(201)
+    E.terminate()
 
 
 def run_eukcc(args):
     state = eukcc_state(workdir=None, options=vars(args))
-    logging.info("EukCC version {}".format(version.__version__))
+    logging.info(f"EukCC version {__version__}")
     logging.warning(
         "#####################################\nIf you publish using EukCC please make sure to also cite:"
     )
     for software, publication in publications.items():
-        logging.warning("\n{}:\n{}\n".format(software, publication))
+        logging.warning(f"\n{software}:\n{publication}\n")
     logging.warning("####################################")
 
     # if db is not set, we check for env variable
@@ -50,20 +92,21 @@ def run_eukcc(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
-            logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            logging.error(
+                "No database was provided via --db or EUKCC2_DB env variable, "
+                "download it with: eukcc download_db --out <folder>"
+            )
+            exit(1)
 
-    if state["max_set_size"] < state["set_size"]:
-        logging.warning("Max set size cant be smaller than min set size")
-        exit(222)
+    check_set_size(state)
 
     # validate fasta input
     if state["seqtype"] is None:
         state["seqtype"] = determine_type(state["fasta"])
-        logging.info("Set sequence type to {}".format(state["seqtype"]))
+        logging.info(f"Set sequence type to {state['seqtype']}")
 
     # launch new EukCC instance
     E = eukcc(state)
@@ -74,6 +117,10 @@ def run_eukcc(args):
     else:
         # copy fna to faa state entry
         E.state["faa"] = E.state["fasta"]
+
+    # zero proteins predicted, clean_metaeuk_fasta already warned about it
+    if os.stat(E.state["faa"]).st_size == 0:
+        no_estimate(E, state)
 
     if E.state["comparison_genomes"] is not None:
         E.state["simple"] = True
@@ -127,386 +174,291 @@ def run_eukcc(args):
     return
 
 
-def main():
-    # set arguments
-    # arguments are passed to classes
-    parser = argparse.ArgumentParser(
-        description="Framework to evaluate completeness and contamination of a eukaryotic MAG or isolate genome. Only valid for microbial eukaryotes."
-    )
+@main.command(context_settings=CONTEXT_SETTINGS, help="Estimate the quality of a single genome or MAG.")
+@click.argument("fasta", type=str)
+@click.option("--out", "-o", type=str, default=".", help="Path to output folder (Default: .)")
+@click.option("--db", type=str, default=None, help="Path to EukCC DB")
+@click.option("--threads", "-t", type=int, default=1, help="Number of threads to use (Default: 1)")
+@click.option(
+    "--threads_epa",
+    type=int,
+    default=1,
+    help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
+)
+@click.option(
+    "--set_size",
+    type=int,
+    default=20,
+    help="Minimal number of marker genes in a set, smaller sets are not used (Default: 20)",
+)
+@click.option(
+    "--max_set_size",
+    type=int,
+    default=500,
+    help="Maximal number of marker genes in a set, larger sets are reduced to a fixed random sample of this size. 0 uses all marker genes (Default: 500)",
+)
+@click.option(
+    "--marker_prevalence",
+    type=float,
+    default=95,
+    help="Percentage of the reference species of a set in which a marker gene must be single copy (Default: 95)",
+)
+@click.option("--DNA", "seqtype", flag_value="DNA", default=None, help="The fasta file contains DNA sequences")
+@click.option("--AA", "seqtype", flag_value="AA", help="The fasta file contains amino acid sequences")
+@click.option(
+    "--taxids",
+    type=str,
+    multiple=True,
+    help="Taxid to use as set starting point, repeat the option for several taxids",
+)
+@click.option(
+    "--genomes",
+    "comparison_genomes",
+    type=str,
+    multiple=True,
+    help="Genome file to base a SCMG set upon, repeat the option for several genomes",
+)
+@click.option(
+    "--use_placement",
+    type=str,
+    default=None,
+    help="Path to previous result file, to use exact same marker gene set",
+)
+@click.option(
+    "--set_number_species",
+    type=int,
+    default=3,
+    help="Minimal number of reference species a set is defined on. Reduce this if no sets can be found (Default: 3)",
+)
+@click.option(
+    "--select_best_guess",
+    "set_selection",
+    flag_value="best_guess",
+    default="best_guess",
+    help="Use best guess to select marker gene set (Default)",
+)
+@click.option(
+    "--select_species",
+    "set_selection",
+    flag_value="species",
+    help="Use species count to select best marker gene set (Default: best guess)",
+)
+@click.option(
+    "--use_ncbi_tree",
+    "use_ncbi",
+    is_flag=True,
+    default=False,
+    help="Instead of using the EukCC phylogenetic tree, rely on NCBI taxids (default: False)",
+)
+@click.option(
+    "--ignore_tree",
+    is_flag=True,
+    default=False,
+    help="Advanced option, mainly for debugging. Can ignore the tree if genomes are known via taxids for example",
+)
+@click.option(
+    "--simple",
+    is_flag=True,
+    default=False,
+    help="Use global DB instead of clade specific dbs (faster, not suitable for protozoa)",
+)
+@click.option("--clade", type=str, default="base", help="Define clade as base, fungi, protozoa or plant")
+@click.option(
+    "--rerun",
+    "-r",
+    is_flag=True,
+    default=False,
+    help="Rerun and remove any previously computed data in the target folder",
+)
+@click.option(
+    "--no_dynamic_root",
+    is_flag=True,
+    default=False,
+    help="Do not re-root tree dynamically, to get best set detection (default: True)",
+)
+@click.option("--extra", is_flag=True, default=False, help="Produce extra output files.")
+@click.option("--keep", is_flag=True, default=False, help="Keep workdir after the run.")
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def single(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
+    kwargs["taxids"] = list(kwargs["taxids"]) or None
+    kwargs["comparison_genomes"] = list(kwargs["comparison_genomes"]) or None
+    kwargs["dynamic_root"] = not kwargs.pop("no_dynamic_root")
+    kwargs["clean"] = not kwargs.pop("keep")
+    run_eukcc(SimpleNamespace(**kwargs))
 
-    # define subcommands
-    subparsers = parser.add_subparsers(title="Subcommands", dest="command")
-    pars_eukcc = subparsers.add_parser("single")
-    pars_folder = subparsers.add_parser("folder")
-    pars_set = subparsers.add_parser("define_set")
-    subparsers.add_parser("ncbi_update")
 
-    parser.add_argument(
-        "--quiet",
-        "-q",
-        dest="quiet",
-        action="store_true",
-        default=False,
-        help="Silcence most output",
-    )
-    parser.add_argument(
-        "--debug",
-        "-d",
-        action="store_true",
-        default=False,
-        help="Debug and thus ignore safety",
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version="EukCC version {}".format(version.__version__),
-    )
+# ----------------------------------------------------------------------------
+# eukcc folder
+# ----------------------------------------------------------------------------
 
-    pars_folder.add_argument(
-        "binfolder", type=str, help="Run script on bins in this folder"
-    )
-    pars_folder.add_argument(
-        "--links",
-        type=str,
-        required=False,
-        help="Path to a link table generated with bamlinks.py. If suuplied paired reads will be used to refine bins (Recommended)",
-        default=None,
-    )
+@main.command(
+    context_settings=CONTEXT_SETTINGS,
+    help="Estimate the quality of a folder of bins and refine them. "
+    f"Bins are the {', '.join(FASTA_EXTENSIONS)} files in BINFOLDER, optionally gzip compressed.",
+)
+@click.argument("binfolder", type=str)
+@click.option("--out", "-o", type=str, default=".", help="Path to output folder (Default: .)")
+@click.option("--db", type=str, default=None, help="Path to EukCC DB")
+@click.option("--threads", "-t", type=int, default=1, help="Number of threads to use (Default: 1)")
+@click.option(
+    "--threads_epa",
+    type=int,
+    default=1,
+    help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
+)
+@click.option(
+    "--marker_prevalence",
+    type=float,
+    default=95,
+    help="Percentage of the reference species of a set in which a marker gene must be single copy (Default: 95)",
+)
+@click.option(
+    "--links",
+    type=str,
+    default=None,
+    help="Path to a link table generated with binlinks.py. If supplied, paired reads will be used to refine bins (Recommended)",
+)
+@click.option(
+    "--min_links",
+    type=int,
+    default=100,
+    help="Number of paired reads matching between bins for merging to happen (default: 100)",
+)
+@click.option("--prefix", type=str, default="merged.", help="Prefix to add for merged bins (default: merged.)")
+@click.option(
+    "--improve_ratio",
+    type=float,
+    default=5,
+    help="Ratio of completeness to contamination change (Default: 5)",
+)
+@click.option(
+    "--improve_percent",
+    type=float,
+    default=10,
+    help="A merger must increase completeness at least by n percent (Default: 10)",
+)
+@click.option(
+    "--no_merge",
+    is_flag=True,
+    default=False,
+    help="Only estimate the quality of each bin, without merging bins",
+)
+@click.option(
+    "--n_combine",
+    type=int,
+    default=1,
+    help="How many small bins should be merged into a medium sized bin (Default: 1)",
+)
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def folder(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
+    eukcc_folder(SimpleNamespace(**kwargs))
 
-    pars_folder.add_argument(
-        "--min_links",
-        type=int,
-        required=False,
-        help="Number of paired reads matching between bins for merging to happen (default: 100)",
-        default=100,
-    )
-    pars_folder.add_argument(
-        "--prefix",
-        type=str,
-        required=False,
-        help="Prefix to add for merged bins (default: merged.)",
-        default="merged.",
-    )
 
-    pars_folder.add_argument(
-        "--suffix",
-        type=str,
-        required=False,
-        help="Suffix (default: .fa)",
-        default=".fa",
-    )
-    pars_folder.add_argument(
-        "--out",
-        "-o",
-        type=str,
-        required=False,
-        help="Path to output folder (Default: .)",
-        default=".",
-    )
-    pars_folder.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
-    pars_folder.add_argument(
-        "--improve_ratio",
-        type=float,
-        help="Ratio of completeness to contamination change (Default: 5)",
-        default=5,
-    )
-    pars_folder.add_argument(
-        "--improve_percent",
-        type=float,
-        help="A merger must increase completeness at least by n percent (Default: 10)",
-        default=10,
-    )
-    pars_folder.add_argument(
-        "--n_combine",
-        type=int,
-        help="How many small bins should be merged into a medium sized bin (Default: 1)",
-        default=1,
-    )
-    pars_folder.add_argument(
-        "--threads",
-        "-t",
-        type=int,
-        help="Number of threads to use (Default: 1)",
-        default=1,
-    )
-    pars_folder.add_argument(
-        "--threads_epa",
-        type=int,
-        help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
-        default=1,
-    )
-    pars_folder.add_argument(
-        "--marker_prevalence",
-        type=float,
-        required=False,
-        help="Percentage of species in which markers should be found (Default: 95)",
-        default=95,
-    )
+# ----------------------------------------------------------------------------
+# eukcc define_set
+# ----------------------------------------------------------------------------
 
-    # single fasta
-    pars_eukcc.add_argument(
-        "fasta", type=str, help="Estimate quality of this single bin (fasta file)"
-    )
-    pars_eukcc.add_argument(
-        "--out",
-        "-o",
-        type=str,
-        required=False,
-        help="Path to output folder (Default: .)",
-        default=".",
-    )
-    pars_eukcc.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
-    pars_eukcc.add_argument(
-        "--threads",
-        "-t",
-        type=int,
-        help="Number of threads to use (Default: 1)",
-        default=1,
-    )
-    pars_eukcc.add_argument(
-        "--threads_epa",
-        type=int,
-        help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
-        default=1,
-    )
-    pars_eukcc.add_argument(
-        "--DNA",
-        dest="seqtype",
-        action="store_const",
-        const="DNA",
-        default=None,
-        help="The fasta file contains DNA sequenes",
-    )
-    pars_eukcc.add_argument(
-        "--AA",
-        dest="seqtype",
-        action="store_const",
-        const="AA",
-        help="The fasta file contains amino acid sequences",
-    )
-    pars_eukcc.add_argument(
-        "--taxids",
-        type=str,
-        required=False,
-        help="Taxids to use as set starting point",
-        default=None,
-        nargs="+",
-    )
-    pars_eukcc.add_argument(
-        "--genomes",
-        type=str,
-        required=False,
-        help="Genome files to base a SCMG set upon",
-        dest="comparison_genomes",
-        default=None,
-        nargs="+",
-    )
-    pars_eukcc.add_argument(
-        "--set_size",
-        type=int,
-        required=False,
-        help="Minimal number of marker genes to use (Default: 20)",
-        default=20,
-    )
-    pars_eukcc.add_argument(
-        "--use_placement",
-        type=str,
-        required=False,
-        help="Path to previous result file, to use exact same marker gene set",
-        default=None,
-    )
-    pars_eukcc.add_argument(
-        "--set_number_species",
-        type=int,
-        required=False,
-        help="Minimal number of species to define a set. Reduce this if no sets can be found (Default: 3)",
-        default=3,
-    )
-    pars_eukcc.add_argument(
-        "--marker_prevalence",
-        type=float,
-        required=False,
-        help="Percentage of species in which markers should be found (Default: 95)",
-        default=95,
-    )
-    pars_eukcc.add_argument(
-        "--max_set_size",
-        type=int,
-        required=False,
-        help="Maximal number of marker genes used, set to 0 to include all possible marker genes (Default: 500)",
-        default=500,
-    )
-    pars_eukcc.add_argument(
-        "--select_best_guess",
-        dest="set_selection",
-        action="store_const",
-        const="best_guess",
-        default="best_guess",
-        help="Use best guess to select marker gene set (Default)",
-    )
-    pars_eukcc.add_argument(
-        "--select_species",
-        dest="set_selection",
-        action="store_const",
-        const="species",
-        default="best_guess",
-        help="Use species count to select best marker gene set (Default: best guess)",
-    )
-    pars_eukcc.add_argument(
-        "--use_ncbi_tree",
-        dest="use_ncbi",
-        action="store_true",
-        default=False,
-        help="Instead of using the EukCC phylogenetic tree, rely on NCBI taxids (default: False)",
-    )
-    pars_eukcc.add_argument(
-        "--gmes",
-        dest="use_gmes",
-        action="store_true",
-        default=False,
-        help="Use GeneMark-ES instead of metaeuk (much slower) (default: False)",
-    )
-    pars_eukcc.add_argument(
-        "--ignore_tree",
-        action="store_true",
-        default=False,
-        help="Advanced option, mainly for debugging. Can ignore the tree if genomes are knwon via taxids for example",
-    )
-    pars_eukcc.add_argument(
-        "--simple",
-        dest="simple",
-        action="store_true",
-        default=False,
-        help="Use global DB instead of clade specific dbs (faster, not suitable for protozoa)",
-    )
-    pars_eukcc.add_argument(
-        "--clade",
-        default="base",
-        type=str,
-        help="Define clade as base, fungi, protozoa or plants",
-    )
-    pars_eukcc.add_argument(
-        "--rerun",
-        "-r",
-        dest="rerun",
-        action="store_true",
-        default=False,
-        help="Rerun and remove any previously computed data in the target folder",
-    )
-    pars_eukcc.add_argument(
-        "--no_dynamic_root",
-        dest="dynamic_root",
-        action="store_false",
-        default=True,
-        help="Do not re-root tree dynamically, to get best set detection (default: True)",
-    )
-    pars_eukcc.add_argument(
-        "--extra",
-        action="store_true",
-        dest="extra",
-        default=False,
-        help="Produce extra output files.",
-    )
-    pars_eukcc.add_argument(
-        "--keep",
-        action="store_false",
-        dest="clean",
-        default=True,
-        help="Keep workdir after the run.",
-    )
-    pars_set.add_argument(
-        "genomes",
-        type=str,
-        help="Genome files to base a SCMG set upon",
-        nargs="+",
-    )
-    pars_set.add_argument(
-        "--name", "-n", type=str, default="set", help="Name of the set (default: set)"
-    )
-    pars_set.add_argument(
-        "--out",
-        "-o",
-        type=str,
-        default=".",
-        help="Folder to store the output (default: .)",
-    )
-    pars_set.add_argument("--db", type=str, default=None, help="Path to EukCC DB")
-    pars_set.add_argument(
-        "--threads",
-        "-t",
-        type=int,
-        help="Number of threads to use (Default: 1)",
-        default=1,
-    )
-    pars_set.add_argument(
-        "--max_set_size",
-        type=int,
-        required=False,
-        help="Maximal number of marker genes used, set to 0 to include all possible marker genes (Default: 500)",
-        default=500,
-    )
-    pars_set.add_argument(
-        "--set_size",
-        type=int,
-        required=False,
-        help="Minimal number of marker genes to use (Default: 20)",
-        default=20,
-    )
-    pars_set.add_argument(
-        "--marker_prevalence",
-        type=float,
-        required=False,
-        help="Percentage of species in which markers should be found (Default: 95)",
-        default=95,
-    )
-    pars_set.add_argument(
-        "--AA",
-        dest="seqtype",
-        action="store_const",
-        const="AA",
-        help="All provided files are proteins, no gene prediction will be performed. Omit if input is mixed or genomic",
-    )
-    pars_set.add_argument(
-        "--DNA",
-        dest="seqtype",
-        action="store_const",
-        const="DNA",
-        default=None,
-        help="The fasta file contains DNA sequenes",
-    )
-    args = parser.parse_args()
-    if args.command is None:
-        parser.print_help()
-        exit(0)
+@main.command("define_set", context_settings=CONTEXT_SETTINGS, help="Define a marker gene set from a group of genomes.")
+@click.argument("genomes", type=str, nargs=-1, required=True)
+@click.option("--out", "-o", type=str, default=".", help="Path to output folder (Default: .)")
+@click.option("--db", type=str, default=None, help="Path to EukCC DB")
+@click.option("--threads", "-t", type=int, default=1, help="Number of threads to use (Default: 1)")
+@click.option(
+    "--set_size",
+    type=int,
+    default=20,
+    help="Minimal number of marker genes in a set, smaller sets are not used (Default: 20)",
+)
+@click.option(
+    "--max_set_size",
+    type=int,
+    default=500,
+    help="Maximal number of marker genes in a set, larger sets are reduced to a fixed random sample of this size. 0 uses all marker genes (Default: 500)",
+)
+@click.option(
+    "--marker_prevalence",
+    type=float,
+    default=95,
+    help="Percentage of the provided genomes in which a marker gene must be single copy (Default: 95)",
+)
+@click.option("--name", "-n", type=str, default="set", help="Name of the set (default: set)")
+@click.option("--DNA", "seqtype", flag_value="DNA", default=None, help="The fasta file contains DNA sequences")
+@click.option(
+    "--AA",
+    "seqtype",
+    flag_value="AA",
+    help="All provided files are proteins, no gene prediction will be performed. Omit if input is mixed or genomic",
+)
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def define_set(**kwargs):
+    setup_logging(kwargs["quiet"], kwargs["debug"], kwargs["out"])
+    kwargs["genomes"] = list(kwargs["genomes"])
+    define_set_w_genomes(SimpleNamespace(**kwargs))
 
-    # define logging
-    logLevel = logging.INFO
-    if args.quiet:
-        logLevel = logging.WARNING
-    elif args.debug:
-        logLevel = logging.DEBUG
 
-    # create output folder if not exists
-    file.isdir(args.out)
+# ----------------------------------------------------------------------------
+# eukcc ncbi_update
+# ----------------------------------------------------------------------------
 
-    logging.basicConfig(
-        format="%(asctime)s %(message)s",
-        datefmt="%d-%m-%Y %H:%M:%S: ",
-        level=logLevel,
-        handlers=[
-            logging.FileHandler(os.path.join(args.out, "eukcc.log")),
-            logging.StreamHandler(),
-        ],
-    )
+@main.command("ncbi_update", context_settings=CONTEXT_SETTINGS, help="Update the NCBI taxonomy database used by ete3.")
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def ncbi_update(quiet, debug):
+    from ete3 import NCBITaxa
 
-    if args.command == "single":
-        run_eukcc(args)
-    elif args.command == "folder":
-        eukcc_folder(args)
-    elif args.command == "ncbi_update":
-        update()
-    elif args.command == "define_set":
-        define_set_w_genomes(args)
-    else:
-        parser.print_help()
+    setup_logging(quiet, debug)
+    logging.info("Going to fetch NCBI info using ete3")
+    NCBITaxa().update_taxonomy_database()
+
+
+# ----------------------------------------------------------------------------
+# eukcc download_db
+# ----------------------------------------------------------------------------
+
+@main.command("download_db", context_settings=CONTEXT_SETTINGS, help="Download and extract the EukCC database.")
+@click.option("--out", "-o", type=str, default=".", help="Folder to extract the database into (Default: .)")
+@click.option(
+    "--url",
+    type=str,
+    default="https://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz",
+    show_default=True,
+    help="URL of the database tarball",
+)
+@click.option("--quiet", "-q", is_flag=True, default=False, help="Silence most output")
+@click.option("--debug", "-d", is_flag=True, default=False, help="Debug and thus ignore safety")
+def download_db(out, url, quiet, debug):
+    setup_logging(quiet, debug, out)
+    tarball = os.path.join(out, os.path.basename(url) or "eukcc_db.tar.gz")
+
+    logging.info(f"Downloading {url}")
+    try:
+        with urllib.request.urlopen(url) as response, open(tarball, "wb") as fout:
+            shutil.copyfileobj(response, fout)
+    except (OSError, ValueError) as error:
+        logging.error(f"Could not download {url}: {error}")
+        # do not leave a partial download behind
+        if os.path.exists(tarball):
+            os.remove(tarball)
+        exit(1)
+
+    logging.info(f"Extracting {tarball}")
+    try:
+        with tarfile.open(tarball) as tar:
+            folder = tar.getnames()[0].split("/")[0]
+            # the data filter refuses members that would be written outside of out
+            if hasattr(tarfile, "data_filter"):
+                tar.extractall(out, filter="data")
+            else:
+                tar.extractall(out)
+    except (tarfile.TarError, OSError, IndexError) as error:
+        logging.error(f"Could not extract {tarball}: {error}")
+        exit(1)
+    os.remove(tarball)
+
+    db = os.path.abspath(os.path.join(out, folder))
+    logging.info(f"Database ready at {db}, use it with --db {db} or export EUKCC2_DB={db}")

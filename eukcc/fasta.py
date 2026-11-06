@@ -1,6 +1,14 @@
 import os
 import logging
 from collections import defaultdict
+from fileinput import hook_compressed
+
+
+def open_fasta(path):
+    """
+    open a plain or gzip compressed (.gz) fasta file as text
+    """
+    return hook_compressed(path, "r", encoding="utf-8")
 
 
 def check_alignment(path, target, target_upper=10):
@@ -47,10 +55,10 @@ def merge_fasta(files, outfile, seperator=None):
             binname = os.path.basename(fasta)
             for seq in Fasta(fasta):
                 if seperator is not None:
-                    name = "{}{}{}".format(binname, seperator, seq.name)
+                    name = f"{binname}{seperator}{seq.name}"
                 else:
                     name = seq.name
-                fout.write(">{name}\n{seq}\n".format(name=name, seq=seq.seq))
+                fout.write(f">{name}\n{seq.seq}\n")
     return outfile
 
 
@@ -91,9 +99,9 @@ def Fasta(path):
     """
     entry = False
     if validate_fasta(path) is False:
-        raise ValueError("The provided fasta file is malformed: {}".format(path))
+        raise ValueError(f"The provided fasta file is malformed: {path}")
 
-    with open(path) as fin:
+    with open_fasta(path) as fin:
         for line in fin:
             if line.startswith(">"):
                 if entry is not False:
@@ -117,7 +125,7 @@ def reduce_fasta(path, outfile, ids):
     with open(outfile, "w") as fout:
         for seq in Fasta(path):
             if seq.name in ids or seq.long_name in ids:
-                fout.write(">{}\n{}\n".format(seq.long_name, seq.seq))
+                fout.write(f">{seq.long_name}\n{seq.seq}\n")
     return outfile
 
 
@@ -138,37 +146,50 @@ def validate_fasta(path, seqtype="AA"):
     if os.stat(path).st_size == 0:
         return False
 
-    # check if we can open it
+    # check if the file contains valid sequences
+    # corrupted compressed files raise OSError, truncated ones EOFError
+    tp = "start"
     try:
-        with open(path) as fin:
+        with open_fasta(path) as fin:
             for line in fin:
-                break
-    except UnicodeDecodeError:
+                if line.strip() == "":
+                    continue
+                if tp == "start" and not line.strip().startswith(">"):
+                    # the first non empty line needs to be a name
+                    logging.error(f"{path} contains a non name line as first non empty line")
+                    return False
+
+                if line.strip().startswith(">") and tp == "name":
+                    # we can not have two names in a row
+                    logging.error(f"{path} contains two names in a row")
+                    return False
+                elif line.strip().startswith(">"):
+                    # if we had sequence before we can have a name now
+                    tp = "name"
+
+                if not line.strip().startswith(">"):
+                    tp = "seq"
+    except (UnicodeDecodeError, OSError, EOFError):
         return False
 
-    # check if the file contains valid sequences
-    with open(path) as fin:
-        tp = "start"
-        for line in fin:
-            if line.strip() == "":
-                continue
-            if tp == "start" and not line.strip().startswith(">"):
-                # the first non empty line needs to be a name
-                logging.error("Fasta file contains non name line as first non empty line")
-                return False
-
-            if line.strip().startswith(">") and tp == "name":
-                # we can not have two names in a row
-                logging.error("Fasta contains two names in row")
-                return False
-            elif line.strip().startswith(">"):
-                # if we had sequence before we can have a name now
-                tp = "name"
-
-            if not line.strip().startswith(">"):
-                tp = "seq"
-
+    # no sequence at all, e.g. a compressed empty file
+    if tp == "start":
+        return False
     return True
+
+
+def valid_fastas(paths):
+    """
+    make sure all paths are valid fasta files, log every invalid one and exit if there is any
+    """
+    paths = list(paths)
+    invalid = [path for path in paths if not (os.path.isfile(path) and validate_fasta(path))]
+    for path in invalid:
+        logging.error(f"{path} is not a valid fasta file")
+    if len(invalid) > 0:
+        logging.error(f"Stopping as {len(invalid)} of {len(paths)} files are not valid fasta files")
+        exit(1)
+    return paths
 
 
 def clean_metaeuk_fasta(fasta, outfasta):
@@ -181,14 +202,14 @@ def clean_metaeuk_fasta(fasta, outfasta):
     with open(outfasta, "w") as fout:
         # in case of an empty fasta, we also return an empty fasta
         if os.stat(fasta).st_size == 0:
-            logging.info("Metaeuk produced empty fasta.")
-            exit(204)
+            logging.warning("Metaeuk predicted zero proteins")
+            return outfasta
         for seq in Fasta(fasta):
             # clean name using contig as the name
             seq.name = seq.name.split("|")[1]
             # we use name_ORF as name format, this could be compatible with CAT
-            name = "{name}_{i}".format(name=seq.name, i=nms[seq.name])
+            name = f"{seq.name}_{nms[seq.name]}"
             # increase name counter
             nms[seq.name] += 1
-            fout.write(">metaeuk_{name}\n{seq}\n".format(name=name, seq=seq.seq))
+            fout.write(f">metaeuk_{name}\n{seq.seq}\n")
     return outfasta

@@ -2,8 +2,8 @@ import unittest
 import os
 from eukcc.file import file
 
-TESTDATA_SCMG = os.path.join(os.path.dirname(__file__), "testfiles", "SCMG_TEST.csv")
-TESTDATA_dir = os.path.join(os.path.dirname(__file__), "testfiles")
+TESTDATA_SCMG = os.path.join(os.path.dirname(__file__), "..", "fixtures", "SCMG_TEST.csv")
+TESTDATA_dir = os.path.join(os.path.dirname(__file__), "..", "fixtures")
 
 
 class test_file_class(unittest.TestCase):

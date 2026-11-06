@@ -2,10 +2,10 @@ import unittest
 import os
 from eukcc.treehandler import tree_sets, tax_LCA
 
-TESTDATA_SCMG_GZ = os.path.join(os.path.dirname(__file__), "testfiles", "SCMG_TEST.csv.gz")
-TESTDATA_SCTREE = os.path.join(os.path.dirname(__file__), "testfiles", "tree_scmg.csv")
-TESTDATA_TAXINFO = os.path.join(os.path.dirname(__file__), "testfiles", "tree_taxinfo.csv")
-TESTDATA_TAX_LCA = os.path.join(os.path.dirname(__file__), "testfiles", "tax_lca_taxinfo.csv")
+TESTDATA_SCMG_GZ = os.path.join(os.path.dirname(__file__), "..", "fixtures", "SCMG_TEST.csv.gz")
+TESTDATA_SCTREE = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tree_scmg.csv")
+TESTDATA_TAXINFO = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tree_taxinfo.csv")
+TESTDATA_TAX_LCA = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tax_lca_taxinfo.csv")
 
 
 class test_tree(unittest.TestCase):
@@ -35,7 +35,6 @@ class test_tree(unittest.TestCase):
             tree,
             TESTDATA_TAX_LCA,
             placements=["metaeuk_OY253681.1_29", "metaeuk_OY253676.1_95"],
-            add_protist_common=False,
         )
 
         # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta

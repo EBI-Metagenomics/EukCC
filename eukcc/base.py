@@ -52,7 +52,7 @@ def load_tax_info(path, sep=",", dbfile=None):
     :param path: path to csv file
     :return: dictionary of accession: ncbi_lineage
     """
-    logging.debug("Loading NCBI database {}".format(dbfile))
+    logging.debug(f"Loading NCBI database {dbfile}")
     ncbi = NCBITaxa(dbfile=dbfile)
     d = {}
     with open(path) as fin:
@@ -60,6 +60,21 @@ def load_tax_info(path, sep=",", dbfile=None):
         for row in reader:
             d[row[1]] = [str(x) for x in ncbi.get_lineage(row[0])]
     return d
+
+
+def lineage_names(lineage, dbfile=None):
+    """
+    NCBI names of a lineage of NCBI taxids, in the same order, separated by ";"
+    A taxid missing from the database is kept as is.
+
+    :param lineage: list of taxids
+    :param dbfile: path to the ete3 NCBI database
+    :return: lineage string, or NA if the lineage is empty
+    """
+    if not lineage:
+        return "NA"
+    names = NCBITaxa(dbfile=dbfile).get_taxid_translator(lineage)
+    return ";".join(names.get(int(tax_id), str(tax_id)) for tax_id in lineage)
 
 
 def Counter(x):
@@ -287,6 +302,6 @@ def horizontal_concatenate(output, files, profiles):
     with open(output, "w") as f:
         for name, seq in mergedSeqs.items():
             seq = seq.replace(".", "-")
-            f.write(">{}\n{}\n".format(name, seq))
+            f.write(f">{name}\n{seq}\n")
 
     return output

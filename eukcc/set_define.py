@@ -1,6 +1,6 @@
 import os
 import logging
-from eukcc.eukcc import eukcc, eukcc_state
+from eukcc.eukcc import eukcc, eukcc_state, check_set_size
 
 
 def define_set_w_genomes(args):
@@ -10,15 +10,16 @@ def define_set_w_genomes(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
-            logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            logging.error(
+                "No database was provided via --db or EUKCC2_DB env variable, "
+                "download it with: eukcc download_db --out <folder>"
+            )
+            exit(1)
 
-    if state["max_set_size"] < state["set_size"]:
-        logging.warning("Max set size cant be smaller than min set size")
-        exit(222)
+    check_set_size(state)
 
     if state["seqtype"] is None:
         logging.debug("Setting seqencetype to DNA, use --AA to pass proteomes")
@@ -31,5 +32,11 @@ def define_set_w_genomes(args):
     # launch new EukCC instance
     E = eukcc(state)
     if E.pick_marker_set() is None:
-        E.terminate(201)
+        # unlike eukcc single there is no NA result to write, so this is an error
+        genomes = ", ".join(os.path.basename(genome) for genome in state["genomes"])
+        logging.error(
+            f"No marker gene set could be defined for the {len(state['genomes'])} genomes ({genomes}). "
+            f"Try a lower --set_size (now {state['set_size']}) or --marker_prevalence (now {state['marker_prevalence']})"
+        )
+        E.terminate(1)
     E.state.save_state(filename=state["name"])
