@@ -1,4 +1,7 @@
 import os
+import shutil
+import tarfile
+import urllib.request
 import logging
 from types import SimpleNamespace
 import click
@@ -95,7 +98,10 @@ def run_eukcc(args):
                 f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
-            logging.error("No database was provided via --db or EUKCC2_DB env variable")
+            logging.error(
+                "No database was provided via --db or EUKCC2_DB env variable, "
+                "download it with: eukcc download_db --out <folder>"
+            )
             exit(1)
 
     check_set_size(state)
@@ -401,3 +407,50 @@ def ncbi_update(obj):
     setup_logging(obj["quiet"], obj["debug"])
     logging.info("Going to fetch NCBI info using ete3")
     NCBITaxa().update_taxonomy_database()
+
+
+# ----------------------------------------------------------------------------
+# eukcc download_db
+# ----------------------------------------------------------------------------
+
+@main.command("download_db", context_settings=CONTEXT_SETTINGS, help="Download and extract the EukCC database.")
+@click.option("--out", "-o", type=str, default=".", help="Folder to extract the database into (Default: .)")
+@click.option(
+    "--url",
+    type=str,
+    default="https://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz",
+    show_default=True,
+    help="URL of the database tarball",
+)
+@click.pass_obj
+def download_db(obj, out, url):
+    setup_logging(obj["quiet"], obj["debug"], out)
+    tarball = os.path.join(out, os.path.basename(url) or "eukcc_db.tar.gz")
+
+    logging.info(f"Downloading {url}")
+    try:
+        with urllib.request.urlopen(url) as response, open(tarball, "wb") as fout:
+            shutil.copyfileobj(response, fout)
+    except (OSError, ValueError) as error:
+        logging.error(f"Could not download {url}: {error}")
+        # do not leave a partial download behind
+        if os.path.exists(tarball):
+            os.remove(tarball)
+        exit(1)
+
+    logging.info(f"Extracting {tarball}")
+    try:
+        with tarfile.open(tarball) as tar:
+            folder = tar.getnames()[0].split("/")[0]
+            # the data filter refuses members that would be written outside of out
+            if hasattr(tarfile, "data_filter"):
+                tar.extractall(out, filter="data")
+            else:
+                tar.extractall(out)
+    except (tarfile.TarError, OSError, IndexError) as error:
+        logging.error(f"Could not extract {tarball}: {error}")
+        exit(1)
+    os.remove(tarball)
+
+    db = os.path.abspath(os.path.join(out, folder))
+    logging.info(f"Database ready at {db}, use it with --db {db} or export EUKCC2_DB={db}")

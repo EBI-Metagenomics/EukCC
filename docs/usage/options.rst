@@ -83,6 +83,8 @@ Other options
 - ``--extra``: also write ``scmg_marker_table.csv.gz``, with the hits for
   every marker of the set, searched without the gathering cutoffs.
 - ``eukcc ncbi_update``: update the NCBI taxonomy database used by ete3.
+- ``eukcc download_db``: download and extract the EukCC database into
+  ``--out``, from the EBI FTP or from ``--url``.
 
 
 EukCC -h

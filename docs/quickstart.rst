@@ -76,6 +76,14 @@ Fetching the database is as simple as:
 
 .. code-block:: shell
 
+    eukcc download_db --out eukccdb
+
+``eukcc download_db`` downloads the database above and extracts it in the
+``--out`` folder. Use ``--url`` for another version from the FTP. To do it by
+hand instead:
+
+.. code-block:: shell
+
     mkdir eukccdb
     cd eukccdb
     wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz

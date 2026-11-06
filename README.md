@@ -11,6 +11,15 @@ Head over to https://eukcc.readthedocs.io/ to check out the documentation.
 ## Run
 
 ### Download EukCC2 database from [FTP](http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/)
+
+With EukCC installed, `eukcc download_db` downloads and extracts the current database
+(use `--url` for another version from the FTP):
+```
+eukcc download_db --out eukccdb
+export EUKCC2_DB=$(realpath eukccdb/eukcc2_db_ver_2026-11)
+```
+
+Or by hand:
 ```
 # create a folder were to keep the database
 mkdir eukccdb

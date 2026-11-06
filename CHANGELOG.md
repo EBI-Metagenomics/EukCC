@@ -29,6 +29,8 @@
   separated by `;` (#51).
 - Gzip compressed (`.gz`) inputs, in `eukcc single` and `eukcc folder` (#41).
 - Documentation of the database `eukcc2_db_ver_2026-11`.
+- `eukcc download_db` downloads and extracts the database into `--out`. `--url` points to the
+  current database on the EBI FTP by default and can be changed for other versions.
 
 ### Changed
 

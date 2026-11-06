@@ -13,7 +13,10 @@ def define_set_w_genomes(args):
                 f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
-            logging.error("No database was provided via --db or EUKCC2_DB env variable")
+            logging.error(
+                "No database was provided via --db or EUKCC2_DB env variable, "
+                "download it with: eukcc download_db --out <folder>"
+            )
             exit(1)
 
     check_set_size(state)

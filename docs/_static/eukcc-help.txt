@@ -12,6 +12,7 @@ Options:
 
 Commands:
   define_set   Define a marker gene set from a group of genomes.
+  download_db  Download and extract the EukCC database.
   folder       Estimate the quality of a folder of bins and refine them.
   ncbi_update  Update the NCBI taxonomy database used by ete3.
   single       Estimate the quality of a single genome or MAG.
