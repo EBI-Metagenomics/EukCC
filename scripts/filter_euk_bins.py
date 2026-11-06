@@ -69,12 +69,12 @@ def gunzip(path, tmp_dir):
     """
     if path.endswith(".gz"):
         fna_path = os.path.join(tmp_dir, "contigs.fna")
-        logging.debug("Going to unzip fasta into {}".format(fna_path))
+        logging.debug(f"Going to unzip fasta into {fna_path}")
         with gzip.open(path, "r") as fin, open(fna_path, "w") as fout:
             for line in fin:
                 fout.write(line.decode())
         path = fna_path
-        logging.debug("Done unzipping {}".format(fna_path))
+        logging.debug(f"Done unzipping {fna_path}")
 
     return path
 
@@ -133,7 +133,7 @@ class bin:
         self.path = os.path.abspath(path)
 
     def __str__(self):
-        return "{} euks: {} bacs: {}".format(self.bname, self.table["euks"], self.table["bacs"])
+        return f"{self.bname} euks: {self.table['euks']} bacs: {self.table['bacs']}"
 
     def stats(self):
         """read bin content and figure genomic composition"""
@@ -181,12 +181,12 @@ class bin:
 
 def evaluate_bin(path, args):
     if not os.path.exists(path):
-        logging.error("Can not find file {}".format(path))
+        logging.error(f"Can not find file {path}")
         exit(1)
 
-    logging.info("Launch on {}".format(path))
+    logging.info(f"Launch on {path}")
     with tempfile.TemporaryDirectory(prefix="filter_EukRep_") as tmp_dir:
-        logging.debug("Using tmp folder: {}".format(tmp_dir))
+        logging.debug(f"Using tmp folder: {tmp_dir}")
         eukfile = os.path.join(tmp_dir, "euks.fna")
         bacfile = os.path.join(tmp_dir, "bacs.fna")
         # EukRep can not deal with Gzipped Fasta files, so we unzip it in case it is a Gzip file

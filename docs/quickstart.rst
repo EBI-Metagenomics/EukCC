@@ -125,7 +125,8 @@ EukCC on a folder of bins
     eukcc folder --out outfolder --threads 8 bins
 
 EukCC will use every file with the extension ``.fa``, ``.fna`` or ``.fasta``
-in the folder as a bin, also gzip compressed (``.fa.gz``, ...). Files that are not valid FASTA are skipped with a warning.
+in the folder as a bin, also gzip compressed (``.fa.gz``, ...). If any of these files is
+not a valid FASTA file, empty files included, EukCC lists all of them and stops.
 
 In folder mode EukCC will also try to refine bins automatically.
 To learn more about that please see :doc:`bin_merging`.

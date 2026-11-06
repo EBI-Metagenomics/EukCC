@@ -97,6 +97,16 @@ class test_base(unittest.TestCase):
         os.remove(".test_tmp_empty_clean")
 
     def test_valid_fastas(self):
+        self.assertEqual(valid_fastas([MULTILINE_FILE, GZIP_FASTA]), [MULTILINE_FILE, GZIP_FASTA])
+
+    def test_valid_fastas_invalid(self):
         open(".test_tmp_not_fasta", "w").write("not a fasta\n")
-        self.assertEqual(valid_fastas([MULTILINE_FILE, ".test_tmp_not_fasta"]), [MULTILINE_FILE])
+        open(".test_tmp_empty_bin", "w").close()
+        # every invalid file is logged before stopping, empty bins included
+        with self.assertLogs(level="ERROR") as logs, self.assertRaises(SystemExit) as stop:
+            valid_fastas([MULTILINE_FILE, ".test_tmp_not_fasta", ".test_tmp_empty_bin"])
         os.remove(".test_tmp_not_fasta")
+        os.remove(".test_tmp_empty_bin")
+        self.assertEqual(stop.exception.code, 1)
+        self.assertTrue(any(".test_tmp_not_fasta" in line for line in logs.output))
+        self.assertTrue(any(".test_tmp_empty_bin" in line for line in logs.output))

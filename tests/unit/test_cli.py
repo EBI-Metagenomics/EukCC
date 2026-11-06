@@ -12,7 +12,7 @@ class test_cli(unittest.TestCase):
     def test_version(self):
         result = self.runner.invoke(cli.main, ["--version"])
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output.strip(), "EukCC version {}".format(__version__))
+        self.assertEqual(result.output.strip(), f"EukCC version {__version__}")
 
     def test_help(self):
         for args in [["-h"], ["single", "-h"], ["folder", "-h"], ["define_set", "-h"], ["ncbi_update", "-h"]]:

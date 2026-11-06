@@ -8,6 +8,8 @@
   is logged at `error` level (#56).
 - `eukcc folder --suffix` is removed. Bins are the files ending in `.fa`, `.fna` or `.fasta`, case
   insensitive and optionally gzip compressed (#55).
+- `eukcc folder` stops with exit code `1` if any bin is not a valid FASTA file, empty files
+  included. Every invalid file is logged, so all of them can be fixed before the next run.
 - `eukcc single --gmes` is removed. It was legacy GeneMark-ES logic from EukCC 1 that no longer
   worked. Proteins are predicted with MetaEuk only.
 - `eukcc.tsv` and `bad_quality.tsv` have a new column, `ncbi_lng_names`, after `ncbi_lng` (#51).
@@ -30,7 +32,6 @@
 - The sub-database (`fungi`, `protozoa`, `plant`) is chosen by a vote of the closest reference
   leaves of each placement, and needs at least 60% of the votes. It no longer depends on taxids
   in the code, so opisthokont protists can go to `protozoa`.
-- In `eukcc folder`, files that are not valid FASTA are skipped with a warning.
 - The version is set only in `pyproject.toml` and read from the installed package.
   `eukcc/version.py` and `setup.py` are removed; the package is built with `python -m build`.
   The `binlinks.py` and `filter_euk_bins.py` commands, installed by `setup.py` until now, are

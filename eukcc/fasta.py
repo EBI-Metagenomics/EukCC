@@ -55,10 +55,10 @@ def merge_fasta(files, outfile, seperator=None):
             binname = os.path.basename(fasta)
             for seq in Fasta(fasta):
                 if seperator is not None:
-                    name = "{}{}{}".format(binname, seperator, seq.name)
+                    name = f"{binname}{seperator}{seq.name}"
                 else:
                     name = seq.name
-                fout.write(">{name}\n{seq}\n".format(name=name, seq=seq.seq))
+                fout.write(f">{name}\n{seq.seq}\n")
     return outfile
 
 
@@ -99,7 +99,7 @@ def Fasta(path):
     """
     entry = False
     if validate_fasta(path) is False:
-        raise ValueError("The provided fasta file is malformed: {}".format(path))
+        raise ValueError(f"The provided fasta file is malformed: {path}")
 
     with open_fasta(path) as fin:
         for line in fin:
@@ -125,7 +125,7 @@ def reduce_fasta(path, outfile, ids):
     with open(outfile, "w") as fout:
         for seq in Fasta(path):
             if seq.name in ids or seq.long_name in ids:
-                fout.write(">{}\n{}\n".format(seq.long_name, seq.seq))
+                fout.write(f">{seq.long_name}\n{seq.seq}\n")
     return outfile
 
 
@@ -156,12 +156,12 @@ def validate_fasta(path, seqtype="AA"):
                     continue
                 if tp == "start" and not line.strip().startswith(">"):
                     # the first non empty line needs to be a name
-                    logging.error("Fasta file contains non name line as first non empty line")
+                    logging.error(f"{path} contains a non name line as first non empty line")
                     return False
 
                 if line.strip().startswith(">") and tp == "name":
                     # we can not have two names in a row
-                    logging.error("Fasta contains two names in row")
+                    logging.error(f"{path} contains two names in a row")
                     return False
                 elif line.strip().startswith(">"):
                     # if we had sequence before we can have a name now
@@ -180,15 +180,16 @@ def validate_fasta(path, seqtype="AA"):
 
 def valid_fastas(paths):
     """
-    keep only the paths that are valid fasta files, warn about the others
+    make sure all paths are valid fasta files, log every invalid one and exit if there is any
     """
-    valid = []
-    for path in paths:
-        if os.path.isfile(path) and validate_fasta(path):
-            valid.append(path)
-        else:
-            logging.warning("Skipping {}, not a valid fasta file".format(path))
-    return valid
+    paths = list(paths)
+    invalid = [path for path in paths if not (os.path.isfile(path) and validate_fasta(path))]
+    for path in invalid:
+        logging.error(f"{path} is not a valid fasta file")
+    if len(invalid) > 0:
+        logging.error(f"Stopping as {len(invalid)} of {len(paths)} files are not valid fasta files")
+        exit(1)
+    return paths
 
 
 def clean_metaeuk_fasta(fasta, outfasta):
@@ -207,8 +208,8 @@ def clean_metaeuk_fasta(fasta, outfasta):
             # clean name using contig as the name
             seq.name = seq.name.split("|")[1]
             # we use name_ORF as name format, this could be compatible with CAT
-            name = "{name}_{i}".format(name=seq.name, i=nms[seq.name])
+            name = f"{seq.name}_{nms[seq.name]}"
             # increase name counter
             nms[seq.name] += 1
-            fout.write(">metaeuk_{name}\n{seq}\n".format(name=name, seq=seq.seq))
+            fout.write(f">metaeuk_{name}\n{seq.seq}\n")
     return outfasta

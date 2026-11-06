@@ -17,7 +17,7 @@ class run:
     ):
         # check software is in path:
         if which(program) is None:
-            raise EnvironmentError("Could not find executable: {}".format(program))
+            raise EnvironmentError(f"Could not find executable: {program}")
         self.success = None
 
         if not isinstance(infiles, list):
@@ -32,15 +32,15 @@ class run:
         for infile in infiles:
             if infile is None or (
                 not os.path.exists(infile)
-                and not os.path.exists("{}.h3f".format(infile))
+                and not os.path.exists(f"{infile}.h3f")
             ):
-                raise OSError("File not found: {}".format(infile))
+                raise OSError(f"File not found: {infile}")
         # make sure all infiles are abspath
         infiles = [os.path.abspath(x) for x in infiles]
 
         # check if running is required
         if self.run_needed(workdir, infiles, outfiles):
-            logging.debug("Running {}".format(program))
+            logging.debug(f"Running {program}")
             self.run(program, workdir, infiles, outfiles, cores, kwargs)
 
     def touch(self, files=None):
@@ -65,19 +65,17 @@ class run:
             for inf in infiles:
                 for p in outfiles:
                     ouf = os.path.join(workdir, p)
-                    if not os.path.exists(inf) and os.path.exists("{}.h3f".format(inf)):
-                        inf = "{}.h3f".format(inf)
+                    if not os.path.exists(inf) and os.path.exists(f"{inf}.h3f"):
+                        inf = f"{inf}.h3f"
                     _need_run = file.isnewer(inf, ouf)
                     if _need_run:
                         if _need_run > 1:
                             logging.debug(
-                                "Need to run because {} does not exists yet".format(ouf)
+                                f"Need to run because {ouf} does not exists yet"
                             )
                         else:
                             logging.debug(
-                                "Need to run because {} is older than {}".format(
-                                    ouf, inf
-                                )
+                                f"Need to run because {ouf} is older than {inf}"
                             )
                         return True
             return False
@@ -140,7 +138,7 @@ class hmmsearch(run):
                 )
                 self.success = True
         except subprocess.CalledProcessError:
-            logging.info("Hmmsearch failed, check logfile {}".format(logfile))
+            logging.info(f"Hmmsearch failed, check logfile {logfile}")
             self.success = False
             # remove failed output if possible
             file.remove(os.path.join(workdir, outfiles[0]))
@@ -175,7 +173,7 @@ class hmmalign(run):
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
-            logging.info("Hmmalign failed, check logfile {}".format(logfile))
+            logging.info(f"Hmmalign failed, check logfile {logfile}")
             exit(1)
 
 
@@ -195,7 +193,7 @@ class hmmfetch(run):
                 )
             self.success = True
         except subprocess.CalledProcessError:
-            logging.info("Hmmfetch failed, check logfile {}".format(logfile))
+            logging.info(f"Hmmfetch failed, check logfile {logfile}")
             self.success = False
             exit(1)
 
@@ -216,7 +214,7 @@ class hmmpress(run):
                 )
             self.success = True
         except subprocess.CalledProcessError:
-            logging.info("Hmmpress failed, check logfile {}".format(logfile))
+            logging.info(f"Hmmpress failed, check logfile {logfile}")
             self.success = False
             exit(1)
 
@@ -241,7 +239,7 @@ class epa_split(run):
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
-            logging.info("epa-ng failed, check logfile {}".format(logfile))
+            logging.info(f"epa-ng failed, check logfile {logfile}")
 
 
 class epa_ng(run):
@@ -276,7 +274,7 @@ class epa_ng(run):
             self.success = True
         except subprocess.CalledProcessError:
             self.success = False
-            logging.info("epa-ng failed, check logfile {}".format(logfile))
+            logging.info(f"epa-ng failed, check logfile {logfile}")
 
 
 class guppy(run):
@@ -294,7 +292,7 @@ class guppy(run):
                     stderr=fout,
                 )
         except subprocess.CalledProcessError:
-            logging.info("guppy tog failed, check logfile {}".format(logfile))
+            logging.info(f"guppy tog failed, check logfile {logfile}")
             exit(1)
 
 
@@ -338,5 +336,5 @@ class metaeuk(run):
                 os.path.join(workdir, outfiles[0]), os.path.join(workdir, outfiles[1])
             )
         except subprocess.CalledProcessError:
-            logging.info("metaeuk failed, check logfile {}".format(logfile))
+            logging.info(f"metaeuk failed, check logfile {logfile}")
             exit(1)

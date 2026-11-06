@@ -10,7 +10,7 @@ def define_set_w_genomes(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")

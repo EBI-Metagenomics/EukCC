@@ -78,12 +78,12 @@ def no_estimate(E, state):
 
 def run_eukcc(args):
     state = eukcc_state(workdir=None, options=vars(args))
-    logging.info("EukCC version {}".format(__version__))
+    logging.info(f"EukCC version {__version__}")
     logging.warning(
         "#####################################\nIf you publish using EukCC please make sure to also cite:"
     )
     for software, publication in publications.items():
-        logging.warning("\n{}:\n{}\n".format(software, publication))
+        logging.warning(f"\n{software}:\n{publication}\n")
     logging.warning("####################################")
 
     # if db is not set, we check for env variable
@@ -91,7 +91,7 @@ def run_eukcc(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
@@ -104,7 +104,7 @@ def run_eukcc(args):
     # validate fasta input
     if state["seqtype"] is None:
         state["seqtype"] = determine_type(state["fasta"])
-        logging.info("Set sequence type to {}".format(state["seqtype"]))
+        logging.info(f"Set sequence type to {state['seqtype']}")
 
     # launch new EukCC instance
     E = eukcc(state)

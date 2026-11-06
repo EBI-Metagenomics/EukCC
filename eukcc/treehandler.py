@@ -79,12 +79,9 @@ class markerset:
         return cover_score + profile_score + prevalence_score + species_score
 
     def __str__(self):
-        return "set with score {} and {} profiles {}/{}/{}".format(
-            self.score,
-            len(self.profiles),
-            self.prevalence,
-            len(self.covered),
-            len(self.leafes),
+        return (
+            f"set with score {self.score} and {len(self.profiles)} profiles "
+            f"{self.prevalence}/{len(self.covered)}/{len(self.leafes)}"
         )
 
 
@@ -117,18 +114,15 @@ def hard_set_computation(
                 sets.append(scmg[genome])
             except KeyError:
                 logging.warning(
-                    "Database missing markes for '{}'. This should not be the case. Make sure the database is not corrupted".format(
-                        genome
-                    )
+                    f"Database missing markes for '{genome}'. This should not be the case. "
+                    "Make sure the database is not corrupted"
                 )
     found = False
     set_prevalence = 100
     biggest = 0
     while found is False and set_prevalence >= prevalence:
         logging.debug(
-            "Searching for Marker set at {} prevalence across {} genomes".format(
-                set_prevalence, len(genomes)
-            )
+            f"Searching for Marker set at {set_prevalence} prevalence across {len(genomes)} genomes"
         )
         s = percentage_sets(sets, set_prevalence, atmost)
         if len(s) > biggest:
@@ -138,10 +132,10 @@ def hard_set_computation(
             break
         set_prevalence = set_prevalence - 0.5
 
-    logging.debug("Largest set we found had {} SCMGs".format(biggest))
+    logging.debug(f"Largest set we found had {biggest} SCMGs")
     if found:
         logging.debug(
-            "Found set of size {} with prevalence {}".format(len(s), set_prevalence)
+            f"Found set of size {len(s)} with prevalence {set_prevalence}"
         )
         ms = markerset(genomes, genomes, s, set_prevalence)
         ms.all_places = genomes
@@ -224,7 +218,7 @@ def tax_LCA(
         query_leafes = query_leafes & set(placements)
 
     logging.debug(
-        "Determining the LCA in a tree with {} leafes".format(len(known_leafes))
+        f"Determining the LCA in a tree with {len(known_leafes)} leafes"
     )
 
     leafes = set()
@@ -320,7 +314,7 @@ class tree_sets:
         self.known_leafes = set(load_tax_info(taxinfo, dbfile=etedb).keys())
 
         logging.debug(
-            "Starting to look for scmg set, selection based on {}".format(set_selection)
+            f"Starting to look for scmg set, selection based on {set_selection}"
         )
         if use_ncbi:
             logging.debug("Will use NCBI tree instead of eukcc tree")
@@ -349,13 +343,10 @@ class tree_sets:
 
         if training is False and self.marker_set is not None:
             logging.debug(
-                "Defined SCMG set with {} marker genes with a single copy prevalence of {} percent covering {} related genomes supported by {}/{} placements".format(
-                    len(self.marker_set.profiles),
-                    self.marker_set.prevalence,
-                    len(self.marker_set.leafes),
-                    len(self.marker_set.covered),
-                    len(self.marker_set.all_places),
-                )
+                f"Defined SCMG set with {len(self.marker_set.profiles)} marker genes "
+                f"with a single copy prevalence of {self.marker_set.prevalence} percent "
+                f"covering {len(self.marker_set.leafes)} related genomes "
+                f"supported by {len(self.marker_set.covered)}/{len(self.marker_set.all_places)} placements"
             )
 
     def LCA(self, leafes, debug=False):
@@ -382,7 +373,7 @@ class tree_sets:
                 common = common & set(lng)
             shared = [x for x in lngs[0] if x in common]
             taxid = shared[-1]
-            logging.debug("LCA taxid determined as {}".format(taxid))
+            logging.debug(f"LCA taxid determined as {taxid}")
             if return_lng:
                 return shared
             else:
@@ -416,7 +407,7 @@ class tree_sets:
         all_sets = []
         mp = 100
         while mp >= min_prevalence:
-            logging.debug("Searching marker gene sets at {}% prevalence".format(mp))
+            logging.debug(f"Searching marker gene sets at {mp}% prevalence")
             # determine set at this position
             for taxid in LCA_lng[::-1]:
                 # for each taxid try to define a set
@@ -473,7 +464,7 @@ class tree_sets:
         # set marker gene prevalence to 100%
         mp = 100
         while mp >= min_prevalence:
-            logging.debug("Searching marker gene sets at {}% prevalence".format(mp))
+            logging.debug(f"Searching marker gene sets at {mp}% prevalence")
             # determine set at this position
             for node in self.t.traverse():
                 # skip sets with not enough species diversity
@@ -569,9 +560,8 @@ class tree_sets:
                 sets.append(scmg[leaf])
             except KeyError:
                 logging.warning(
-                    "Database missing markes for '{}'. This should not be the case. Make sure the database is not corrupted".format(
-                        leaf
-                    )
+                    f"Database missing markes for '{leaf}'. This should not be the case. "
+                    "Make sure the database is not corrupted"
                 )
         placements = set(node.get_leaf_names()) & set(places)
         n_placements = len(placements)
@@ -582,16 +572,12 @@ class tree_sets:
 
         if logging.DEBUG >= logging.root.level:
             logging.debug(
-                "Looking at set with size {} and {} leafes covering {}".format(
-                    len(s), len(leafes), n_placements
-                )
+                f"Looking at set with size {len(s)} and {len(leafes)} leafes covering {n_placements}"
             )
 
         if (len(s) >= set_size and n_placements > 0) or training is True:
             logging.debug(
-                "Set size {} with {} leafes, covering {}/{} placements".format(
-                    len(s), len(leafes), n_placements, len(places)
-                )
+                f"Set size {len(s)} with {len(leafes)} leafes, covering {n_placements}/{len(places)} placements"
             )
             return markerset(leafes, placements, s, set_prevalence)
         else:

@@ -52,7 +52,7 @@ def load_tax_info(path, sep=",", dbfile=None):
     :param path: path to csv file
     :return: dictionary of accession: ncbi_lineage
     """
-    logging.debug("Loading NCBI database {}".format(dbfile))
+    logging.debug(f"Loading NCBI database {dbfile}")
     ncbi = NCBITaxa(dbfile=dbfile)
     d = {}
     with open(path) as fin:
@@ -302,6 +302,6 @@ def horizontal_concatenate(output, files, profiles):
     with open(output, "w") as f:
         for name, seq in mergedSeqs.items():
             seq = seq.replace(".", "-")
-            f.write(">{}\n{}\n".format(name, seq))
+            f.write(f">{name}\n{seq}\n")
 
     return output

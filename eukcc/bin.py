@@ -59,7 +59,7 @@ class bin:
         E.add_taxid()
 
     def __str__(self):
-        return "Bin: {}".format(self.name)
+        return f"Bin: {self.name}"
 
 
 def merge_bins(parent, children, workdir):
@@ -79,7 +79,7 @@ def merge_bins(parent, children, workdir):
     wd = os.path.join(workdir, name)
 
     # We use the childerns faa file to search for missing parent markers
-    faa_path = os.path.abspath(os.path.join(wd, "{}.faa".format(name)))
+    faa_path = os.path.abspath(os.path.join(wd, f"{name}.faa"))
     if not os.path.exists(faa_path):
         faas = [x.state["faa"] for x in children]
         file.isdir(wd)

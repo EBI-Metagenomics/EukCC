@@ -82,7 +82,7 @@ class eukcc_state:
     def __str__(self):
         s = ""
         for key, value in self.opt.items():
-            s += "{}: {}\n".format(key, value)
+            s += f"{key}: {value}\n"
         return s
 
     def checkpoint(self, value):
@@ -91,7 +91,7 @@ class eukcc_state:
 
     def save_state(self, path=None, filename="savestate"):
         if path is None:
-            jo = os.path.join(self.opt["out"], "{}.json.gz".format(filename))
+            jo = os.path.join(self.opt["out"], f"{filename}.json.gz")
         else:
             jo = path
         with gzip.open(jo, "wb") as fout:
@@ -138,7 +138,7 @@ class eukcc:
             if key in state.keys():
                 self.state[key] = make_absolute(state[key])
 
-        logging.debug("Using database located at: {}".format(self.state["db"]))
+        logging.debug(f"Using database located at: {self.state['db']}")
         if self.state["workdir"] is None or self.state["workdir"] == "":
             self.state["workdir"] = os.path.join(state["out"], "workdir")
         file.isdir(self.state["workdir"])
@@ -149,9 +149,7 @@ class eukcc:
         if state["clade"] != "base":
             self.state["dbinfo"] = self.load_db(state["db"], state["clade"])
         logging.debug(
-            "Using database '{}' with PANTHER version {}".format(
-                self.state["dbinfo"]["name"], state["dbinfo"]["panther_version"]
-            )
+            f"Using database '{self.state['dbinfo']['name']}' with PANTHER version {state['dbinfo']['panther_version']}"
         )
 
         # validate AA type
@@ -175,12 +173,11 @@ class eukcc:
         if self.state["set_size"] > state["max_set_size"]:
             self.state["max_set_size"] = state["set_minimal_size"]
             logging.warning(
-                "Your minimal set size is bigger than the maximial set size. Thus we increased the maximal set size to fit the minimal set size. Both are now {}".format(
-                    self.state["max_set_size"]
-                )
+                "Your minimal set size is bigger than the maximial set size. Thus we increased the maximal set size to fit the minimal set size. "
+                f"Both are now {self.state['max_set_size']}"
             )
 
-        logging.debug("Using {threads} threads".format(threads=self.state["threads"]))
+        logging.debug(f"Using {self.state['threads']} threads")
 
         if self.state["rerun"]:
             logging.debug("deleting workdir to rerun all of the analysis")
@@ -210,16 +207,14 @@ class eukcc:
             ]
         else:
             logging.info(
-                "Searching for marker genes in {} database".format(self.state["clade"])
+                f"Searching for marker genes in {self.state['clade']} database"
             )
             self.state["marker_genes"] = self.search_markers()
             if len(self.state["marker_genes"]) == 0:
                 logging.info(f'No placement marker genes found for {os.path.basename(self.state["faa"])}.')
                 return None
             logging.info(
-                "Found {} marker genes, placing them in the tree using epa-ng".format(
-                    len(self.state["marker_genes"])
-                )
+                f"Found {len(self.state['marker_genes'])} marker genes, placing them in the tree using epa-ng"
             )
             pl = self.run_EPA()
             if pl is None:
@@ -238,9 +233,7 @@ class eukcc:
             old_state.load_state(self.state["use_placement"])
             self.state["marker_set"] = old_state["marker_set"]
             logging.info(
-                "Loaded precomputed set with {} profiles".format(
-                    len(self.state["marker_set"]["profiles"])
-                )
+                f"Loaded precomputed set with {len(self.state['marker_set']['profiles'])} profiles"
             )
             return self.state
 
@@ -313,9 +306,8 @@ class eukcc:
                 n = len(tree.marker_set.covered)
                 m = len(tree.marker_set.all_places)
                 logging.warning(
-                    "\U00002757The choosen marker gene set is supported by only half ({}/{}) of the alignments. This generally is an unstable estimate.".format(
-                        n, m
-                    )
+                    f"\U00002757The choosen marker gene set is supported by only half ({n}/{m}) of the alignments. "
+                    "This generally is an unstable estimate."
                 )
             self.state["marker_set"] = tree.marker_set.to_dict()
         return True
@@ -337,14 +329,14 @@ class eukcc:
         Call metaeuk with the fasta while using a nice workdir
         """
         wd = os.path.join(workdir, "metaeuk")
-        prefix = "{}_metaeuk".format(os.path.basename(fasta).rsplit(".", 1)[0]).replace(
+        prefix = f"{os.path.basename(fasta).rsplit('.', 1)[0]}_metaeuk".replace(
             ".", "_"
         )
-        logging.debug("Metaeuk prefix set as {}".format(prefix))
-        faafile = "{}.fas".format(prefix)
-        cleanfaafile = "{}_cleaned.faa".format(prefix)
+        logging.debug(f"Metaeuk prefix set as {prefix}")
+        faafile = f"{prefix}.fas"
+        cleanfaafile = f"{prefix}_cleaned.faa"
 
-        logging.debug("Launching metaeuk to produce {}".format(faafile))
+        logging.debug(f"Launching metaeuk to produce {faafile}")
         metaeuk(
             "metaeuk",
             wd,
@@ -399,7 +391,7 @@ class eukcc:
             etedb=self.state["dbinfo"]["files"]["etedb"],
         )
 
-        logging.debug("Lineage infered as {}".format(lng))
+        logging.debug(f"Lineage infered as {lng}")
         self.state["lng"] = lng
         self.state["lng_names"] = lineage_names(
             lng, dbfile=self.state["dbinfo"]["files"]["etedb"]
@@ -434,16 +426,13 @@ class eukcc:
         clade, frac = subdb_vote(pl["tog"], places, leaf_subdb)
         if clade is not None:
             logging.info(
-                "Genome belongs to clade: {} ({:.0%} of placement votes)".format(
-                    clade, frac
-                )
+                f"Genome belongs to clade: {clade} ({frac:.0%} of placement votes)"
             )
             return clade
 
         logging.warning(
-            "Could not narrow down the clade ({:.0%} of placement votes for the most voted), using base database. Please provide clade if known via --clade {{{}}}".format(
-                frac, ",".join(subdbs)
-            )
+            f"Could not narrow down the clade ({frac:.0%} of placement votes for the most voted), using base database. "
+            f"Please provide clade if known via --clade {{{','.join(subdbs)}}}"
         )
         return "base"
 
@@ -461,9 +450,7 @@ class eukcc:
             shutil.rmtree(workdir)
         elif os.path.exists(workdir):
             raise OSError(
-                "{} is not a folder but should be, please move or remove this file".format(
-                    workdir
-                )
+                f"{workdir} is not a folder but should be, please move or remove this file"
             )
 
     def ncbi_place(self, state):
@@ -499,7 +486,7 @@ class eukcc:
 
         placements = [{"n": x} for x in nodes]
         logging.info(
-            "Located {} species corresponding to the provided taxids".format(len(nodes))
+            f"Located {len(nodes)} species corresponding to the provided taxids"
         )
         return {"placements": placements, "genomes": nodes}
 
@@ -516,14 +503,14 @@ class eukcc:
         found_marker = set(found.keys()) & expected
         if logging.DEBUG >= logging.root.level:
             missing_marker = set(expected - found.keys())
-            logging.debug("Missing these expected markers: {}".format(missing_marker))
+            logging.debug(f"Missing these expected markers: {missing_marker}")
         multiton_marker = set([k for k, v in found.items() if v != 1]) & expected
 
         completeness = round(len(found_marker) / len(expected) * 100, 2)
         contamination = round(len(multiton_marker) / len(expected) * 100, 2)
         quality = {"completeness": completeness, "contamination": contamination}
-        logging.info("Completeness: {}".format(completeness))
-        logging.info("Contamination: {}".format(contamination))
+        logging.info(f"Completeness: {completeness}")
+        logging.info(f"Contamination: {contamination}")
 
         if self.state.get("predicted_proteins") == "metaeuk":
             _silent_contamination = compute_silent_contamination(
@@ -537,7 +524,7 @@ class eukcc:
                 2,
             )
             logging.info(
-                "Max silent contamination: {}".format(quality["silent_contamination"])
+                f"Max silent contamination: {quality['silent_contamination']}"
             )
 
         self.state["quality"] = quality
@@ -571,8 +558,8 @@ class eukcc:
         logging.debug("Searching for selected markers")
         wd = os.path.join(workdir, "hmm", "singlecopy", self.state["clade"])
         file.isdir(wd)
-        outfile = "found_markers_{}.tbl".format(key)
-        cutoff_file = "found_markers_{}_GA.csv".format(key)
+        outfile = f"found_markers_{key}.tbl"
+        cutoff_file = f"found_markers_{key}_GA.csv"
 
         # only run if outfile is older than fasta_faa
         if file.isnewer(fasta_faa, os.path.join(wd, outfile)) or file.isnewer(
@@ -624,7 +611,7 @@ class eukcc:
         profile_file = os.path.join(workdir, "profiles.txt")
         with open(profile_file, "w") as fout:
             for p in profiles:
-                fout.write("{}\n".format(p))
+                fout.write(f"{p}\n")
         outfile = "selected_hmms.hmm"
         hmmfetch(
             "hmmfetch",
@@ -632,7 +619,7 @@ class eukcc:
             [self.state["dbinfo"]["files"]["hmm_db"], profile_file],
             outfile,
         )
-        logging.debug("fetched hmms to file {}".format(outfile))
+        logging.debug(f"fetched hmms to file {outfile}")
         return os.path.join(workdir, outfile)
 
     def terminate(self, code=0):
@@ -678,7 +665,7 @@ class eukcc:
                 not in self.state["dbinfo"]["files"]["hmm_placement_place"].keys()
             ):
                 logging.error(
-                    "Profile {} misses the hmm and alignment files".format(profile)
+                    f"Profile {profile} misses the hmm and alignment files"
                 )
                 exit(1)
             hmmfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile][
@@ -687,10 +674,10 @@ class eukcc:
             alnfile = self.state["dbinfo"]["files"]["hmm_placement_place"][profile][
                 "aln"
             ]
-            prot_file = os.path.join(wd, "{}.faa".format(profile))
+            prot_file = os.path.join(wd, f"{profile}.faa")
             prot_file = Fasta.reduce_fasta(fasta, prot_file, ids)
 
-            aligned = os.path.join(wd, "{}.fasta".format(profile))
+            aligned = os.path.join(wd, f"{profile}.fasta")
             hmmalign(
                 "hmmalign",
                 wd,
@@ -769,16 +756,14 @@ class eukcc:
         except json.decoder.JSONDecodeError:
             jfile = os.path.join(wd, "epa_result.jplace")
             logging.error(
-                "Malformed epa-ng result file. Did you ungracefully terminate? Remove the file {} and try again".format(
-                    jfile
-                )
+                f"Malformed epa-ng result file. Did you ungracefully terminate? Remove the file {jfile} and try again"
             )
             exit(1)
         info["tog"] = self.guppy_tree(
             self.state["workdir"], os.path.join(wd, "epa_result.jplace")
         )
         logging.debug(
-            "Placed {} markers in the reference tree".format(len(info["placements"]))
+            f"Placed {len(info['placements'])} markers in the reference tree"
         )
         return info
 
@@ -828,9 +813,9 @@ class eukcc:
         def rec_check_path(d):
             for key, p in d.items():
                 if type(p) is str:
-                    if not os.path.exists(p) and not os.path.exists("{}.h3f".format(p)):
+                    if not os.path.exists(p) and not os.path.exists(f"{p}.h3f"):
                         raise FileNotFoundError(
-                            "Database is missing files: {}".format(p)
+                            f"Database is missing files: {p}"
                         )
                 elif type(p) is dict:
                     rec_check_path(p)
@@ -842,7 +827,7 @@ class eukcc:
         nones = ["etedb"]
         for v in nones:
             if v not in info["files"].keys():
-                logging.debug("Addding None for {}".format(v))
+                logging.debug(f"Addding None for {v}")
                 info["files"][v] = None
 
         self.state["loaded_dbs"][clade] = info
@@ -857,7 +842,7 @@ class eukcc:
         :return: json from database info file
         """
         # read in metadata from json file
-        logging.debug("Loading database info for subdb {}".format(clade))
+        logging.debug(f"Loading database info for subdb {clade}")
         info_file = os.path.join(db, clade, "db_info.json")
         if not os.path.exists(info_file):
             raise FileNotFoundError("Could not find database info file")
@@ -910,14 +895,14 @@ class eukcc:
 
         missing = []
         for dep in base_dep:
-            logging.debug("Checking dependency {}".format(dep))
+            logging.debug(f"Checking dependency {dep}")
             if which(dep) is None:
                 missing.append(dep)
 
         if len(missing) > 0:
             logging.error("Missing dependencies.")
             raise EnvironmentError(
-                "Missing dependencies: {}".format(", ".join(missing))
+                f"Missing dependencies: {', '.join(missing)}"
             )
 
     def write_result(self, result, outfile="eukcc.tsv", sep="\t"):
@@ -958,7 +943,7 @@ class eukcc:
                 }
                 writer.writerow(row)
 
-        logging.info("Wrote output to: {}".format(outfile))
+        logging.info(f"Wrote output to: {outfile}")
         self.state.save_state()
 
     def write_extra(self, state):
@@ -982,7 +967,7 @@ class eukcc:
         Loads a json.json.gz result file
         """
         if not os.path.exists(path):
-            logging.error("Could not find file {}".format(path))
+            logging.error(f"Could not find file {path}")
             exit(1)
 
         with gzip.open(path) as fin:

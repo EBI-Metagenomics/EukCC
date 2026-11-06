@@ -26,13 +26,13 @@ def split_contig_faa(path, workdir, delim="_binsep_"):
             contig = seq.name.split(delim, 1)[1]
             if b not in fls.keys():
                 fls[b] = open(os.path.join(faa_dir, b), "w")
-            fls[b].write(">{name}\n{seq}\n".format(name=contig, seq=seq.seq))
+            fls[b].write(f">{contig}\n{seq.seq}\n")
         # close all files
         for key, fl in fls.items():
             fl.close()
         return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
     else:
-        logging.warning("Could not create fasta split dir: {}".format(faa_dir))
+        logging.warning(f"Could not create fasta split dir: {faa_dir}")
 
 
 def eukcc_folder(args):
@@ -45,13 +45,13 @@ def eukcc_folder(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(1)
 
-    logging.info("EukCC version {}".format(__version__))
+    logging.info(f"EukCC version {__version__}")
 
     # discover all bins
     logging.debug("Loading all bins")
@@ -60,7 +60,7 @@ def eukcc_folder(args):
         for _path in glob.glob(os.path.join(state["binfolder"], "*"))
         if _path.lower().endswith((".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz"))
     )
-    logging.info("Found {} bins".format(len(state["input_bins"])))
+    logging.info(f"Found {len(state['input_bins'])} bins")
     if len(state["input_bins"]) == 0:
         logging.error("Stopping as no bins in folder")
         exit(1)
@@ -181,12 +181,10 @@ def refine(state):
     bins = []
     for i, path in enumerate(state["faas"]):
         logging.debug(
-            "Running EukCC on: {} ({}/{})".format(
-                os.path.basename(path), i, len(state["faas"])
-            )
+            f"Running EukCC on: {os.path.basename(path)} ({i}/{len(state['faas'])})"
         )
         wd = os.path.join(
-            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+            state["workdir"], "refine", f"bin_{os.path.basename(path)}"
         )
         bins.append(bin(state, wd, path, protein=True))
 
@@ -211,10 +209,10 @@ def refine(state):
                 continue
     # get all combinations of small bins
     # s_cmb = n_combi(smallbins, state["n_combine"])
-    # logging.info("Created {} possible combinations of small bins".format(len(s_cmb)))
+    # logging.info(f"Created {len(s_cmb)} possible combinations of small bins")
 
     n_large_bins = len(bins) - len(smallbins)
-    logging.info("Found {} large bins to merge with".format(n_large_bins))
+    logging.info(f"Found {n_large_bins} large bins to merge with")
 
     refined = []
 
@@ -270,9 +268,7 @@ def refine(state):
         combies = sorted(combies, key=len, reverse=False)
 
         logging.info(
-            "For bin {} we found {} merging combinations".format(
-                parent_name, len(combies)
-            )
+            f"For bin {parent_name} we found {len(combies)} merging combinations"
         )
         for kid_ids in combies:
             # turn kid indexec into sorted list, so they are reproducible turn kid indexec into sorted list, so they are reproducible
@@ -283,9 +279,9 @@ def refine(state):
             if len(children) == 0:
                 logging.debug("Skipping empty set")
                 continue
-            logging.debug("Testing bin combination for bin {}".format(parent_name))
+            logging.debug(f"Testing bin combination for bin {parent_name}")
             logging.debug(
-                "Adding in bins {}".format(",".join([get_name(i) for i in kid_ids]))
+                f"Adding in bins {','.join([get_name(i) for i in kid_ids])}"
             )
             # make all merges and see if they are great or not
             merged = merge_bins(
@@ -316,7 +312,7 @@ def refine(state):
                 state["improve_ratio"] * gain_ct
             ):
                 logging.warning(
-                    "Successfull merge: +{}% Compl. +{}% Cont.".format(gain_cp, gain_ct)
+                    f"Successfull merge: +{gain_cp}% Compl. +{gain_ct}% Cont."
                 )
                 merged["children_idx"] = kid_ids
                 merged["parent_idx"] = parent_bin
@@ -337,7 +333,7 @@ def refine(state):
         file.isdir(ref_dir)
         merged_fnas = []
         for merged_i, merged in enumerate(refined):
-            new_name = "{}{}{}".format(state["prefix"], merged_i, ".fa")
+            new_name = f"{state['prefix']}{merged_i}.fa"
             merged_fna = os.path.join(ref_dir, new_name)
             # combined index list
             idxs = [merged["parent_idx"]]
@@ -351,10 +347,10 @@ def refine(state):
             fnas = [os.path.join(state["binfolder"], name) for name in names]
             merged_fna = merge_fasta(fnas, merged_fna, seperator=None)
             merged_fnas.append(merged_fna)
-            logging.info("Created combined fasta {}".format(merged_fna))
+            logging.info(f"Created combined fasta {merged_fna}")
 
     evaluate_multiples(merged_fnas, result_table, state)
-    logging.info("Created {} merged bins".format(len(refined)))
+    logging.info(f"Created {len(refined)} merged bins")
 
 
 def note_merges(new_name, names, path, header=False, sep="\t", child_sep="child:"):
@@ -390,7 +386,7 @@ def evaluate_multiples(fnas, result_table, state):
     # launch eukcc on all bins
     for path in fnas:
         wd = os.path.join(
-            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+            state["workdir"], "refine", f"bin_{os.path.basename(path)}"
         )
         E = bin(state, wd, fasta=path, protein=False)
         write_table(E.state, result_table)
@@ -407,9 +403,7 @@ def remove_double_kids(refined, bins):
     for child, parents in child_parents.items():
         if len(set(parents)) > 1:
             logging.info(
-                "Child bin {} as assigned multiple parents. Thus they will be ignored to avoid hybrids".format(
-                    bins[child].state["name"]
-                )
+                f"Child bin {bins[child].state['name']} as assigned multiple parents. Thus they will be ignored to avoid hybrids"
             )
             remove_child.add(child)
     del_idx = [

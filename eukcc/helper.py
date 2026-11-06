@@ -9,7 +9,7 @@ def singletons_from_genome(fasta, state):
     """
     search a genome for all markers in a clade
     """
-    logging.info("Running for {}".format(fasta))
+    logging.info(f"Running for {fasta}")
 
     workdir = os.path.join(
         state["workdir"], "genome_annotation", os.path.basename(fasta)
@@ -19,7 +19,7 @@ def singletons_from_genome(fasta, state):
     # validate fasta input
     if my_state["seqtype"] is None:
         my_state["seqtype"] = determine_type(my_state["fasta"])
-        logging.info("Set sequence type to {}".format(my_state["seqtype"]))
+        logging.info(f"Set sequence type to {my_state['seqtype']}")
 
     # initialise a new EukCC instance
     E = eukcc.eukcc(my_state)

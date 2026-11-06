@@ -55,12 +55,12 @@ class test_determine_subdb(unittest.TestCase):
         # hmm_placement_place must exist, but is not used, so it points to the sub-database folder
         cls.db = tempfile.TemporaryDirectory()
         for leaf, subdb in LEAF_SUBDB.items():
-            subdb_dir = os.path.join(cls.db.name, "db_{}".format(subdb))
+            subdb_dir = os.path.join(cls.db.name, f"db_{subdb}")
             os.makedirs(subdb_dir, exist_ok=True)
             with open(os.path.join(subdb_dir, "db_info.json"), "w") as fout:
                 fout.write('{"files": {"taxinfo": "taxinfo.csv", "hmm_placement_place": "."}}')
             with open(os.path.join(subdb_dir, "taxinfo.csv"), "a") as fout:
-                fout.write("0,{}\n".format(leaf))
+                fout.write(f"0,{leaf}\n")
 
     @classmethod
     def tearDownClass(cls):

@@ -48,7 +48,7 @@ class file:
         Check if file A is newer than file B
         """
         if not file.isfile(fileA):
-            raise OSError("Could not find {}".format(fileA))
+            raise OSError(f"Could not find {fileA}")
 
         if not file.isfile(fileB):
             # return true bc fileB does not exists!
