@@ -32,6 +32,11 @@ def define_set_w_genomes(args):
     # launch new EukCC instance
     E = eukcc(state)
     if E.pick_marker_set() is None:
-        logging.warning("No marker gene set could be defined")
-        E.terminate()
+        # unlike eukcc single there is no NA result to write, so this is an error
+        genomes = ", ".join(os.path.basename(genome) for genome in state["genomes"])
+        logging.error(
+            f"No marker gene set could be defined for the {len(state['genomes'])} genomes ({genomes}). "
+            f"Try a lower --set_size (now {state['set_size']}) or --marker_prevalence (now {state['marker_prevalence']})"
+        )
+        E.terminate(1)
     E.state.save_state(filename=state["name"])

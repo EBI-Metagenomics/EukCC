@@ -13,6 +13,8 @@
 - In `eukcc folder`, bins that could not be estimated (zero predicted proteins or no marker gene
   set) are listed in `eukcc.tsv` with `NA` and in `missing_marker_genes.txt`. Before, bins with
   zero proteins were in no output file.
+- `eukcc define_set` exits with `1` when no marker gene set can be defined, as there is no result
+  to write. The error lists the genomes and suggests a lower `--set_size` or `--marker_prevalence`.
 - `eukcc single --gmes` is removed. It was legacy GeneMark-ES logic from EukCC 1 that no longer
   worked. Proteins are predicted with MetaEuk only.
 - `eukcc.tsv` and `bad_quality.tsv` have a new column, `ncbi_lng_names`, after `ncbi_lng` (#51).
