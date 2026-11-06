@@ -117,8 +117,10 @@ def write_table(state, path, sep="\t", header=False):
             # trim metaeuk prefix
             if bn.startswith("metaeuk_"):
                 bn = bn.split("_", 1)[1]
-            compl = str(state["quality"]["completeness"])
-            cont = str(state["quality"]["contamination"])
+            # quality is missing if we could not estimate this bin
+            quality = state.get("quality") or {}
+            compl = str(quality.get("completeness", "NA"))
+            cont = str(quality.get("contamination", "NA"))
             s = sep.join([bn, compl, cont, lng, lng_names])
             fout.write(s)
             fout.write("\n")
@@ -134,6 +136,15 @@ def write_no_marker_genes_output(state, outfile='missing_marker_genes.txt', head
             if bn.startswith("metaeuk_"):
                 bn = bn.split("_", 1)[1]
             file_out.write(bn + '\n')
+
+def bins_without_proteins(input_bins, faas):
+    """
+    input bins with no protein file, as split_contig_faa only writes one for bins
+    with proteins, named metaeuk_<bin>
+    """
+    with_proteins = {os.path.basename(path).split("_", 1)[1] for path in faas}
+    return [path for path in input_bins if os.path.basename(path) not in with_proteins]
+
 
 def refine(state):
     """
@@ -174,6 +185,12 @@ def refine(state):
     # this also gets rid of bins with zero proteins
     state["faas"] = split_contig_faa(state["faa"], state["workdir"], delim="_binsplit_")
 
+    # bins with zero proteins can not be estimated, report them with NA
+    for path in bins_without_proteins(state["input_bins"], state["faas"]):
+        logging.warning(f"Metaeuk predicted zero proteins for {os.path.basename(path)}")
+        write_table({"fasta": path}, result_table)
+        write_no_marker_genes_output({"fasta": path}, result_no_marker_set_bins)
+
     if state["links"] is not None:
         link_table = read_link_table(state["links"])
 
@@ -194,8 +211,9 @@ def refine(state):
         if b.state["quality"] is None:
             smallbins.append(i)
             logging.debug(f'Bin quality is None')
-            if len(b.state["marker_genes"]) == 0:
-                write_no_marker_genes_output(b.state, result_no_marker_set_bins)
+            # no estimate, e.g. no marker gene set: report it with NA
+            write_table(b.state, result_table)
+            write_no_marker_genes_output(b.state, result_no_marker_set_bins)
             continue
         else:
             if b.state["marker_set"]["quality"] != "good":

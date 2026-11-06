@@ -56,10 +56,10 @@ With pip, you also need to install these mandatory requirements:
 
 ### eukcc folder
 
-- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **good** quality bins
+- `eukcc.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **good** quality bins. Bins that could not be estimated (zero predicted proteins or no marker gene set) are listed with `NA`
 - `merged_bins.tsv` - table of merged refined bins
 - `bad_quality.tsv` - table with estimated completeness, contamination and taxonomy lineage (taxids and names) for **bad** quality bins (chosen marker gene set is supported by less than half of the alignments)
-- `missing_marker_genes.txt` - line separated list of bins with not defined set of marker genes
+- `missing_marker_genes.txt` - line separated list of bins that could not be estimated (zero predicted proteins or no marker gene set)
 - `merged_bins` - folder with merged bins sequences 
 - `refine_workdir` - working directory with intermediate steps results
 

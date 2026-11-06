@@ -10,6 +10,9 @@
   insensitive and optionally gzip compressed (#55).
 - `eukcc folder` stops with exit code `1` if any bin is not a valid FASTA file, empty files
   included. Every invalid file is logged, so all of them can be fixed before the next run.
+- In `eukcc folder`, bins that could not be estimated (zero predicted proteins or no marker gene
+  set) are listed in `eukcc.tsv` with `NA` and in `missing_marker_genes.txt`. Before, bins with
+  zero proteins were in no output file.
 - `eukcc single --gmes` is removed. It was legacy GeneMark-ES logic from EukCC 1 that no longer
   worked. Proteins are predicted with MetaEuk only.
 - `eukcc.tsv` and `bad_quality.tsv` have a new column, `ncbi_lng_names`, after `ncbi_lng` (#51).

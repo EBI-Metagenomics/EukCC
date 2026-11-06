@@ -116,8 +116,8 @@ def run_eukcc(args):
         # copy fna to faa state entry
         E.state["faa"] = E.state["fasta"]
 
+    # zero proteins predicted, clean_metaeuk_fasta already warned about it
     if os.stat(E.state["faa"]).st_size == 0:
-        logging.warning("No proteins to search for marker genes")
         no_estimate(E, state)
 
     if E.state["comparison_genomes"] is not None:
