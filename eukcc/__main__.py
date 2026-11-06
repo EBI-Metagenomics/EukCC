@@ -340,6 +340,12 @@ def single(**kwargs):
     help="A merger must increase completeness at least by n percent (Default: 10)",
 )
 @click.option(
+    "--no_merge",
+    is_flag=True,
+    default=False,
+    help="Only estimate the quality of each bin, without merging bins",
+)
+@click.option(
     "--n_combine",
     type=int,
     default=1,

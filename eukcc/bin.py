@@ -2,6 +2,7 @@ from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.file import file
 from eukcc.fasta import merge_fasta
 import os
+import hashlib
 
 
 class bin:
@@ -16,11 +17,18 @@ class bin:
         state["name"] = self.name
         # adding caching so reruns are extra fast
         svp = os.path.join(self.state["workdir"], "save.json.gz")
+        with open(fasta, "rb") as fin:
+            fasta_md5 = hashlib.md5(fin.read()).hexdigest()
         if os.path.exists(svp):
-            self.state.load_state(svp)
+            cached = eukcc_state()
+            cached.load_state(svp)
+            # only reuse the cached estimate if the proteins of the bin did not change
+            if cached["fasta_md5"] == fasta_md5:
+                self.state.merge(cached)
         if self.state["estimated"] is not True:
             self.run_eukcc()
             self.state["estimated"] = True
+            self.state["fasta_md5"] = fasta_md5
             self.state.save_state(svp)
 
     def run_eukcc(self):

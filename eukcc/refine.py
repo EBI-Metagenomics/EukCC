@@ -1,4 +1,5 @@
 import os
+import shutil
 import logging
 import glob
 import csv
@@ -15,12 +16,11 @@ from itertools import combinations
 
 def split_contig_faa(path, workdir, delim="_binsep_"):
     faa_dir = os.path.join(workdir, "faa")
+    # rebuilt on every run, as the proteins are predicted again and a folder left
+    # by an interrupted or older run could miss bins
     if os.path.exists(faa_dir):
-        logging.info(
-            "Faa folder exists, remove if you want to rerun this analysis, will reuse it for now"
-        )
-        return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
-    elif file.isdir(faa_dir):
+        shutil.rmtree(faa_dir)
+    if file.isdir(faa_dir):
         fls = {}
         for seq in Fasta(path):
             b = seq.name.split(delim, 1)[0]
@@ -156,16 +156,11 @@ def refine(state):
     It takes a state argument and does the rest. It is basically a per bin EukCC run
     with added merging features
     """
-    state["contigs"] = os.path.join(state["workdir"], "contigs.fasta")
-    if not os.path.exists(state["contigs"]):
-        logging.debug("Merging bins into temp contig file")
-        state["contigs"] = merge_fasta(
-            state["input_bins"], state["contigs"], seperator="_binsplit_"
-        )
-    else:
-        logging.debug(
-            "Using existing merged contigs, delete output folder if that is not what you want."
-        )
+    # rebuilt on every run, so it always has the bins of the current input folder
+    logging.debug("Merging bins into temp contig file")
+    state["contigs"] = merge_fasta(
+        state["input_bins"], os.path.join(state["workdir"], "contigs.fasta"), seperator="_binsplit_"
+    )
 
     # initialize output tables
     result_table = os.path.join(state["out"], "eukcc.tsv")
@@ -176,9 +171,6 @@ def refine(state):
     # table for bins with not defined marker genes set
     result_no_marker_set_bins = os.path.join(state["out"], "missing_marker_genes.txt")
     write_no_marker_genes_output(None, result_no_marker_set_bins, header=True)
-
-    merged_table = os.path.join(state["out"], "merged_bins.tsv")
-    note_merges(None, None, merged_table, header=True)
 
     # predict proteins using metaeuk
     state["fasta"] = state["contigs"]
@@ -229,6 +221,13 @@ def refine(state):
             if b.state["quality"]["completeness"] < 50:
                 smallbins.append(i)
                 continue
+    if state["no_merge"]:
+        logging.info("Skipping the merging of bins (--no_merge)")
+        return
+
+    merged_table = os.path.join(state["out"], "merged_bins.tsv")
+    note_merges(None, None, merged_table, header=True)
+
     # get all combinations of small bins
     # s_cmb = n_combi(smallbins, state["n_combine"])
     # logging.info(f"Created {len(s_cmb)} possible combinations of small bins")

@@ -63,6 +63,13 @@ increase in contamination.
 
 Merged bins can be found in the output folder.
 
+To only estimate the quality of each bin, without merging, use
+``--no_merge``:
+
+.. code-block:: shell
+
+    eukcc folder --out outfolder --threads 8 --no_merge binfolder
+
 .. warning::
     Meging more than two bins. So setting ``--n_combine`` to anything above 1 is experimental and not yet recommended. We had very good results with merging two bins.
 

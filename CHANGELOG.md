@@ -35,6 +35,7 @@
 - Documentation of the database `eukcc2_db_ver_2026-11`.
 - `eukcc download_db` downloads and extracts the database into `--out`. `--url` points to the
   current database on the EBI FTP by default and can be changed for other versions.
+- `eukcc folder --no_merge` estimates the quality of each bin without merging bins (#48).
 
 ### Changed
 
@@ -50,6 +51,9 @@
 
 - `eukcc ncbi_update` no longer fails looking for an output folder it does not have.
 - The `filter_euk_bins` command works: the script had no `main` function for its entry point.
+- `eukcc folder` reruns in the same `--out` no longer reuse the merged contigs and the proteins
+  split per bin of an older or interrupted run, which could miss bins. The cached estimate of a
+  bin is only reused if its proteins did not change (#48).
 
 ## [2.2.0](https://github.com/EBI-Metagenomics/EukCC/releases/tag/v.2.2.0) (2026-08-14)
 

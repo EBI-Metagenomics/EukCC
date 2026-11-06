@@ -93,6 +93,8 @@ Options:
                              (Default: 5)
   --improve_percent FLOAT    A merger must increase completeness at least by n
                              percent (Default: 10)
+  --no_merge                 Only estimate the quality of each bin, without
+                             merging bins
   --n_combine INTEGER        How many small bins should be merged into a
                              medium sized bin (Default: 1)
   -q, --quiet                Silence most output
