@@ -3,6 +3,7 @@ import logging
 from types import SimpleNamespace
 import click
 from eukcc import __version__
+from eukcc.constants import FASTA_EXTENSIONS
 from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.fasta import determine_type
 from eukcc.file import file
@@ -285,7 +286,11 @@ def single(obj, **kwargs):
 # eukcc folder
 # ----------------------------------------------------------------------------
 
-@main.command(context_settings=CONTEXT_SETTINGS, help="Estimate the quality of a folder of bins and refine them.")
+@main.command(
+    context_settings=CONTEXT_SETTINGS,
+    help="Estimate the quality of a folder of bins and refine them. "
+    f"Bins are the {', '.join(FASTA_EXTENSIONS)} files in BINFOLDER, optionally gzip compressed.",
+)
 @click.argument("binfolder", type=str)
 @click.option("--out", "-o", type=str, default=".", help="Path to output folder (Default: .)")
 @click.option("--db", type=str, default=None, help="Path to EukCC DB")

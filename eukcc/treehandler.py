@@ -3,6 +3,7 @@ from collections import defaultdict, Counter
 import logging
 from eukcc.base import load_SCMGs, percentage_sets, load_tax_info
 from eukcc.helper import singletons_from_genome
+from eukcc.constants import MAJ_VOTE
 
 
 class markerset:
@@ -142,11 +143,6 @@ def hard_set_computation(
         return ms.to_dict()
     else:
         return None
-
-
-# minimum fraction of votes the most voted option needs to be accepted:
-# the taxid at each lineage rank in tax_LCA, and the sub-database in subdb_vote.
-MAJ_VOTE = 0.6
 
 
 def subdb_vote(tree, placements, leaf_subdb, vote=MAJ_VOTE):

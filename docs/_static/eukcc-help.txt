@@ -68,7 +68,8 @@ Options:
 $ eukcc folder -h
 Usage: eukcc folder [OPTIONS] BINFOLDER
 
-  Estimate the quality of a folder of bins and refine them.
+  Estimate the quality of a folder of bins and refine them. Bins are the .fa,
+  .fna, .fasta files in BINFOLDER, optionally gzip compressed.
 
 Options:
   -o, --out TEXT             Path to output folder (Default: .)
