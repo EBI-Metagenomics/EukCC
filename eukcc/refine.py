@@ -5,7 +5,7 @@ import csv
 from collections import defaultdict
 from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.fasta import merge_fasta, valid_fastas
-import eukcc.version as version
+from eukcc import __version__
 from eukcc.fasta import Fasta
 from eukcc.bin import bin, merge_bins
 from eukcc.file import file
@@ -51,7 +51,7 @@ def eukcc_folder(args):
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(1)
 
-    logging.info("EukCC version {}".format(version.__version__))
+    logging.info("EukCC version {}".format(__version__))
 
     # discover all bins
     logging.debug("Loading all bins")

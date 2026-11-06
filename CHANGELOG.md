@@ -14,6 +14,9 @@
 - `bad_quality.csv` and `merged_bins.csv` are renamed to `bad_quality.tsv` and `merged_bins.tsv`.
   They were already tab separated.
 - Python 3.10 or 3.11 is required.
+- `eukcc` uses `click`. `eukcc single --taxids` and `--genomes` take one value each and
+  are repeated for several values (`--genomes a.fa --genomes b.fa`). All other options and
+  defaults are the same.
 
 ### Added
 
@@ -28,6 +31,15 @@
   leaves of each placement, and needs at least 60% of the votes. It no longer depends on taxids
   in the code, so opisthokont protists can go to `protozoa`.
 - In `eukcc folder`, files that are not valid FASTA are skipped with a warning.
+- The version is set only in `pyproject.toml` and read from the installed package.
+  `eukcc/version.py` and `setup.py` are removed; the package is built with `python -m build`.
+  The `binlinks.py` and `filter_euk_bins.py` commands, installed by `setup.py` until now, are
+  kept as entry points, next to `binlinks` and `filter_euk_bins`.
+
+### Fixed
+
+- `eukcc ncbi_update` no longer fails looking for an output folder it does not have.
+- The `filter_euk_bins` command works: the script had no `main` function for its entry point.
 
 ## [2.2.0](https://github.com/EBI-Metagenomics/EukCC/releases/tag/v.2.2.0) (2026-08-14)
 

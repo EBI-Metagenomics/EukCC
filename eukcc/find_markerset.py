@@ -3,7 +3,7 @@ import argparse
 import logging
 from collections import defaultdict, Counter
 from eukcc.eukcc import eukcc, eukcc_state
-import eukcc.version as version
+from eukcc import __version__
 from eukcc.file import file
 import math
 from multiprocessing import Pool
@@ -284,7 +284,7 @@ def main():
         "-v",
         "--version",
         action="version",
-        version="EukCC version {}".format(version.__version__),
+        version="EukCC version {}".format(__version__),
     )
     args = parser.parse_args()
     state = eukcc_state(
@@ -314,7 +314,7 @@ def main():
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(1)
 
-    logging.info("EukCC version {}".format(version.__version__))
+    logging.info("EukCC version {}".format(__version__))
 
     logging.info(
         "Looking for shared markers across {} genomes".format(len(state["genomes"]))
