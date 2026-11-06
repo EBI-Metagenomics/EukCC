@@ -84,6 +84,10 @@ Genome biology 21.1 (2020): 1-21.
 EukCC also uses metaEUK, hmmer, pplacer, ete3 and epa-ng. 
 
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the changes in each version.
+
 ## Changed compared to EukCC 1
 **Note**: 
 With version 2, EukCC should provide a better experience than
