@@ -11,6 +11,7 @@ MULTILINE_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/multiline.
 GZIP_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/test.fa.gz")
 NOT_GZIPPED = os.path.join(os.path.dirname(__file__), "../fixtures/not_gzipped.fa.gz")
 EMPTY_GZIP = os.path.join(os.path.dirname(__file__), "../fixtures/empty.fa.gz")
+TRUNCATED_GZIP = os.path.join(os.path.dirname(__file__), "../fixtures/truncated.fa.gz")
 
 METAEUK_dirty = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file.fa")
 METAEUK_clean = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file_clean.fa")
@@ -50,6 +51,8 @@ class test_base(unittest.TestCase):
         self.assertTrue(validate_fasta(GZIP_FASTA))
         self.assertFalse(validate_fasta(NOT_GZIPPED))
         self.assertFalse(validate_fasta(EMPTY_GZIP))
+        # the first lines decompress fine, the end of the file is missing
+        self.assertFalse(validate_fasta(TRUNCATED_GZIP))
 
     def test_gzip_fasta(self):
         plain = [(seq.name, seq.seq) for seq in Fasta(TESTDATA_FASTA)]

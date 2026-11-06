@@ -146,35 +146,31 @@ def validate_fasta(path, seqtype="AA"):
     if os.stat(path).st_size == 0:
         return False
 
-    # check if we can open it, corrupted compressed files raise OSError
+    # check if the file contains valid sequences
+    # corrupted compressed files raise OSError, truncated ones EOFError
+    tp = "start"
     try:
         with open_fasta(path) as fin:
             for line in fin:
-                break
-    except (UnicodeDecodeError, OSError):
+                if line.strip() == "":
+                    continue
+                if tp == "start" and not line.strip().startswith(">"):
+                    # the first non empty line needs to be a name
+                    logging.error("Fasta file contains non name line as first non empty line")
+                    return False
+
+                if line.strip().startswith(">") and tp == "name":
+                    # we can not have two names in a row
+                    logging.error("Fasta contains two names in row")
+                    return False
+                elif line.strip().startswith(">"):
+                    # if we had sequence before we can have a name now
+                    tp = "name"
+
+                if not line.strip().startswith(">"):
+                    tp = "seq"
+    except (UnicodeDecodeError, OSError, EOFError):
         return False
-
-    # check if the file contains valid sequences
-    with open_fasta(path) as fin:
-        tp = "start"
-        for line in fin:
-            if line.strip() == "":
-                continue
-            if tp == "start" and not line.strip().startswith(">"):
-                # the first non empty line needs to be a name
-                logging.error("Fasta file contains non name line as first non empty line")
-                return False
-
-            if line.strip().startswith(">") and tp == "name":
-                # we can not have two names in a row
-                logging.error("Fasta contains two names in row")
-                return False
-            elif line.strip().startswith(">"):
-                # if we had sequence before we can have a name now
-                tp = "name"
-
-            if not line.strip().startswith(">"):
-                tp = "seq"
 
     # no sequence at all, e.g. a compressed empty file
     if tp == "start":
