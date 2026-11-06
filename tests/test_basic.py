@@ -1,6 +1,6 @@
 import unittest
 import os
-from eukcc.base import union_sets, load_SCMGs, percentage_sets, load_tax_info
+from eukcc.base import union_sets, load_SCMGs, percentage_sets, load_tax_info, lineage_names
 
 TESTDATA_SCMG = os.path.join(os.path.dirname(__file__), "testfiles", "SCMG_TEST.csv")
 TESTDATA_SCMG_GZ = os.path.join(os.path.dirname(__file__), "testfiles", "SCMG_TEST.csv.gz")
@@ -86,6 +86,11 @@ class test_base(unittest.TestCase):
         TESTDATA_TAXINFO = os.path.join(os.path.dirname(__file__), "testfiles", "tree_taxinfo.csv")
         ti = load_tax_info(TESTDATA_TAXINFO)
         self.assertEqual(ti["B"], ["1"])
+
+    def test_lineage_names(self):
+        # same taxids and order as ncbi_lng, so the two columns match one to one
+        self.assertEqual(lineage_names(["1", "131567", "2759"]), "root;cellular organisms;Eukaryota")
+        self.assertEqual(lineage_names([]), "NA")
 
 
 if __name__ == "__main__":

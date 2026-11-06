@@ -9,8 +9,8 @@ class test_write_result(unittest.TestCase):
             {
                 "fasta": "bin.fa",
                 "quality": {"completeness": 90, "contamination": 1},
-                "lng": ["1", "2759"],
-                "lng_names": "d__Eukaryota;p__;c__;o__;f__;g__;s__",
+                "lng": ["1", "131567", "2759"],
+                "lng_names": "root;cellular organisms;Eukaryota",
             },
             {"fasta": "empty.fa"},
         ]
@@ -23,5 +23,5 @@ class test_write_result(unittest.TestCase):
         os.remove("savestate.json.gz")
 
         self.assertEqual(lines[0][-1], "ncbi_lng_names")
-        self.assertEqual(lines[1], ["bin.fa", "90", "1", "1-2759", "d__Eukaryota;p__;c__;o__;f__;g__;s__"])
+        self.assertEqual(lines[1], ["bin.fa", "90", "1", "1-131567-2759", "root;cellular organisms;Eukaryota"])
         self.assertEqual(lines[2], ["empty.fa", "NA", "NA", "NA", "NA"])

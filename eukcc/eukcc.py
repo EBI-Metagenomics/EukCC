@@ -24,7 +24,7 @@ from eukcc.base import (
     load_tax_info,
     load_SCMGs,
     compute_silent_contamination,
-    gtdb_lineage,
+    lineage_names,
     hmmer_cutoffs,
 )
 import eukcc.fasta as Fasta
@@ -401,7 +401,7 @@ class eukcc:
 
         logging.debug("Lineage infered as {}".format(lng))
         self.state["lng"] = lng
-        self.state["lng_names"] = gtdb_lineage(
+        self.state["lng_names"] = lineage_names(
             lng, dbfile=self.state["dbinfo"]["files"]["etedb"]
         )
 
