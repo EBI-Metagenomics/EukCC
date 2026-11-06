@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import click
 from eukcc import __version__
 from eukcc.constants import FASTA_EXTENSIONS
-from eukcc.eukcc import eukcc, eukcc_state
+from eukcc.eukcc import eukcc, eukcc_state, check_set_size
 from eukcc.fasta import determine_type
 from eukcc.file import file
 from eukcc.refine import eukcc_folder
@@ -98,9 +98,7 @@ def run_eukcc(args):
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(1)
 
-    if state["max_set_size"] < state["set_size"]:
-        logging.error("Max set size cant be smaller than min set size")
-        exit(1)
+    check_set_size(state)
 
     # validate fasta input
     if state["seqtype"] is None:
@@ -184,18 +182,23 @@ def run_eukcc(args):
     default=1,
     help="Number of threads to use for epa-ng, recommended: 1 (Default: 1)",
 )
-@click.option("--set_size", type=int, default=20, help="Minimal number of marker genes to use (Default: 20)")
+@click.option(
+    "--set_size",
+    type=int,
+    default=20,
+    help="Minimal number of marker genes in a set, smaller sets are not used (Default: 20)",
+)
 @click.option(
     "--max_set_size",
     type=int,
     default=500,
-    help="Maximal number of marker genes used, set to 0 to include all possible marker genes (Default: 500)",
+    help="Maximal number of marker genes in a set, larger sets are reduced to a fixed random sample of this size. 0 uses all marker genes (Default: 500)",
 )
 @click.option(
     "--marker_prevalence",
     type=float,
     default=95,
-    help="Percentage of species in which markers should be found (Default: 95)",
+    help="Percentage of the reference species of a set in which a marker gene must be single copy (Default: 95)",
 )
 @click.option("--DNA", "seqtype", flag_value="DNA", default=None, help="The fasta file contains DNA sequences")
 @click.option("--AA", "seqtype", flag_value="AA", help="The fasta file contains amino acid sequences")
@@ -222,7 +225,7 @@ def run_eukcc(args):
     "--set_number_species",
     type=int,
     default=3,
-    help="Minimal number of species to define a set. Reduce this if no sets can be found (Default: 3)",
+    help="Minimal number of reference species a set is defined on. Reduce this if no sets can be found (Default: 3)",
 )
 @click.option(
     "--select_best_guess",
@@ -305,7 +308,7 @@ def single(obj, **kwargs):
     "--marker_prevalence",
     type=float,
     default=95,
-    help="Percentage of species in which markers should be found (Default: 95)",
+    help="Percentage of the reference species of a set in which a marker gene must be single copy (Default: 95)",
 )
 @click.option(
     "--links",
@@ -353,18 +356,23 @@ def folder(obj, **kwargs):
 @click.option("--out", "-o", type=str, default=".", help="Path to output folder (Default: .)")
 @click.option("--db", type=str, default=None, help="Path to EukCC DB")
 @click.option("--threads", "-t", type=int, default=1, help="Number of threads to use (Default: 1)")
-@click.option("--set_size", type=int, default=20, help="Minimal number of marker genes to use (Default: 20)")
+@click.option(
+    "--set_size",
+    type=int,
+    default=20,
+    help="Minimal number of marker genes in a set, smaller sets are not used (Default: 20)",
+)
 @click.option(
     "--max_set_size",
     type=int,
     default=500,
-    help="Maximal number of marker genes used, set to 0 to include all possible marker genes (Default: 500)",
+    help="Maximal number of marker genes in a set, larger sets are reduced to a fixed random sample of this size. 0 uses all marker genes (Default: 500)",
 )
 @click.option(
     "--marker_prevalence",
     type=float,
     default=95,
-    help="Percentage of species in which markers should be found (Default: 95)",
+    help="Percentage of the provided genomes in which a marker gene must be single copy (Default: 95)",
 )
 @click.option("--name", "-n", type=str, default="set", help="Name of the set (default: set)")
 @click.option("--DNA", "seqtype", flag_value="DNA", default=None, help="The fasta file contains DNA sequences")

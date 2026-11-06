@@ -45,6 +45,18 @@ default_vals = {
 }
 
 
+def check_set_size(state):
+    """
+    Exit if the maximal set size is smaller than the minimal one, a maximal set size of 0 means no limit
+    """
+    if 0 < state["max_set_size"] < state["set_size"]:
+        logging.error(
+            f"--max_set_size ({state['max_set_size']}) cannot be smaller than --set_size ({state['set_size']}), "
+            "use --max_set_size 0 for no limit"
+        )
+        exit(1)
+
+
 class eukcc_state:
     """
     This is a class to maintain the state of eukcc
@@ -168,13 +180,6 @@ class eukcc:
         if self.state["marker_prevalence"] < 95:
             logging.warning(
                 "You selected a marker prevalence below 95%, this can lead to wrong results"
-            )
-
-        if self.state["set_size"] > state["max_set_size"]:
-            self.state["max_set_size"] = state["set_minimal_size"]
-            logging.warning(
-                "Your minimal set size is bigger than the maximial set size. Thus we increased the maximal set size to fit the minimal set size. "
-                f"Both are now {self.state['max_set_size']}"
             )
 
         logging.debug(f"Using {self.state['threads']} threads")

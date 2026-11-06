@@ -1,6 +1,6 @@
 import os
 import logging
-from eukcc.eukcc import eukcc, eukcc_state
+from eukcc.eukcc import eukcc, eukcc_state, check_set_size
 
 
 def define_set_w_genomes(args):
@@ -16,9 +16,7 @@ def define_set_w_genomes(args):
             logging.error("No database was provided via --db or EUKCC2_DB env variable")
             exit(1)
 
-    if state["max_set_size"] < state["set_size"]:
-        logging.error("Max set size cant be smaller than min set size")
-        exit(1)
+    check_set_size(state)
 
     if state["seqtype"] is None:
         logging.debug("Setting seqencetype to DNA, use --AA to pass proteomes")

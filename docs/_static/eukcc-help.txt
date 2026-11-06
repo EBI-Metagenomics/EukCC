@@ -27,13 +27,15 @@ Options:
   -t, --threads INTEGER         Number of threads to use (Default: 1)
   --threads_epa INTEGER         Number of threads to use for epa-ng,
                                 recommended: 1 (Default: 1)
-  --set_size INTEGER            Minimal number of marker genes to use
-                                (Default: 20)
-  --max_set_size INTEGER        Maximal number of marker genes used, set to 0
-                                to include all possible marker genes (Default:
-                                500)
-  --marker_prevalence FLOAT     Percentage of species in which markers should
-                                be found (Default: 95)
+  --set_size INTEGER            Minimal number of marker genes in a set,
+                                smaller sets are not used (Default: 20)
+  --max_set_size INTEGER        Maximal number of marker genes in a set,
+                                larger sets are reduced to a fixed random
+                                sample of this size. 0 uses all marker genes
+                                (Default: 500)
+  --marker_prevalence FLOAT     Percentage of the reference species of a set
+                                in which a marker gene must be single copy
+                                (Default: 95)
   --DNA                         The fasta file contains DNA sequences
   --AA                          The fasta file contains amino acid sequences
   --taxids TEXT                 Taxid to use as set starting point, repeat the
@@ -42,9 +44,9 @@ Options:
                                 the option for several genomes
   --use_placement TEXT          Path to previous result file, to use exact
                                 same marker gene set
-  --set_number_species INTEGER  Minimal number of species to define a set.
-                                Reduce this if no sets can be found (Default:
-                                3)
+  --set_number_species INTEGER  Minimal number of reference species a set is
+                                defined on. Reduce this if no sets can be
+                                found (Default: 3)
   --select_best_guess           Use best guess to select marker gene set
                                 (Default)
   --select_species              Use species count to select best marker gene
@@ -77,8 +79,9 @@ Options:
   -t, --threads INTEGER      Number of threads to use (Default: 1)
   --threads_epa INTEGER      Number of threads to use for epa-ng, recommended:
                              1 (Default: 1)
-  --marker_prevalence FLOAT  Percentage of species in which markers should be
-                             found (Default: 95)
+  --marker_prevalence FLOAT  Percentage of the reference species of a set in
+                             which a marker gene must be single copy (Default:
+                             95)
   --links TEXT               Path to a link table generated with binlinks.py.
                              If supplied, paired reads will be used to refine
                              bins (Recommended)
@@ -102,12 +105,13 @@ Options:
   -o, --out TEXT             Path to output folder (Default: .)
   --db TEXT                  Path to EukCC DB
   -t, --threads INTEGER      Number of threads to use (Default: 1)
-  --set_size INTEGER         Minimal number of marker genes to use (Default:
-                             20)
-  --max_set_size INTEGER     Maximal number of marker genes used, set to 0 to
-                             include all possible marker genes (Default: 500)
-  --marker_prevalence FLOAT  Percentage of species in which markers should be
-                             found (Default: 95)
+  --set_size INTEGER         Minimal number of marker genes in a set, smaller
+                             sets are not used (Default: 20)
+  --max_set_size INTEGER     Maximal number of marker genes in a set, larger
+                             sets are reduced to a fixed random sample of this
+                             size. 0 uses all marker genes (Default: 500)
+  --marker_prevalence FLOAT  Percentage of the provided genomes in which a
+                             marker gene must be single copy (Default: 95)
   -n, --name TEXT            Name of the set (default: set)
   --DNA                      The fasta file contains DNA sequences
   --AA                       All provided files are proteins, no gene

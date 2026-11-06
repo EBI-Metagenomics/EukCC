@@ -49,10 +49,15 @@ Marker gene sets
 The marker gene set is chosen from the placement of the genome. These
 options change which markers are accepted:
 
-- ``--marker_prevalence``: percentage of species in which a marker must be
-  found as single copy (default: 95).
-- ``--set_size`` and ``--max_set_size``: minimal (default: 20) and maximal
-  (default: 500, 0 for no limit) number of markers in a set.
+- ``--marker_prevalence``: percentage of the reference species of a set in
+  which a marker must be found as single copy (default: 95).
+- ``--set_size``: minimal number of markers in a set, smaller sets are not
+  used (default: 20).
+- ``--max_set_size``: maximal number of markers in a set (default: 500).
+  Larger sets are reduced to a fixed random sample of this size, so runs are
+  reproducible; 0 uses all markers.
+- ``--set_number_species``: minimal number of reference species a set is
+  defined on (default: 3). Reduce it if no set can be found.
 
 To use exactly the same marker gene set for another genome, pass the
 ``savestate.json.gz`` written by a previous ``eukcc single`` run:

@@ -1,6 +1,6 @@
 import unittest
 import os
-from eukcc.eukcc import eukcc, eukcc_state
+from eukcc.eukcc import eukcc, eukcc_state, check_set_size
 
 
 class test_write_result(unittest.TestCase):
@@ -25,3 +25,16 @@ class test_write_result(unittest.TestCase):
         self.assertEqual(lines[0][-1], "ncbi_lng_names")
         self.assertEqual(lines[1], ["bin.fa", "90", "1", "1-131567-2759", "root;cellular organisms;Eukaryota"])
         self.assertEqual(lines[2], ["empty.fa", "NA", "NA", "NA", "NA"])
+
+
+class test_check_set_size(unittest.TestCase):
+    def test_valid_sizes(self):
+        # 0 means no limit, so it is valid with any minimal set size
+        for max_set_size in [0, 20, 500]:
+            check_set_size({"set_size": 20, "max_set_size": max_set_size})
+
+    def test_max_smaller_than_min(self):
+        with self.assertLogs(level="ERROR") as logs, self.assertRaises(SystemExit) as stop:
+            check_set_size({"set_size": 20, "max_set_size": 10})
+        self.assertEqual(stop.exception.code, 1)
+        self.assertIn("--max_set_size (10) cannot be smaller than --set_size (20)", logs.output[0])
