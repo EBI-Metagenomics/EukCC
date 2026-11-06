@@ -2,18 +2,18 @@ import unittest
 import os
 from eukcc.fasta import Fasta, reduce_fasta, validate_fasta, N50, clean_metaeuk_fasta, valid_fastas
 
-TESTDATA_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/test.fa")
-TRICKY_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/valid_but_tricky_fasta.fa")
-NOT_A_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/not_a_fasta.fasta")
-CORRUPT_FILE = os.path.join(os.path.dirname(__file__), "testfiles/corrupt_file")
-GMES_FILE = os.path.join(os.path.dirname(__file__), "testfiles/gmes_fail.fasta")
-MULTILINE_FILE = os.path.join(os.path.dirname(__file__), "testfiles/multiline.fasta")
-GZIP_FASTA = os.path.join(os.path.dirname(__file__), "testfiles/test.fa.gz")
-NOT_GZIPPED = os.path.join(os.path.dirname(__file__), "testfiles/not_gzipped.fa.gz")
-EMPTY_GZIP = os.path.join(os.path.dirname(__file__), "testfiles/empty.fa.gz")
+TESTDATA_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/test.fa")
+TRICKY_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/valid_but_tricky_fasta.fa")
+NOT_A_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/not_a_fasta.fasta")
+CORRUPT_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/corrupt_file")
+GMES_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/gmes_fail.fasta")
+MULTILINE_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/multiline.fasta")
+GZIP_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/test.fa.gz")
+NOT_GZIPPED = os.path.join(os.path.dirname(__file__), "../fixtures/not_gzipped.fa.gz")
+EMPTY_GZIP = os.path.join(os.path.dirname(__file__), "../fixtures/empty.fa.gz")
 
-METAEUK_dirty = os.path.join(os.path.dirname(__file__), "testfiles/test_metaeuk_file.fa")
-METAEUK_clean = os.path.join(os.path.dirname(__file__), "testfiles/test_metaeuk_file_clean.fa")
+METAEUK_dirty = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file.fa")
+METAEUK_clean = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file_clean.fa")
 
 
 class test_base(unittest.TestCase):
@@ -68,7 +68,7 @@ class test_base(unittest.TestCase):
 
     def test_n50(self):
         # wikipedia example
-        fasta_1 = os.path.join(os.path.dirname(__file__), "testfiles/N50_1.fa")
+        fasta_1 = os.path.join(os.path.dirname(__file__), "../fixtures/N50_1.fa")
         self.assertEqual(N50(fasta_1), 8)
 
     def test_multiline(self):
