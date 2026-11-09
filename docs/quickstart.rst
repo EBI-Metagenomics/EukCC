@@ -42,6 +42,22 @@ You will need to fetch the database for EukCC once.
 
     The database from version 1 is not compatible. So after updating EukCC make sure to update the database.
 
+.. warning::
+
+    Databases from ``eukcc2_db_ver_2026-11`` on are recommended with EukCC 2.3 or later.
+
+    - **Opisthokont protists:** these databases keep the references of opisthokont protists
+      (Choanoflagellata, Ichthyosporea, Filasterea, Rotosphaerida and *Corallochytrium*) in
+      the ``protozoa`` database, and not in ``fungi``. EukCC 2.3 picks the clade database by a
+      vote of the closest references of each placement, so these genomes go to ``protozoa``.
+      Older versions send every genome with Opisthokonta in its lineage to ``fungi``, where
+      these protists have no close references. With an older version, ``--clade protozoa``
+      sends them to the right database.
+    - **Mamiellophyceae:** EukCC 2.3 also roots the tree on a reference when it chooses the
+      marker gene set. With older versions and the ``plant`` database of
+      ``eukcc2_db_ver_2026-11``, some Mamiellophyceae genomes (*Bathycoccus*, *Ostreococcus*
+      and *Micromonas*) are placed in streptophytes.
+
 Databases available at http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/:
 
 .. list-table::
@@ -54,7 +70,7 @@ Databases available at http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/:
     * - ``eukcc2_db_ver_2026-11.tar.gz``
       - 2026-11-01
       -
-      - >= 2
+      - >= 2.3 (recommended)
     * - ``eukcc2_db_ver_1.2.tar.gz``
       - 2022-04-01
       - 6.0G

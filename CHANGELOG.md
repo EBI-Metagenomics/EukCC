@@ -54,6 +54,10 @@
 - `eukcc folder` reruns in the same `--out` no longer reuse the merged contigs and the proteins
   split per bin of an older or interrupted run, which could miss bins. The cached estimate of a
   bin is only reused if its proteins did not change (#48).
+- To choose the marker gene set, the tree is rooted on the reference farthest from the LCA of
+  the placements. Before, it could be rooted on a placed protein of the genome itself. Then the
+  genome got no marker gene set (`NA`), or a set from distant references, with the wrong lineage,
+  lower completeness and higher contamination.
 
 ## [2.2.0](https://github.com/EBI-Metagenomics/EukCC/releases/tag/v.2.2.0) (2026-08-14)
 

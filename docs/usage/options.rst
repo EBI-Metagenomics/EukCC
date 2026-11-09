@@ -33,8 +33,11 @@ Choosing the database clade
 ---------------------------
 Besides the base database, the EukCC database has clade specific
 databases (``fungi``, ``protozoa`` and ``plant``). By default EukCC places
-the genome in the base tree and picks the clade from the placement. If the
-clade of the genome is known, it can be set with ``--clade``:
+the genome in the base tree and picks the clade from the placement: each
+placement votes for the clade database of its closest references, and the
+genome goes to the clade with at least 60% of the votes, otherwise it stays in
+the base database. If the clade of the genome is known, it can be set with
+``--clade``:
 
 .. code-block:: shell
 

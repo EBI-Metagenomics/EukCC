@@ -300,10 +300,11 @@ class tree_sets:
                 places.append(p)
         # root the tree to get best clade patterns
         if dynamic_root:
-            logging.debug("Will use most distant entry to LCA as outgroup")
+            # limit rootting to the most distant reference to the LCA of the placements
+            logging.debug("Will use most distant reference to LCA as outgroup")
             self.lca = self.LCA(places)
-            new_root = self.lca.get_farthest_node()
-            self.t.set_outgroup(new_root[0])
+            references = [leaf for leaf in self.t.get_leaves() if leaf.name not in set(places)]
+            self.t.set_outgroup(max(references, key=self.lca.get_distance))
 
         # load in all marker genes
         scmg = load_SCMGs(setp)
