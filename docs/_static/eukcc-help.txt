@@ -1,0 +1,128 @@
+$ eukcc -h
+Usage: eukcc [OPTIONS] [COMMAND] [ARGS]...
+
+  Framework to evaluate completeness and contamination of a eukaryotic MAG or
+  isolate genome. Only valid for microbial eukaryotes.
+
+Options:
+  -v, --version  Show the version and exit.
+  -h, --help     Show this message and exit.
+
+Commands:
+  define_set   Define a marker gene set from a group of genomes.
+  download_db  Download and extract the EukCC database.
+  folder       Estimate the quality of a folder of bins and refine them.
+  ncbi_update  Update the NCBI taxonomy database used by ete3.
+  single       Estimate the quality of a single genome or MAG.
+
+$ eukcc single -h
+Usage: eukcc single [OPTIONS] FASTA
+
+  Estimate the quality of a single genome or MAG.
+
+Options:
+  -o, --out TEXT                Path to output folder (Default: .)
+  --db TEXT                     Path to EukCC DB
+  -t, --threads INTEGER         Number of threads to use (Default: 1)
+  --threads_epa INTEGER         Number of threads to use for epa-ng,
+                                recommended: 1 (Default: 1)
+  --set_size INTEGER            Minimal number of marker genes in a set,
+                                smaller sets are not used (Default: 20)
+  --max_set_size INTEGER        Maximal number of marker genes in a set,
+                                larger sets are reduced to a fixed random
+                                sample of this size. 0 uses all marker genes
+                                (Default: 500)
+  --marker_prevalence FLOAT     Percentage of the reference species of a set
+                                in which a marker gene must be single copy
+                                (Default: 95)
+  --DNA                         The fasta file contains DNA sequences
+  --AA                          The fasta file contains amino acid sequences
+  --taxids TEXT                 Taxid to use as set starting point, repeat the
+                                option for several taxids
+  --genomes TEXT                Genome file to base a SCMG set upon, repeat
+                                the option for several genomes
+  --use_placement TEXT          Path to previous result file, to use exact
+                                same marker gene set
+  --set_number_species INTEGER  Minimal number of reference species a set is
+                                defined on. Reduce this if no sets can be
+                                found (Default: 3)
+  --select_best_guess           Use best guess to select marker gene set
+                                (Default)
+  --select_species              Use species count to select best marker gene
+                                set (Default: best guess)
+  --use_ncbi_tree               Instead of using the EukCC phylogenetic tree,
+                                rely on NCBI taxids (default: False)
+  --ignore_tree                 Advanced option, mainly for debugging. Can
+                                ignore the tree if genomes are known via
+                                taxids for example
+  --simple                      Use global DB instead of clade specific dbs
+                                (faster, not suitable for protozoa)
+  --clade TEXT                  Define clade as base, fungi, protozoa or plant
+  -r, --rerun                   Rerun and remove any previously computed data
+                                in the target folder
+  --no_dynamic_root             Do not re-root tree dynamically, to get best
+                                set detection (default: True)
+  --extra                       Produce extra output files.
+  --keep                        Keep workdir after the run.
+  -q, --quiet                   Silence most output
+  -d, --debug                   Debug and thus ignore safety
+  -h, --help                    Show this message and exit.
+
+$ eukcc folder -h
+Usage: eukcc folder [OPTIONS] BINFOLDER
+
+  Estimate the quality of a folder of bins and refine them. Bins are the .fa,
+  .fna, .fasta files in BINFOLDER, optionally gzip compressed.
+
+Options:
+  -o, --out TEXT             Path to output folder (Default: .)
+  --db TEXT                  Path to EukCC DB
+  -t, --threads INTEGER      Number of threads to use (Default: 1)
+  --threads_epa INTEGER      Number of threads to use for epa-ng, recommended:
+                             1 (Default: 1)
+  --marker_prevalence FLOAT  Percentage of the reference species of a set in
+                             which a marker gene must be single copy (Default:
+                             95)
+  --links TEXT               Path to a link table generated with binlinks.py.
+                             If supplied, paired reads will be used to refine
+                             bins (Recommended)
+  --min_links INTEGER        Number of paired reads matching between bins for
+                             merging to happen (default: 100)
+  --prefix TEXT              Prefix to add for merged bins (default: merged.)
+  --improve_ratio FLOAT      Ratio of completeness to contamination change
+                             (Default: 5)
+  --improve_percent FLOAT    A merger must increase completeness at least by n
+                             percent (Default: 10)
+  --no_merge                 Only estimate the quality of each bin, without
+                             merging bins
+  --n_combine INTEGER        How many small bins should be merged into a
+                             medium sized bin (Default: 1)
+  -q, --quiet                Silence most output
+  -d, --debug                Debug and thus ignore safety
+  -h, --help                 Show this message and exit.
+
+$ eukcc define_set -h
+Usage: eukcc define_set [OPTIONS] GENOMES...
+
+  Define a marker gene set from a group of genomes.
+
+Options:
+  -o, --out TEXT             Path to output folder (Default: .)
+  --db TEXT                  Path to EukCC DB
+  -t, --threads INTEGER      Number of threads to use (Default: 1)
+  --set_size INTEGER         Minimal number of marker genes in a set, smaller
+                             sets are not used (Default: 20)
+  --max_set_size INTEGER     Maximal number of marker genes in a set, larger
+                             sets are reduced to a fixed random sample of this
+                             size. 0 uses all marker genes (Default: 500)
+  --marker_prevalence FLOAT  Percentage of the provided genomes in which a
+                             marker gene must be single copy (Default: 95)
+  -n, --name TEXT            Name of the set (default: set)
+  --DNA                      The fasta file contains DNA sequences
+  --AA                       All provided files are proteins, no gene
+                             prediction will be performed. Omit if input is
+                             mixed or genomic
+  -q, --quiet                Silence most output
+  -d, --debug                Debug and thus ignore safety
+  -h, --help                 Show this message and exit.
+

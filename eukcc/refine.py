@@ -1,11 +1,13 @@
 import os
+import shutil
 import logging
 import glob
 import csv
 from collections import defaultdict
 from eukcc.eukcc import eukcc, eukcc_state
-from eukcc.fasta import merge_fasta
-import eukcc.version as version
+from eukcc.fasta import merge_fasta, valid_fastas
+from eukcc import __version__
+from eukcc.constants import FASTA_EXTENSIONS, DEFAULT_EXTENSION
 from eukcc.fasta import Fasta
 from eukcc.bin import bin, merge_bins
 from eukcc.file import file
@@ -14,25 +16,24 @@ from itertools import combinations
 
 def split_contig_faa(path, workdir, delim="_binsep_"):
     faa_dir = os.path.join(workdir, "faa")
+    # rebuilt on every run, as the proteins are predicted again and a folder left
+    # by an interrupted or older run could miss bins
     if os.path.exists(faa_dir):
-        logging.info(
-            "Faa folder exists, remove if you want to rerun this analysis, will reuse it for now"
-        )
-        return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
-    elif file.isdir(faa_dir):
+        shutil.rmtree(faa_dir)
+    if file.isdir(faa_dir):
         fls = {}
         for seq in Fasta(path):
             b = seq.name.split(delim, 1)[0]
             contig = seq.name.split(delim, 1)[1]
             if b not in fls.keys():
                 fls[b] = open(os.path.join(faa_dir, b), "w")
-            fls[b].write(">{name}\n{seq}\n".format(name=contig, seq=seq.seq))
+            fls[b].write(f">{contig}\n{seq.seq}\n")
         # close all files
         for key, fl in fls.items():
             fl.close()
         return [os.path.abspath(os.path.join(faa_dir, x)) for x in os.listdir(faa_dir)]
     else:
-        logging.warning("Could not create fasta split dir: {}".format(faa_dir))
+        logging.warning(f"Could not create fasta split dir: {faa_dir}")
 
 
 def eukcc_folder(args):
@@ -45,23 +46,28 @@ def eukcc_folder(args):
         if os.environ.get("EUKCC2_DB") is not None:
             state["db"] = os.environ.get("EUKCC2_DB")
             logging.debug(
-                "Defined db via env variable EUKCC2_DB as '{}'".format(state["db"])
+                f"Defined db via env variable EUKCC2_DB as '{state['db']}'"
             )
         else:
-            logging.error("No database was provided via --db or EUKCC2_DB env variable")
-            exit(202)
+            logging.error(
+                "No database was provided via --db or EUKCC2_DB env variable, "
+                "download it with: eukcc download_db --out <folder>"
+            )
+            exit(1)
 
-    logging.info("EukCC version {}".format(version.__version__))
+    logging.info(f"EukCC version {__version__}")
 
     # discover all bins
     logging.debug("Loading all bins")
-    state["input_bins"] = glob.glob(
-        os.path.join(state["binfolder"], "*{}".format(state["suffix"]))
+    state["input_bins"] = valid_fastas(
+        _path
+        for _path in glob.glob(os.path.join(state["binfolder"], "*"))
+        if _path.lower().endswith(FASTA_EXTENSIONS + tuple(f"{ext}.gz" for ext in FASTA_EXTENSIONS))
     )
-    logging.info("Found {} bins".format(len(state["input_bins"])))
+    logging.info(f"Found {len(state['input_bins'])} bins")
     if len(state["input_bins"]) == 0:
         logging.error("Stopping as no bins in folder")
-        exit(222)
+        exit(1)
     refine(state)
 
 
@@ -101,22 +107,25 @@ def read_link_table(path):
 def write_table(state, path, sep="\t", header=False):
     if header:
         with open(path, "w") as fout:
-            fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng"]))
+            fout.write(sep.join(["bin", "completeness", "contamination", "ncbi_lng", "ncbi_lng_names"]))
             fout.write("\n")
     else:
         if "lng" in state.keys():
             lng = "-".join(state["lng"])
         else:
             lng = "NA"
+        lng_names = state.get("lng_names") or "NA"
 
         with open(path, "a") as fout:
             bn = os.path.basename(state["fasta"])
             # trim metaeuk prefix
             if bn.startswith("metaeuk_"):
                 bn = bn.split("_", 1)[1]
-            compl = str(state["quality"]["completeness"])
-            cont = str(state["quality"]["contamination"])
-            s = sep.join([bn, compl, cont, lng])
+            # quality is missing if we could not estimate this bin
+            quality = state.get("quality") or {}
+            compl = str(quality.get("completeness", "NA"))
+            cont = str(quality.get("contamination", "NA"))
+            s = sep.join([bn, compl, cont, lng, lng_names])
             fout.write(s)
             fout.write("\n")
 
@@ -132,35 +141,36 @@ def write_no_marker_genes_output(state, outfile='missing_marker_genes.txt', head
                 bn = bn.split("_", 1)[1]
             file_out.write(bn + '\n')
 
+def bins_without_proteins(input_bins, faas):
+    """
+    input bins with no protein file, as split_contig_faa only writes one for bins
+    with proteins, named metaeuk_<bin>
+    """
+    with_proteins = {os.path.basename(path).split("_", 1)[1] for path in faas}
+    return [path for path in input_bins if os.path.basename(path) not in with_proteins]
+
+
 def refine(state):
     """
     main refinement pipeline
     It takes a state argument and does the rest. It is basically a per bin EukCC run
     with added merging features
     """
-    state["contigs"] = os.path.join(state["workdir"], "contigs.fasta")
-    if not os.path.exists(state["contigs"]):
-        logging.debug("Merging bins into temp contig file")
-        state["contigs"] = merge_fasta(
-            state["input_bins"], state["contigs"], seperator="_binsplit_"
-        )
-    else:
-        logging.debug(
-            "Using existing merged contigs, delete output folder if that is not what you want."
-        )
+    # rebuilt on every run, so it always has the bins of the current input folder
+    logging.debug("Merging bins into temp contig file")
+    state["contigs"] = merge_fasta(
+        state["input_bins"], os.path.join(state["workdir"], "contigs.fasta"), seperator="_binsplit_"
+    )
 
     # initialize output tables
     result_table = os.path.join(state["out"], "eukcc.tsv")
     write_table(None, result_table, header=True)
     # table for bad quality bins
-    bad_quality_result_table = os.path.join(state["out"], "bad_quality.csv")
+    bad_quality_result_table = os.path.join(state["out"], "bad_quality.tsv")
     write_table(None, bad_quality_result_table, header=True)
     # table for bins with not defined marker genes set
     result_no_marker_set_bins = os.path.join(state["out"], "missing_marker_genes.txt")
     write_no_marker_genes_output(None, result_no_marker_set_bins, header=True)
-
-    merged_table = os.path.join(state["out"], "merged_bins.csv")
-    note_merges(None, None, merged_table, header=True)
 
     # predict proteins using metaeuk
     state["fasta"] = state["contigs"]
@@ -171,6 +181,12 @@ def refine(state):
     # this also gets rid of bins with zero proteins
     state["faas"] = split_contig_faa(state["faa"], state["workdir"], delim="_binsplit_")
 
+    # bins with zero proteins can not be estimated, report them with NA
+    for path in bins_without_proteins(state["input_bins"], state["faas"]):
+        logging.warning(f"Metaeuk predicted zero proteins for {os.path.basename(path)}")
+        write_table({"fasta": path}, result_table)
+        write_no_marker_genes_output({"fasta": path}, result_no_marker_set_bins)
+
     if state["links"] is not None:
         link_table = read_link_table(state["links"])
 
@@ -178,12 +194,10 @@ def refine(state):
     bins = []
     for i, path in enumerate(state["faas"]):
         logging.debug(
-            "Running EukCC on: {} ({}/{})".format(
-                os.path.basename(path), i, len(state["faas"])
-            )
+            f"Running EukCC on: {os.path.basename(path)} ({i}/{len(state['faas'])})"
         )
         wd = os.path.join(
-            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+            state["workdir"], "refine", f"bin_{os.path.basename(path)}"
         )
         bins.append(bin(state, wd, path, protein=True))
 
@@ -193,8 +207,9 @@ def refine(state):
         if b.state["quality"] is None:
             smallbins.append(i)
             logging.debug(f'Bin quality is None')
-            if len(b.state["marker_genes"]) == 0:
-                write_no_marker_genes_output(b.state, result_no_marker_set_bins)
+            # no estimate, e.g. no marker gene set: report it with NA
+            write_table(b.state, result_table)
+            write_no_marker_genes_output(b.state, result_no_marker_set_bins)
             continue
         else:
             if b.state["marker_set"]["quality"] != "good":
@@ -206,12 +221,19 @@ def refine(state):
             if b.state["quality"]["completeness"] < 50:
                 smallbins.append(i)
                 continue
+    if state["no_merge"]:
+        logging.info("Skipping the merging of bins (--no_merge)")
+        return
+
+    merged_table = os.path.join(state["out"], "merged_bins.tsv")
+    note_merges(None, None, merged_table, header=True)
+
     # get all combinations of small bins
     # s_cmb = n_combi(smallbins, state["n_combine"])
-    # logging.info("Created {} possible combinations of small bins".format(len(s_cmb)))
+    # logging.info(f"Created {len(s_cmb)} possible combinations of small bins")
 
     n_large_bins = len(bins) - len(smallbins)
-    logging.info("Found {} large bins to merge with".format(n_large_bins))
+    logging.info(f"Found {n_large_bins} large bins to merge with")
 
     refined = []
 
@@ -267,9 +289,7 @@ def refine(state):
         combies = sorted(combies, key=len, reverse=False)
 
         logging.info(
-            "For bin {} we found {} merging combinations".format(
-                parent_name, len(combies)
-            )
+            f"For bin {parent_name} we found {len(combies)} merging combinations"
         )
         for kid_ids in combies:
             # turn kid indexec into sorted list, so they are reproducible turn kid indexec into sorted list, so they are reproducible
@@ -280,9 +300,9 @@ def refine(state):
             if len(children) == 0:
                 logging.debug("Skipping empty set")
                 continue
-            logging.debug("Testing bin combination for bin {}".format(parent_name))
+            logging.debug(f"Testing bin combination for bin {parent_name}")
             logging.debug(
-                "Adding in bins {}".format(",".join([get_name(i) for i in kid_ids]))
+                f"Adding in bins {','.join([get_name(i) for i in kid_ids])}"
             )
             # make all merges and see if they are great or not
             merged = merge_bins(
@@ -313,7 +333,7 @@ def refine(state):
                 state["improve_ratio"] * gain_ct
             ):
                 logging.warning(
-                    "Successfull merge: +{}% Compl. +{}% Cont.".format(gain_cp, gain_ct)
+                    f"Successfull merge: +{gain_cp}% Compl. +{gain_ct}% Cont."
                 )
                 merged["children_idx"] = kid_ids
                 merged["parent_idx"] = parent_bin
@@ -334,7 +354,7 @@ def refine(state):
         file.isdir(ref_dir)
         merged_fnas = []
         for merged_i, merged in enumerate(refined):
-            new_name = "{}{}{}".format(state["prefix"], merged_i, state["suffix"])
+            new_name = f"{state['prefix']}{merged_i}{DEFAULT_EXTENSION}"
             merged_fna = os.path.join(ref_dir, new_name)
             # combined index list
             idxs = [merged["parent_idx"]]
@@ -348,10 +368,10 @@ def refine(state):
             fnas = [os.path.join(state["binfolder"], name) for name in names]
             merged_fna = merge_fasta(fnas, merged_fna, seperator=None)
             merged_fnas.append(merged_fna)
-            logging.info("Created combined fasta {}".format(merged_fna))
+            logging.info(f"Created combined fasta {merged_fna}")
 
     evaluate_multiples(merged_fnas, result_table, state)
-    logging.info("Created {} merged bins".format(len(refined)))
+    logging.info(f"Created {len(refined)} merged bins")
 
 
 def note_merges(new_name, names, path, header=False, sep="\t", child_sep="child:"):
@@ -387,7 +407,7 @@ def evaluate_multiples(fnas, result_table, state):
     # launch eukcc on all bins
     for path in fnas:
         wd = os.path.join(
-            state["workdir"], "refine", "bin_{}".format(os.path.basename(path))
+            state["workdir"], "refine", f"bin_{os.path.basename(path)}"
         )
         E = bin(state, wd, fasta=path, protein=False)
         write_table(E.state, result_table)
@@ -404,9 +424,7 @@ def remove_double_kids(refined, bins):
     for child, parents in child_parents.items():
         if len(set(parents)) > 1:
             logging.info(
-                "Child bin {} as assigned multiple parents. Thus they will be ignored to avoid hybrids".format(
-                    bins[child].state["name"]
-                )
+                f"Child bin {bins[child].state['name']} as assigned multiple parents. Thus they will be ignored to avoid hybrids"
             )
             remove_child.add(child)
     del_idx = [

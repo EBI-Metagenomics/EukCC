@@ -2,10 +2,10 @@ import unittest
 import os
 from eukcc.treehandler import tree_sets, tax_LCA
 
-TESTDATA_SCMG_GZ = os.path.join(os.path.dirname(__file__), "testfiles", "SCMG_TEST.csv.gz")
-TESTDATA_SCTREE = os.path.join(os.path.dirname(__file__), "testfiles", "tree_scmg.csv")
-TESTDATA_TAXINFO = os.path.join(os.path.dirname(__file__), "testfiles", "tree_taxinfo.csv")
-TESTDATA_TAX_LCA = os.path.join(os.path.dirname(__file__), "testfiles", "tax_lca_taxinfo.csv")
+TESTDATA_SCMG_GZ = os.path.join(os.path.dirname(__file__), "..", "fixtures", "SCMG_TEST.csv.gz")
+TESTDATA_SCTREE = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tree_scmg.csv")
+TESTDATA_TAXINFO = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tree_taxinfo.csv")
+TESTDATA_TAX_LCA = os.path.join(os.path.dirname(__file__), "..", "fixtures", "tax_lca_taxinfo.csv")
 
 
 class test_tree(unittest.TestCase):
@@ -23,6 +23,24 @@ class test_tree(unittest.TestCase):
         )
         self.assertEqual(t.marker_set.profiles, set(["Marker100", "Marker80"]))
 
+    def test_tree_sets_dynamic_root_reference(self):
+        # DDD is a placement on a long branch, the farthest leaf from the LCA of the placements
+        s = "((A:1,(B:1,AAA:1):1,((C:1,D:1,(E:1,DDD:9):1):1,(F:1,G:1):1):1):1,outgroup:1);"
+        placement = {"placements": [{"n": "AAA"}, {"n": "DDD"}]}
+        t = tree_sets(
+            s,
+            placement,
+            TESTDATA_SCTREE,
+            set_species=4,
+            set_size=2,
+            set_prevalence=80,
+            dynamic_root=True,
+            taxinfo=TESTDATA_TAXINFO,
+        )
+        outgroups = [child.name for child in t.t.children if child.is_leaf()]
+        self.assertNotIn("DDD", outgroups)
+        self.assertNotIn("AAA", outgroups)
+
     def test_tax_LCA_partial_placements(self):
         tree = (
             "(((GCA_015473125.1,metaeuk_OY253681.1_29),(((GCA_006384855.1,metaeuk_OY253673.1_71),"
@@ -35,7 +53,6 @@ class test_tree(unittest.TestCase):
             tree,
             TESTDATA_TAX_LCA,
             placements=["metaeuk_OY253681.1_29", "metaeuk_OY253676.1_95"],
-            add_protist_common=False,
         )
 
         # root, cellular organisms, Eukaryota, Viridiplantae, Chlorophyta

@@ -23,6 +23,7 @@ import logging
 import tempfile
 import gzip
 from multiprocessing import Pool
+from functools import partial
 
 
 # backup fasta handler, so we can use readonly directories
@@ -68,12 +69,12 @@ def gunzip(path, tmp_dir):
     """
     if path.endswith(".gz"):
         fna_path = os.path.join(tmp_dir, "contigs.fna")
-        logging.debug("Going to unzip fasta into {}".format(fna_path))
+        logging.debug(f"Going to unzip fasta into {fna_path}")
         with gzip.open(path, "r") as fin, open(fna_path, "w") as fout:
             for line in fin:
                 fout.write(line.decode())
         path = fna_path
-        logging.debug("Done unzipping {}".format(fna_path))
+        logging.debug(f"Done unzipping {fna_path}")
 
     return path
 
@@ -132,7 +133,7 @@ class bin:
         self.path = os.path.abspath(path)
 
     def __str__(self):
-        return "{} euks: {} bacs: {}".format(self.bname, self.table["euks"], self.table["bacs"])
+        return f"{self.bname} euks: {self.table['euks']} bacs: {self.table['bacs']}"
 
     def stats(self):
         """read bin content and figure genomic composition"""
@@ -178,7 +179,29 @@ class bin:
         self.keep = keep
 
 
-if __name__ == "__main__":
+def evaluate_bin(path, args):
+    if not os.path.exists(path):
+        logging.error(f"Can not find file {path}")
+        exit(1)
+
+    logging.info(f"Launch on {path}")
+    with tempfile.TemporaryDirectory(prefix="filter_EukRep_") as tmp_dir:
+        logging.debug(f"Using tmp folder: {tmp_dir}")
+        eukfile = os.path.join(tmp_dir, "euks.fna")
+        bacfile = os.path.join(tmp_dir, "bacs.fna")
+        # EukRep can not deal with Gzipped Fasta files, so we unzip it in case it is a Gzip file
+        path = gunzip(path, tmp_dir)
+        # Launching EukRep
+        logging.debug(f"Starting EukRep on {path}")
+        eukrep_result = EukRep(path, eukfile, bacfile, minl=args.minl)
+        eukrep_result.run()
+        b = bin(path, eukrep_result)
+        b.stats()
+        b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, minbpeuks=args.minbpeuks)
+        return b
+
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", help="path for the output table", default="assignment.csv", type=str)
     parser.add_argument("bins", nargs="+", help="all bins to classify", type=str)
@@ -238,30 +261,9 @@ if __name__ == "__main__":
         logLevel = logging.DEBUG
     logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %H:%M:%S: ", level=logLevel)
 
-    def evaluate_bin(path):
-        if not os.path.exists(path):
-            logging.error("Can not find file {}".format(path))
-            exit(1)
-
-        logging.info("Launch on {}".format(path))
-        with tempfile.TemporaryDirectory(prefix="filter_EukRep_") as tmp_dir:
-            logging.debug("Using tmp folder: {}".format(tmp_dir))
-            eukfile = os.path.join(tmp_dir, "euks.fna")
-            bacfile = os.path.join(tmp_dir, "bacs.fna")
-            # EukRep can not deal with Gzipped Fasta files, so we unzip it in case it is a Gzip file
-            path = gunzip(path, tmp_dir)
-            # Launching EukRep
-            logging.debug(f"Starting EukRep on {path}")
-            eukrep_result = EukRep(path, eukfile, bacfile, minl=args.minl)
-            eukrep_result.run()
-            b = bin(path, eukrep_result)
-            b.stats()
-            b.decide(eukratio=args.eukratio, bacratio=args.bacratio, minbp=args.minbp, minbpeuks=args.minbpeuks)
-            return b
-
     # multithreading pool
     pool = Pool(processes=args.threads)
-    results = pool.map(evaluate_bin, args.bins)
+    results = pool.map(partial(evaluate_bin, args=args), args.bins)
     pool.close()
     pool.join()
 
@@ -271,3 +273,7 @@ if __name__ == "__main__":
             outfile.write(
                 f"{b.path},{b.bname},{b.keep},{b.table['euks']},{b.table['bacs']},{b.table['NA']},{b.table['sum']}\n"
             )
+
+
+if __name__ == "__main__":
+    main()

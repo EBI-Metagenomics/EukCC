@@ -1,0 +1,112 @@
+import unittest
+import os
+from eukcc.fasta import Fasta, reduce_fasta, validate_fasta, N50, clean_metaeuk_fasta, valid_fastas
+
+TESTDATA_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/test.fa")
+TRICKY_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/valid_but_tricky_fasta.fa")
+NOT_A_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/not_a_fasta.fasta")
+CORRUPT_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/corrupt_file")
+GMES_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/gmes_fail.fasta")
+MULTILINE_FILE = os.path.join(os.path.dirname(__file__), "../fixtures/multiline.fasta")
+GZIP_FASTA = os.path.join(os.path.dirname(__file__), "../fixtures/test.fa.gz")
+NOT_GZIPPED = os.path.join(os.path.dirname(__file__), "../fixtures/not_gzipped.fa.gz")
+EMPTY_GZIP = os.path.join(os.path.dirname(__file__), "../fixtures/empty.fa.gz")
+TRUNCATED_GZIP = os.path.join(os.path.dirname(__file__), "../fixtures/truncated.fa.gz")
+
+METAEUK_dirty = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file.fa")
+METAEUK_clean = os.path.join(os.path.dirname(__file__), "../fixtures/test_metaeuk_file_clean.fa")
+
+
+class test_base(unittest.TestCase):
+    def test_Fasta(self):
+        fa = Fasta(TESTDATA_FASTA)
+        for seq in fa:
+            if seq.name == "TEST":
+                self.assertEqual(seq.seq, "HELLO")
+
+    def test_Fasta_extract(self):
+        fa = Fasta(TESTDATA_FASTA)
+        for seq in fa:
+            if seq.name == "TEST":
+                break
+        outfile = ".test_fasta"
+        reduce_fasta(TESTDATA_FASTA, outfile, ["TEST"])
+        fa2 = Fasta(outfile)
+        for seq2 in fa2:
+            if seq2.name == "TEST":
+                break
+        self.assertEqual(seq.seq, seq2.seq)
+        self.assertEqual(seq.name, seq2.name)
+        self.assertEqual(seq.long_name, seq2.long_name)
+        os.remove(outfile)
+
+    def test_validate_fasta(self):
+        self.assertFalse(validate_fasta(NOT_A_FASTA))
+        self.assertFalse(validate_fasta(CORRUPT_FILE))
+        self.assertFalse(validate_fasta(GMES_FILE))
+        self.assertTrue(validate_fasta(TESTDATA_FASTA))
+        self.assertTrue(validate_fasta(TRICKY_FASTA))
+
+    def test_validate_gzip_fasta(self):
+        self.assertTrue(validate_fasta(GZIP_FASTA))
+        self.assertFalse(validate_fasta(NOT_GZIPPED))
+        self.assertFalse(validate_fasta(EMPTY_GZIP))
+        # the first lines decompress fine, the end of the file is missing
+        self.assertFalse(validate_fasta(TRUNCATED_GZIP))
+
+    def test_gzip_fasta(self):
+        plain = [(seq.name, seq.seq) for seq in Fasta(TESTDATA_FASTA)]
+        compressed = [(seq.name, seq.seq) for seq in Fasta(GZIP_FASTA)]
+        self.assertEqual(plain, compressed)
+
+    def test_open_invalid(self):
+        with self.assertRaises(ValueError):
+            x = Fasta(NOT_A_FASTA)
+            for s in x:
+                print(s)
+        with self.assertRaises(ValueError):
+            x = Fasta(CORRUPT_FILE)
+            for s in x:
+                print(s)
+
+    def test_n50(self):
+        # wikipedia example
+        fasta_1 = os.path.join(os.path.dirname(__file__), "../fixtures/N50_1.fa")
+        self.assertEqual(N50(fasta_1), 8)
+
+    def test_multiline(self):
+        expected = ["AAGGCCTT", "CCTTAAGG", "AAGGCCTT"]
+        for e, seq in zip(expected, Fasta(MULTILINE_FILE)):
+            self.assertEqual(e, seq.seq)
+
+    def test_metaeuk_cleaner(self):
+        cleaned = Fasta(clean_metaeuk_fasta(METAEUK_dirty, ".test_tmp_metaeuk_file"))
+        clean = Fasta(METAEUK_clean)
+
+        for seq_1, seq_2 in zip(clean, cleaned):
+            self.assertEqual(seq_1.name, seq_2.name)
+            self.assertEqual(seq_1.seq, seq_2.seq)
+        os.remove(".test_tmp_metaeuk_file")
+
+    def test_metaeuk_cleaner_empty(self):
+        # zero predicted proteins is a valid outcome, not an exit
+        open(".test_tmp_empty_metaeuk", "w").close()
+        out = clean_metaeuk_fasta(".test_tmp_empty_metaeuk", ".test_tmp_empty_clean")
+        self.assertEqual(os.stat(out).st_size, 0)
+        os.remove(".test_tmp_empty_metaeuk")
+        os.remove(".test_tmp_empty_clean")
+
+    def test_valid_fastas(self):
+        self.assertEqual(valid_fastas([MULTILINE_FILE, GZIP_FASTA]), [MULTILINE_FILE, GZIP_FASTA])
+
+    def test_valid_fastas_invalid(self):
+        open(".test_tmp_not_fasta", "w").write("not a fasta\n")
+        open(".test_tmp_empty_bin", "w").close()
+        # every invalid file is logged before stopping, empty bins included
+        with self.assertLogs(level="ERROR") as logs, self.assertRaises(SystemExit) as stop:
+            valid_fastas([MULTILINE_FILE, ".test_tmp_not_fasta", ".test_tmp_empty_bin"])
+        os.remove(".test_tmp_not_fasta")
+        os.remove(".test_tmp_empty_bin")
+        self.assertEqual(stop.exception.code, 1)
+        self.assertTrue(any(".test_tmp_not_fasta" in line for line in logs.output))
+        self.assertTrue(any(".test_tmp_empty_bin" in line for line in logs.output))

@@ -3,6 +3,7 @@ from collections import defaultdict, Counter
 import logging
 from eukcc.base import load_SCMGs, percentage_sets, load_tax_info
 from eukcc.helper import singletons_from_genome
+from eukcc.constants import MAJ_VOTE
 
 
 class markerset:
@@ -79,12 +80,9 @@ class markerset:
         return cover_score + profile_score + prevalence_score + species_score
 
     def __str__(self):
-        return "set with score {} and {} profiles {}/{}/{}".format(
-            self.score,
-            len(self.profiles),
-            self.prevalence,
-            len(self.covered),
-            len(self.leafes),
+        return (
+            f"set with score {self.score} and {len(self.profiles)} profiles "
+            f"{self.prevalence}/{len(self.covered)}/{len(self.leafes)}"
         )
 
 
@@ -117,18 +115,15 @@ def hard_set_computation(
                 sets.append(scmg[genome])
             except KeyError:
                 logging.warning(
-                    "Database missing markes for '{}'. This should not be the case. Make sure the database is not corrupted".format(
-                        genome
-                    )
+                    f"Database missing markes for '{genome}'. This should not be the case. "
+                    "Make sure the database is not corrupted"
                 )
     found = False
     set_prevalence = 100
     biggest = 0
     while found is False and set_prevalence >= prevalence:
         logging.debug(
-            "Searching for Marker set at {} prevalence across {} genomes".format(
-                set_prevalence, len(genomes)
-            )
+            f"Searching for Marker set at {set_prevalence} prevalence across {len(genomes)} genomes"
         )
         s = percentage_sets(sets, set_prevalence, atmost)
         if len(s) > biggest:
@@ -138,10 +133,10 @@ def hard_set_computation(
             break
         set_prevalence = set_prevalence - 0.5
 
-    logging.debug("Largest set we found had {} SCMGs".format(biggest))
+    logging.debug(f"Largest set we found had {biggest} SCMGs")
     if found:
         logging.debug(
-            "Found set of size {} with prevalence {}".format(len(s), set_prevalence)
+            f"Found set of size {len(s)} with prevalence {set_prevalence}"
         )
         ms = markerset(genomes, genomes, s, set_prevalence)
         ms.all_places = genomes
@@ -150,13 +145,47 @@ def hard_set_computation(
         return None
 
 
+def subdb_vote(tree, placements, leaf_subdb, vote=MAJ_VOTE):
+    """
+    Each placement votes for the sub-database most common among its closest
+    reference leaves (walking up from the placement, as in tax_LCA).
+
+    :param tree: newick string or path of the placement tree
+    :param placements: query leaf names
+    :param leaf_subdb: dict of reference leaf name: sub-database
+    :param vote: fraction of votes the winner needs
+    :return: (sub-database or None without a majority, fraction of votes)
+    """
+    t = Tree(tree)
+    votes = []
+    for place in placements:
+        nodes = t.search_nodes(name=place)
+        if len(nodes) == 0:
+            continue
+        node = nodes[0]
+        while True:
+            hits = [leaf_subdb[n] for n in node.get_leaf_names() if n in leaf_subdb]
+            if len(hits) > 0 or node.up is None:
+                break
+            node = node.up
+        if len(hits) > 0:
+            votes.append(Counter(hits).most_common(1)[0][0])
+
+    if len(votes) == 0:
+        return None, 0
+    subdb, n = Counter(votes).most_common(1)[0]
+    frac = n / len(votes)
+    if frac < vote:
+        return None, frac
+    return subdb, frac
+
+
 def tax_LCA(
     tree,
     taxinfo,
     placements=None,
-    majority_vote=0.6,
+    majority_vote=MAJ_VOTE,
     etedb=None,
-    add_protist_common=True,
 ):
     """
     given a guppy tree we will try to figure out
@@ -185,7 +214,7 @@ def tax_LCA(
         query_leafes = query_leafes & set(placements)
 
     logging.debug(
-        "Determining the LCA in a tree with {} leafes".format(len(known_leafes))
+        f"Determining the LCA in a tree with {len(known_leafes)} leafes"
     )
 
     leafes = set()
@@ -202,17 +231,13 @@ def tax_LCA(
                 node = node.up
         lngs = [info[acc].copy() for acc in leafes]
 
-        def maj_lng(L, f=0.6, add_protists=True):
-            non_protists = ["33154", "33090"]
+        def maj_lng(L):
             lngs = L.copy()
             # get the tax ids at each position
             positions = defaultdict(list)
             index = set()
             for lng in lngs:
                 for i, tax in enumerate(lng):
-                    if i == 3 and tax not in non_protists and add_protists:
-                        # insert protists shared taxid
-                        positions[i].append("protist_common")
                     positions[i].append(tax)
                     index.add(i)
             idx = 0
@@ -232,9 +257,9 @@ def tax_LCA(
                     break
             return lng
 
-        pl_lngs.append(maj_lng(lngs, add_protists=add_protist_common))
+        pl_lngs.append(maj_lng(lngs))
 
-    return maj_lng(pl_lngs, add_protists=add_protist_common)
+    return maj_lng(pl_lngs)
 
 
 class tree_sets:
@@ -275,17 +300,18 @@ class tree_sets:
                 places.append(p)
         # root the tree to get best clade patterns
         if dynamic_root:
-            logging.debug("Will use most distant entry to LCA as outgroup")
+            # limit rootting to the most distant reference to the LCA of the placements
+            logging.debug("Will use most distant reference to LCA as outgroup")
             self.lca = self.LCA(places)
-            new_root = self.lca.get_farthest_node()
-            self.t.set_outgroup(new_root[0])
+            references = [leaf for leaf in self.t.get_leaves() if leaf.name not in set(places)]
+            self.t.set_outgroup(max(references, key=self.lca.get_distance))
 
         # load in all marker genes
         scmg = load_SCMGs(setp)
         self.known_leafes = set(load_tax_info(taxinfo, dbfile=etedb).keys())
 
         logging.debug(
-            "Starting to look for scmg set, selection based on {}".format(set_selection)
+            f"Starting to look for scmg set, selection based on {set_selection}"
         )
         if use_ncbi:
             logging.debug("Will use NCBI tree instead of eukcc tree")
@@ -314,13 +340,10 @@ class tree_sets:
 
         if training is False and self.marker_set is not None:
             logging.debug(
-                "Defined SCMG set with {} marker genes with a single copy prevalence of {} percent covering {} related genomes supported by {}/{} placements".format(
-                    len(self.marker_set.profiles),
-                    self.marker_set.prevalence,
-                    len(self.marker_set.leafes),
-                    len(self.marker_set.covered),
-                    len(self.marker_set.all_places),
-                )
+                f"Defined SCMG set with {len(self.marker_set.profiles)} marker genes "
+                f"with a single copy prevalence of {self.marker_set.prevalence} percent "
+                f"covering {len(self.marker_set.leafes)} related genomes "
+                f"supported by {len(self.marker_set.covered)}/{len(self.marker_set.all_places)} placements"
             )
 
     def LCA(self, leafes, debug=False):
@@ -347,7 +370,7 @@ class tree_sets:
                 common = common & set(lng)
             shared = [x for x in lngs[0] if x in common]
             taxid = shared[-1]
-            logging.debug("LCA taxid determined as {}".format(taxid))
+            logging.debug(f"LCA taxid determined as {taxid}")
             if return_lng:
                 return shared
             else:
@@ -381,7 +404,7 @@ class tree_sets:
         all_sets = []
         mp = 100
         while mp >= min_prevalence:
-            logging.debug("Searching marker gene sets at {}% prevalence".format(mp))
+            logging.debug(f"Searching marker gene sets at {mp}% prevalence")
             # determine set at this position
             for taxid in LCA_lng[::-1]:
                 # for each taxid try to define a set
@@ -438,7 +461,7 @@ class tree_sets:
         # set marker gene prevalence to 100%
         mp = 100
         while mp >= min_prevalence:
-            logging.debug("Searching marker gene sets at {}% prevalence".format(mp))
+            logging.debug(f"Searching marker gene sets at {mp}% prevalence")
             # determine set at this position
             for node in self.t.traverse():
                 # skip sets with not enough species diversity
@@ -534,9 +557,8 @@ class tree_sets:
                 sets.append(scmg[leaf])
             except KeyError:
                 logging.warning(
-                    "Database missing markes for '{}'. This should not be the case. Make sure the database is not corrupted".format(
-                        leaf
-                    )
+                    f"Database missing markes for '{leaf}'. This should not be the case. "
+                    "Make sure the database is not corrupted"
                 )
         placements = set(node.get_leaf_names()) & set(places)
         n_placements = len(placements)
@@ -547,16 +569,12 @@ class tree_sets:
 
         if logging.DEBUG >= logging.root.level:
             logging.debug(
-                "Looking at set with size {} and {} leafes covering {}".format(
-                    len(s), len(leafes), n_placements
-                )
+                f"Looking at set with size {len(s)} and {len(leafes)} leafes covering {n_placements}"
             )
 
         if (len(s) >= set_size and n_placements > 0) or training is True:
             logging.debug(
-                "Set size {} with {} leafes, covering {}/{} placements".format(
-                    len(s), len(leafes), n_placements, len(places)
-                )
+                f"Set size {len(s)} with {len(leafes)} leafes, covering {n_placements}/{len(places)} placements"
             )
             return markerset(leafes, placements, s, set_prevalence)
         else:
