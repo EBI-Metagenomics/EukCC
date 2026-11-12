@@ -105,6 +105,18 @@ hand instead:
     wget http://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_ver_2026-11.tar.gz
     tar -xzvf eukcc2_db_ver_2026-11.tar.gz
 
+.. note::
+
+    ``eukcc2_db_tiny_fungi.tar.gz`` is a reduced database, built from 10 fungi genomes and
+    300 PANTHER profiles. Its small size makes it suitable for tests, especially in CI/CD,
+    but not for quality estimates. Run it on a fungi genome with ``--clade fungi``:
+
+    .. code-block:: shell
+
+        eukcc download_db --out eukccdb_tiny \
+            --url https://ftp.ebi.ac.uk/pub/databases/metagenomics/eukcc/eukcc2_db_tiny_fungi.tar.gz
+        eukcc single --db eukccdb_tiny/eukcc2_db_tiny_fungi --out outfolder --clade fungi genome.fna
+
 If you want to forget about the database location you can add an ENV variable to your
 `.bash.rc`:
 
