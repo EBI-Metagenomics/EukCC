@@ -41,7 +41,7 @@ Options:
                                 option for several taxids
   --genomes TEXT                Genome file to base a SCMG set upon, repeat
                                 the option for several genomes
-  --use_placement TEXT          Path to previous result file, to use exact
+  --use_placement FILE          Path to previous result file, to use exact
                                 same marker gene set
   --set_number_species INTEGER  Minimal number of reference species a set is
                                 defined on. Reduce this if no sets can be

@@ -237,6 +237,16 @@ class eukcc:
             # load the old info
             old_state.load_state(self.state["use_placement"])
             self.state["marker_set"] = old_state["marker_set"]
+            # the placement tree was in the workdir of the previous run, so its lineage is reused;
+            # a set from define_set has no lineage
+            for key in ("lng", "lng_names"):
+                if old_state.get(key) is not None:
+                    self.state[key] = old_state[key]
+            # the profiles of the set are only in the database of the clade it was defined in
+            if old_state["clade"] is not None and old_state["clade"] != self.state["clade"]:
+                logging.info(f"Using the {old_state['clade']} database of the loaded set")
+                self.state["clade"] = old_state["clade"]
+                self.state["dbinfo"] = self.load_db(self.state["db"], clade=self.state["clade"])
             logging.info(
                 f"Loaded precomputed set with {len(self.state['marker_set']['profiles'])} profiles"
             )
@@ -379,6 +389,9 @@ class eukcc:
 
     def add_taxid(self):
         pl = self.state["placement"]
+        if pl is None:
+            logging.debug("No placement in this run, keeping the lineage of the loaded marker set")
+            return
         tree = pl["tog"]
         if "marker_set" in self.state.keys():
             places = self.state["marker_set"]["covered_pl"]

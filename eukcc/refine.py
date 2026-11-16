@@ -7,7 +7,7 @@ from collections import defaultdict
 from eukcc.eukcc import eukcc, eukcc_state
 from eukcc.fasta import merge_fasta, valid_fastas
 from eukcc import __version__
-from eukcc.constants import FASTA_EXTENSIONS, DEFAULT_EXTENSION
+from eukcc.constants import FASTA_SUFFIXES, DEFAULT_EXTENSION
 from eukcc.fasta import Fasta
 from eukcc.bin import bin, merge_bins
 from eukcc.file import file
@@ -62,7 +62,7 @@ def eukcc_folder(args):
     state["input_bins"] = valid_fastas(
         _path
         for _path in glob.glob(os.path.join(state["binfolder"], "*"))
-        if _path.lower().endswith(FASTA_EXTENSIONS + tuple(f"{ext}.gz" for ext in FASTA_EXTENSIONS))
+        if _path.lower().endswith(FASTA_SUFFIXES)
     )
     logging.info(f"Found {len(state['input_bins'])} bins")
     if len(state["input_bins"]) == 0:

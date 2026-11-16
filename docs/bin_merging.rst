@@ -36,6 +36,8 @@ You can then create a bin_linking table by using the EukCC provided script:
 
 
 If you have multiple bam files, pass all of them to the script (e.g. `*.bam`).
+Like ``eukcc folder``, the script reads the bins ending in ``.fa``, ``.fna`` or ``.fasta``,
+case insensitive and optionally gzip compressed.
 
 You will obtain a three column file (bin_1,bin_2,links).
 

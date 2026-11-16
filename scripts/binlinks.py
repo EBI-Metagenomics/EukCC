@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import pysam
-from Bio import SeqIO
 from collections import defaultdict
 import os
 import argparse
 import logging
 import csv
+from eukcc.constants import FASTA_SUFFIXES
+from eukcc.fasta import Fasta
 
 
 def is_in(read, contig_map, within=1000):
@@ -35,30 +36,28 @@ def keep_read(read, contig_map, within=1000, min_ANI=98, min_cov=0):
         return False
 
 
-def contig_map(bindir, suffix=".fa"):
+def bin_files(bindir):
+    """
+    the bins used by eukcc folder, so the bin names match its own
+    """
+    return [f for f in os.listdir(bindir) if f.lower().endswith(FASTA_SUFFIXES)]
+
+
+def contig_map(bindir):
     m = {}
-    for f in os.listdir(bindir):
-        if f.endswith(suffix) is False:
-            continue
-        path = os.path.join(bindir, f)
-        with open(path, "r") as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                m[record.name] = len(record.seq)
+    for f in bin_files(bindir):
+        for record in Fasta(os.path.join(bindir, f)):
+            m[record.name] = len(record.seq)
     return m
 
 
-def bin_map(bindir, suffix=".fa"):
+def bin_map(bindir):
     contigs = defaultdict(str)
     contigs_per_bin = defaultdict(int)
-    for f in os.listdir(bindir):
-        if f.endswith(suffix) is False:
-            continue
-        path = os.path.join(bindir, f)
-        binname = os.path.basename(f)
-        with open(path, "r") as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                contigs[record.name] = binname
-                contigs_per_bin[binname] += 1
+    for binname in bin_files(bindir):
+        for record in Fasta(os.path.join(bindir, binname)):
+            contigs[record.name] = binname
+            contigs_per_bin[binname] += 1
     return contigs, contigs_per_bin
 
 

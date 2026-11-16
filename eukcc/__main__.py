@@ -220,7 +220,7 @@ def run_eukcc(args):
 )
 @click.option(
     "--use_placement",
-    type=str,
+    type=click.Path(exists=True, dir_okay=False),
     default=None,
     help="Path to previous result file, to use exact same marker gene set",
 )
