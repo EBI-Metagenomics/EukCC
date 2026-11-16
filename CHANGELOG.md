@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.1
+
+### Fixed
+
+- `eukcc single --use_placement` no longer fails with a `TypeError`. It reuses the lineage and the
+  sub-database of the loaded marker gene set, as the placement tree of the previous run is not kept.
+  A path that does not exist is an error.
+- `binlinks` reads the same bins as `eukcc folder`: `.fa`, `.fna` or `.fasta`, case insensitive and
+  optionally gzip compressed. Before, it only read `.fa` files.
+- `filter_euk_bins` names gzip compressed bins after their own file, not the temporary file
+  uncompressed for EukRep.
+
 ## 2.3.0
 
 ### Breaking changes
@@ -49,13 +61,6 @@
 
 ### Fixed
 
-- `eukcc single --use_placement` no longer fails with a `TypeError`. It reuses the lineage and the
-  sub-database of the loaded marker gene set, as the placement tree of the previous run is not kept.
-  A path that does not exist is an error.
-- `binlinks` reads the same bins as `eukcc folder`: `.fa`, `.fna` or `.fasta`, case insensitive and
-  optionally gzip compressed. Before, it only read `.fa` files.
-- `filter_euk_bins` names gzip compressed bins after their own file, not the temporary file
-  uncompressed for EukRep.
 - `eukcc ncbi_update` no longer fails looking for an output folder it does not have.
 - The `filter_euk_bins` command works: the script had no `main` function for its entry point.
 - `eukcc folder` reruns in the same `--out` no longer reuse the merged contigs and the proteins
