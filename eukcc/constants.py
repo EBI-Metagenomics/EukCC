@@ -1,5 +1,6 @@
 # extensions of the bins used by eukcc folder, plain or gzip compressed
 FASTA_EXTENSIONS = (".fa", ".fna", ".fasta")
+FASTA_SUFFIXES = FASTA_EXTENSIONS + tuple(f"{ext}.gz" for ext in FASTA_EXTENSIONS)
 
 # extension of the merged bins written by eukcc folder
 DEFAULT_EXTENSION = ".fa"

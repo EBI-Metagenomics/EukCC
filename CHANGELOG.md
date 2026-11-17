@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.3.1
+
+### Breaking changes
+
+- `binlinks` takes the bin folder and the BAM files with `--binfolder` and `--alignment`, instead of
+  two positional arguments.
+
+### Fixed
+
+- `eukcc single --use_placement` no longer fails with a `TypeError`. It reuses the lineage and the
+  sub-database of the loaded marker gene set, as the placement tree of the previous run is not kept.
+  A path that does not exist is an error.
+- `eukcc single --genomes` no longer fails with a `KeyError` without `--ignore_tree`, or with an
+  `UnboundLocalError` with it. The set is defined on the genomes in both cases, and the lineage is
+  `NA`, as there is no placement in the tree.
+- `binlinks` reads the same bins as `eukcc folder`: `.fa`, `.fna` or `.fasta`, case insensitive and
+  optionally gzip compressed. Before, it only read `.fa` files.
+- `filter_euk_bins` names gzip compressed bins after their own file, not the temporary file
+  uncompressed for EukRep.
+
 ## 2.3.0
 
 ### Breaking changes

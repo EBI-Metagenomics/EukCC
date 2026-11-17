@@ -237,6 +237,16 @@ class eukcc:
             # load the old info
             old_state.load_state(self.state["use_placement"])
             self.state["marker_set"] = old_state["marker_set"]
+            # the placement tree was in the workdir of the previous run, so its lineage is reused;
+            # a set from define_set has no lineage
+            for key in ("lng", "lng_names"):
+                if old_state.get(key) is not None:
+                    self.state[key] = old_state[key]
+            # the profiles of the set are only in the database of the clade it was defined in
+            if old_state["clade"] is not None and old_state["clade"] != self.state["clade"]:
+                logging.info(f"Using the {old_state['clade']} database of the loaded set")
+                self.state["clade"] = old_state["clade"]
+                self.state["dbinfo"] = self.load_db(self.state["db"], clade=self.state["clade"])
             logging.info(
                 f"Loaded precomputed set with {len(self.state['marker_set']['profiles'])} profiles"
             )
@@ -245,7 +255,8 @@ class eukcc:
         # figure placement
         if self.placement() is None:
             return None
-        if self.state["ignore_tree"] and self.state["comparison_genomes"] is not None:
+        # the set is defined on the genomes, so there is no placement in the tree to use
+        if self.state["comparison_genomes"] is not None:
             logging.info(
                 "Will create custom marker set based on input genomes/proteomes"
             )
@@ -379,6 +390,10 @@ class eukcc:
 
     def add_taxid(self):
         pl = self.state["placement"]
+        # with --use_placement the lineage of the loaded set is kept, with --genomes there is none
+        if pl is None or "placements" not in pl.keys():
+            logging.debug("No placements in the tree, the lineage is not inferred")
+            return
         tree = pl["tog"]
         if "marker_set" in self.state.keys():
             places = self.state["marker_set"]["covered_pl"]

@@ -220,9 +220,10 @@ def run_eukcc(args):
 )
 @click.option(
     "--use_placement",
-    type=str,
+    type=click.Path(exists=True, dir_okay=False),
     default=None,
-    help="Path to previous result file, to use exact same marker gene set",
+    help="Marker gene set of a previous run, to use the exact same set: savestate.json.gz in the output "
+    "folder of eukcc single, or <name>.json.gz of eukcc define_set",
 )
 @click.option(
     "--set_number_species",

@@ -38,3 +38,12 @@ class test_check_set_size(unittest.TestCase):
             check_set_size({"set_size": 20, "max_set_size": 10})
         self.assertEqual(stop.exception.code, 1)
         self.assertIn("--max_set_size (10) cannot be smaller than --set_size (20)", logs.output[0])
+
+
+class test_add_taxid(unittest.TestCase):
+    def test_keeps_loaded_lineage_without_placement(self):
+        # --use_placement loads the lineage of the previous run, there is no placement to infer it from
+        eukcc_instance = eukcc.__new__(eukcc)
+        eukcc_instance.state = eukcc_state(options={"lng": ["1", "2759"], "lng_names": "root;Eukaryota"})
+        eukcc_instance.add_taxid()
+        self.assertEqual(eukcc_instance.state["lng"], ["1", "2759"])

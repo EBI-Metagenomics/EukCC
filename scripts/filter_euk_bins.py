@@ -24,43 +24,7 @@ import tempfile
 import gzip
 from multiprocessing import Pool
 from functools import partial
-
-
-# backup fasta handler, so we can use readonly directories
-class fa_class:
-    def __init__(self, seq, name, long_name):
-        self.seq = seq
-        self.name = name
-        self.long_name = long_name
-
-    def __str__(self):
-        return self.seq
-
-    def __len__(self):
-        return len(self.seq)
-
-
-def Fasta(path):
-    """
-    Iterator for fasta files
-    """
-    entry = False
-
-    with open(path) as fin:
-        for line in fin:
-            if line.startswith(">"):
-                if entry is not False:
-                    entry.seq = "".join(entry.seq)
-                    yield entry
-                # define new entry
-                long_name = line.strip()[1:]
-                name = long_name.split()[0]
-                entry = fa_class([], name, long_name)
-            else:
-                entry.seq.append(line.strip())
-        # yield last one
-        entry.seq = "".join(entry.seq)
-        yield entry
+from eukcc.fasta import Fasta
 
 
 def gunzip(path, tmp_dir):
@@ -190,10 +154,10 @@ def evaluate_bin(path, args):
         eukfile = os.path.join(tmp_dir, "euks.fna")
         bacfile = os.path.join(tmp_dir, "bacs.fna")
         # EukRep can not deal with Gzipped Fasta files, so we unzip it in case it is a Gzip file
-        path = gunzip(path, tmp_dir)
+        eukrep_path = gunzip(path, tmp_dir)
         # Launching EukRep
-        logging.debug(f"Starting EukRep on {path}")
-        eukrep_result = EukRep(path, eukfile, bacfile, minl=args.minl)
+        logging.debug(f"Starting EukRep on {eukrep_path}")
+        eukrep_result = EukRep(eukrep_path, eukfile, bacfile, minl=args.minl)
         eukrep_result.run()
         b = bin(path, eukrep_result)
         b.stats()

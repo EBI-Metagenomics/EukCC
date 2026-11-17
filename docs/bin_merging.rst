@@ -31,11 +31,13 @@ You can then create a bin_linking table by using the EukCC provided script:
 
 .. code-block:: shell
 
-    binlinks.py  --ANI 99 --within 1500 \
-        --out linktable.csv binfolder alignment.bam
+    binlinks.py --ANI 99 --within 1500 --out linktable.csv \
+        --binfolder binfolder --alignment alignment.bam
 
 
-If you have multiple bam files, pass all of them to the script (e.g. `*.bam`).
+If you have multiple bam files, pass all of them to ``--alignment`` (e.g. ``--alignment *.bam``).
+The script reads the bins ending in ``.fa``, ``.fna`` or ``.fasta``, case insensitive and
+optionally gzip compressed.
 
 You will obtain a three column file (bin_1,bin_2,links).
 
