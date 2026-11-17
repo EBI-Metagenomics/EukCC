@@ -255,7 +255,8 @@ class eukcc:
         # figure placement
         if self.placement() is None:
             return None
-        if self.state["ignore_tree"] and self.state["comparison_genomes"] is not None:
+        # the set is defined on the genomes, so there is no placement in the tree to use
+        if self.state["comparison_genomes"] is not None:
             logging.info(
                 "Will create custom marker set based on input genomes/proteomes"
             )
@@ -389,8 +390,9 @@ class eukcc:
 
     def add_taxid(self):
         pl = self.state["placement"]
-        if pl is None:
-            logging.debug("No placement in this run, keeping the lineage of the loaded marker set")
+        # with --use_placement the lineage of the loaded set is kept, with --genomes there is none
+        if pl is None or "placements" not in pl.keys():
+            logging.debug("No placements in the tree, the lineage is not inferred")
             return
         tree = pl["tog"]
         if "marker_set" in self.state.keys():

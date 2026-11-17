@@ -41,8 +41,10 @@ Options:
                                 option for several taxids
   --genomes TEXT                Genome file to base a SCMG set upon, repeat
                                 the option for several genomes
-  --use_placement FILE          Path to previous result file, to use exact
-                                same marker gene set
+  --use_placement FILE          Marker gene set of a previous run, to use the
+                                exact same set: savestate.json.gz in the
+                                output folder of eukcc single, or
+                                <name>.json.gz of eukcc define_set
   --set_number_species INTEGER  Minimal number of reference species a set is
                                 defined on. Reduce this if no sets can be
                                 found (Default: 3)

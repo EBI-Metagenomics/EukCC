@@ -106,14 +106,20 @@ def main():
     # set arguments
     # arguments are passed to classes
     parser = argparse.ArgumentParser(
-        description="Evaluate completeness and contamination of a MAG."
+        description="Count the read pairs linking bins, for eukcc folder --links."
     )
-    parser.add_argument("bindir", type=str, help="Run script on these bins")
     parser.add_argument(
-        "bam",
+        "--binfolder",
         type=str,
-        help="Bam file(s) with reads aligned against all contigs making up the bins",
+        required=True,
+        help="Folder with the bins: .fa, .fna or .fasta files, optionally gzip compressed",
+    )
+    parser.add_argument(
+        "--alignment",
+        type=str,
+        required=True,
         nargs="+",
+        help="Bam file(s) with paired reads aligned against all contigs making up the bins",
     )
     parser.add_argument(
         "--out",
@@ -169,7 +175,7 @@ def main():
         level=logLevel,
     )
 
-    bindir = args.bindir
+    bindir = args.binfolder
 
     cm = contig_map(bindir)
     bm, contigs_per_bin = bin_map(bindir)
@@ -179,7 +185,7 @@ def main():
     bin_table = defaultdict(lambda: defaultdict(int))
 
     # iterate all bam files
-    for bamf in args.bam:
+    for bamf in args.alignment:
         link_table = read_bam_file(bamf, link_table, cm, args.within, args.ANI)
 
     logging.debug(f"Created link table with {len(link_table)} entries")
